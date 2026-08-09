@@ -1,0 +1,18 @@
+{
+  "name": "ecommerce-api",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "elysia": "^1.4.29"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20260809.1",
+    "typescript": "^7.0.2",
+    "wrangler": "^4.120.0"
+  }
+}

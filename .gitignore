@@ -6,8 +6,10 @@ node_modules/
 .next/
 out/
 
-/api/bin/
-/api/tmp/
+.wrangler/
+.dev.vars
+.dev.vars.*
+!.dev.vars.example
 
 .DS_Store
 Thumbs.db
