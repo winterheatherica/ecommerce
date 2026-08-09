@@ -1,4 +1,6 @@
 import Image from "next/image";
+import ProblemPicker from "./components/problem-picker";
+import FeaturedProducts from "./components/featured-products";
 
 export default function Home() {
   return (
@@ -60,13 +62,8 @@ export default function Home() {
         <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 h-48 bg-linear-to-t from-accent-950/60 via-accent-900/20 to-transparent" />
       </section>
 
-      <section id="produk" className="mx-auto w-full max-w-6xl px-6 py-24">
-        <p className="font-mono text-[11px] tracking-[0.28em] text-accent-600 uppercase">
-          Katalog
-        </p>
-        <h2 className="mt-3 text-3xl font-semibold tracking-tight">Produk</h2>
-        <p className="mt-2 text-muted">Grid produk menyusul.</p>
-      </section>
+      <ProblemPicker />
+      <FeaturedProducts />
     </>
   );
 }
