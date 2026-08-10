@@ -40,16 +40,40 @@ export default function SiteHeader() {
       ].join(" ")}
     >
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
-        <a href="/" className="font-mono text-sm tracking-[0.35em] text-ink uppercase">
+        <a
+          href="/"
+          className="shrink-0 font-mono text-xs tracking-[0.12em] whitespace-nowrap text-ink uppercase sm:text-sm sm:tracking-[0.35em]"
+        >
           Menik Store
         </a>
 
-        <nav className="flex items-center gap-8 font-mono text-[11px] tracking-[0.22em] text-ink/70 uppercase">
-          <a href="#produk" className="transition-colors hover:text-brand-600">
+        <nav className="flex shrink-0 items-center gap-4 font-mono text-[11px] tracking-[0.16em] text-ink/70 uppercase sm:gap-8 sm:tracking-[0.22em]">
+          <a
+            href="/"
+            aria-label="Beranda"
+            title="Beranda"
+            className="transition-colors hover:text-brand-600"
+          >
+            <svg
+              className="h-[18px] w-[18px]"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={1.6}
+              aria-hidden="true"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M3 10.5 12 3l9 7.5M5.25 9.75v9a1.5 1.5 0 0 0 1.5 1.5H9.75v-5.25a1.5 1.5 0 0 1 1.5-1.5h1.5a1.5 1.5 0 0 1 1.5 1.5v5.25h3a1.5 1.5 0 0 0 1.5-1.5v-9"
+              />
+            </svg>
+          </a>
+          <a href="/produk" className="transition-colors hover:text-brand-600">
             Produk
           </a>
-          <a href="#tentang" className="hidden transition-colors hover:text-brand-600 sm:block">
-            Tentang
+          <a href="/faq" className="transition-colors hover:text-brand-600">
+            FAQ
           </a>
           <a
             href="#kontak"

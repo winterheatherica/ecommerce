@@ -34,8 +34,8 @@ export default function SiteFooter() {
         />
 
         <div className="absolute inset-0 bg-linear-to-r from-white/90 via-white/55 to-transparent" />
-        <div className="absolute inset-x-0 top-0 h-44 bg-linear-to-b from-brand-500/35 to-transparent" />
-        <div className="absolute inset-x-0 bottom-0 h-44 bg-linear-to-t from-accent-950 from-0% via-accent-950/55 via-42% to-transparent" />
+        <div className="absolute inset-x-0 top-0 h-20 bg-linear-to-b from-brand-500/25 to-transparent" />
+        <div className="absolute inset-x-0 bottom-0 h-40 bg-linear-to-t from-accent-950 from-0% via-accent-950/55 via-42% to-transparent" />
 
         <div className="relative mx-auto max-w-6xl px-6 pt-28 pb-56">
           <div className="max-w-lg">
