@@ -10,11 +10,11 @@ const produk = [
 ];
 
 const bantuan = [
-  "Cara Pemesanan",
-  "Lacak Pesanan",
-  "Ongkos Kirim",
-  "Pengembalian Barang",
-  "Pertanyaan Umum",
+  { label: "Cara Pemesanan", href: "/faq" },
+  { label: "Lacak Pesanan", href: "/faq" },
+  { label: "Ongkos Kirim", href: "/faq" },
+  { label: "Pengembalian Barang", href: "/faq" },
+  { label: "Pertanyaan Umum", href: "/faq" },
 ];
 
 const sosial = ["WhatsApp", "Instagram", "TikTok", "Shopee"];
@@ -114,12 +114,12 @@ export default function SiteFooter() {
                 </p>
                 <ul className="mt-6 space-y-3">
                   {bantuan.map((b) => (
-                    <li key={b}>
+                    <li key={b.label}>
                       <a
-                        href="#"
+                        href={b.href}
                         className="text-sm text-white/70 transition-colors hover:text-white"
                       >
-                        {b}
+                        {b.label}
                       </a>
                     </li>
                   ))}
