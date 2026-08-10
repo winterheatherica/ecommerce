@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 
 const THRESHOLD = 8;
 const TOP_ZONE = 80;
@@ -9,6 +10,13 @@ export default function SiteHeader() {
   const [hidden, setHidden] = useState(false);
   const [atTop, setAtTop] = useState(true);
   const lastY = useRef(0);
+  const pathname = usePathname();
+
+  const aktif = (href: string) =>
+    href === "/" ? pathname === "/" : pathname.startsWith(href);
+
+  const kelasNav = (href: string) =>
+    aktif(href) ? "text-brand-600" : "transition-colors hover:text-brand-600";
 
   useEffect(() => {
     const onScroll = () => {
@@ -52,7 +60,8 @@ export default function SiteHeader() {
             href="/"
             aria-label="Beranda"
             title="Beranda"
-            className="transition-colors hover:text-brand-600"
+            aria-current={aktif("/") ? "page" : undefined}
+            className={kelasNav("/")}
           >
             <svg
               className="h-[18px] w-[18px]"
@@ -69,15 +78,23 @@ export default function SiteHeader() {
               />
             </svg>
           </a>
-          <a href="/produk" className="transition-colors hover:text-brand-600">
+          <a
+            href="/produk"
+            aria-current={aktif("/produk") ? "page" : undefined}
+            className={kelasNav("/produk")}
+          >
             Produk
           </a>
-          <a href="/faq" className="transition-colors hover:text-brand-600">
+          <a
+            href="/faq"
+            aria-current={aktif("/faq") ? "page" : undefined}
+            className={kelasNav("/faq")}
+          >
             FAQ
           </a>
           <a
             href="#kontak"
-            className="border-b border-ink/40 pb-1 text-ink transition-colors hover:border-brand-600 hover:text-brand-600"
+            className="font-semibold text-ink transition-colors hover:text-brand-600"
           >
             WhatsApp
           </a>

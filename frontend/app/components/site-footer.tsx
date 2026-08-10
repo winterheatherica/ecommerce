@@ -29,13 +29,14 @@ export default function SiteFooter() {
           src="/footer-cropped.jpg"
           alt=""
           fill
+          quality={92}
           sizes="100vw"
           className="object-cover object-center"
         />
 
         <div className="absolute inset-0 bg-linear-to-r from-white/90 via-white/55 to-transparent" />
-        <div className="absolute inset-x-0 top-0 h-20 bg-linear-to-b from-brand-500/25 to-transparent" />
-        <div className="absolute inset-x-0 bottom-0 h-40 bg-linear-to-t from-accent-950 from-0% via-accent-950/55 via-42% to-transparent" />
+        <div className="absolute inset-x-0 top-0 h-40 bg-linear-to-b from-white/45 to-transparent" />
+        <div className="absolute inset-x-0 bottom-0 h-40 bg-[linear-gradient(to_top,#0b1531_0%,#0b1531db_7%,#0b1531ba_13%,#0b15319c_20%,#0b153181_27%,#0b153169_33%,#0b153154_40%,#0b153141_47%,#0b153130_53%,#0b153123_60%,#0b153117_67%,#0b15310e_73%,#0b153108_80%,#0b153103_87%,#0b153101_93%,#0b153100_100%)]" />
 
         <div className="relative mx-auto max-w-6xl px-6 pt-28 pb-56">
           <div className="max-w-lg">
