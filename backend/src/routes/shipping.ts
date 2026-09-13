@@ -1,7 +1,7 @@
 import { env } from "cloudflare:workers";
 import { Elysia, t } from "elysia";
 
-import { buatKoneksi } from "../lib/db";
+import { buatKoneksi, tutup } from "../lib/db";
 import { ambilWilayah, cariWilayah } from "../db/wilayah";
 import { opsiOngkir } from "../lib/shipping";
 
@@ -23,7 +23,7 @@ export const shippingRoutes = new Elysia()
       try {
         return { data: await cariWilayah(sql, kata, batas) };
       } finally {
-        await sql.end();
+        await tutup(sql);
       }
     },
     {
@@ -55,7 +55,7 @@ export const shippingRoutes = new Elysia()
           options: opsiOngkir(tujuan.province, body.weight_g),
         };
       } finally {
-        await sql.end();
+        await tutup(sql);
       }
     },
     {

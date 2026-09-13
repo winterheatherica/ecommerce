@@ -1,7 +1,7 @@
 import { env } from "cloudflare:workers";
 import { Elysia, t } from "elysia";
 
-import { buatKoneksi } from "../lib/db";
+import { buatKoneksi, tutup } from "../lib/db";
 import { buatPesanan, cariPesanan } from "../db/pesanan";
 
 export const orderRoutes = new Elysia({ prefix: "/api/orders" })
@@ -20,7 +20,7 @@ export const orderRoutes = new Elysia({ prefix: "/api/orders" })
 
         return pesanan;
       } finally {
-        await sql.end();
+        await tutup(sql);
       }
     },
     {
@@ -51,7 +51,7 @@ export const orderRoutes = new Elysia({ prefix: "/api/orders" })
           expires_at: hasil.pesanan.expires_at,
         };
       } finally {
-        await sql.end();
+        await tutup(sql);
       }
     },
     {

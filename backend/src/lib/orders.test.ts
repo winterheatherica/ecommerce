@@ -2,7 +2,9 @@ import { describe, expect, it } from "vitest";
 
 import {
   bersihkanHp,
+  emailSah,
   gabungkanItem,
+  hpSah,
   kedaluwarsa,
   nomorPesananBaru,
 } from "./orders";
@@ -89,5 +91,46 @@ describe("gabungkanItem", () => {
     ]);
 
     expect(hasil.map((i) => i.slug)).toEqual(["a", "m", "z"]);
+  });
+});
+
+describe("hpSah", () => {
+  it("menerima nomor Indonesia yang wajar", () => {
+    for (const hp of [
+      "081234567890",
+      "0812-3456-7890",
+      "0812 3456 7890",
+      "+6281234567890",
+      "085712345678",
+    ]) {
+      expect(hpSah(hp), hp).toBe(true);
+    }
+  });
+
+  it("menolak yang bukan nomor", () => {
+    for (const hp of [
+      "abcdefghij",
+      "1234567890",
+      "081",
+      "08123456789012345",
+      "",
+      "0812345678a",
+    ]) {
+      expect(hpSah(hp), hp).toBe(false);
+    }
+  });
+});
+
+describe("emailSah", () => {
+  it("menerima alamat yang wajar", () => {
+    for (const e of ["a@b.co", "rina.kartika@gmail.com", "halo+toko@menik.id"]) {
+      expect(emailSah(e), e).toBe(true);
+    }
+  });
+
+  it("menolak yang jelas salah", () => {
+    for (const e of ["bukan-email", "a@b", "a b@c.com", "@b.co", "a@.co"]) {
+      expect(emailSah(e), e).toBe(false);
+    }
   });
 });

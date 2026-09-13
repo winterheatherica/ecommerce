@@ -5,7 +5,7 @@ export type Wilayah = {
   province: string;
   city: string;
   district: string;
-  postal_code: string;
+  postal_code: string | null;
   label: string;
 };
 
@@ -56,7 +56,6 @@ export type PesananBaru = {
   dest_id: string;
   courier: string;
   service: string;
-  etd: string;
   items: { slug: string; qty: number }[];
 };
 

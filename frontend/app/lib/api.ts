@@ -9,7 +9,7 @@ type ProdukAPI = {
   id: number;
   slug: string;
   name: string;
-  description: string;
+  description: string | null;
   price: number;
   weight_g: number;
   stock: number;
@@ -30,7 +30,7 @@ function petakan(p: ProdukAPI): Produk {
   return {
     slug: p.slug,
     nama: p.name,
-    deskripsi: p.description,
+    deskripsi: p.description ?? "",
     harga: p.price,
     kategori: p.category as Kategori,
     beratG: p.weight_g,

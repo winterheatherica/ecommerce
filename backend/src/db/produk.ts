@@ -103,14 +103,28 @@ export async function satuProduk(
   return produk;
 }
 
-export async function daftarProdukAdmin(sql: Sql) {
-  const baris = await sql<BarisProduk[]>`
-    select ${kolom(sql)}
+export async function daftarProdukAdmin(sql: Sql, limit = 100, offset = 0) {
+  const baris = await sql<(BarisProduk & { total: number })[]>`
+    select
+      ${kolom(sql)},
+      (count(*) over ())::int as total
     from products
     order by sort_order
+    limit ${limit}
+    offset ${offset}
   `;
 
-  return { data: [...baris], total: baris.length };
+  if (baris.length === 0) {
+    const [hasil] = await sql<{ total: number }[]>`
+      select count(*)::int as total from products
+    `;
+    return { data: [], total: hasil?.total ?? 0 };
+  }
+
+  return {
+    data: baris.map(({ total: _abaikan, ...sisa }) => sisa),
+    total: baris[0].total,
+  };
 }
 
 export async function satuProdukAdmin(

@@ -1,7 +1,7 @@
 import { env } from "cloudflare:workers";
 import { Elysia, t } from "elysia";
 
-import { buatKoneksi, type Sql } from "../lib/db";
+import { buatKoneksi, tutup, type Sql } from "../lib/db";
 import { tandaiTerbayar } from "../db/pesanan";
 
 type Peristiwa = {
@@ -10,11 +10,29 @@ type Peristiwa = {
   payload: unknown;
 };
 
-async function catat(sql: Sql, p: Peristiwa, diproses: boolean): Promise<void> {
-  await sql`
+async function catat(sql: Sql, p: Peristiwa): Promise<number> {
+  const [baris] = await sql<{ id: number }[]>`
     insert into webhook_events (provider, external_id, event_type, payload, processed)
-    values ('xendit', ${p.external_id}, ${p.status}, ${JSON.stringify(p.payload)}::jsonb, ${diproses})
+    values ('xendit', ${p.external_id}, ${p.status}, ${JSON.stringify(p.payload)}::jsonb, false)
+    returning id::int as id
   `;
+
+  return baris.id;
+}
+
+async function tandaiDiproses(sql: Sql, id: number): Promise<void> {
+  await sql`update webhook_events set processed = true where id = ${id}`;
+}
+
+function samaAman(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+
+  let beda = 0;
+  for (let i = 0; i < a.length; i++) {
+    beda |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  }
+
+  return beda === 0;
 }
 
 export const webhookRoutes = new Elysia().post(
@@ -24,7 +42,7 @@ export const webhookRoutes = new Elysia().post(
     const token = headers["x-callback-token"];
     const diharapkan = wadah.XENDIT_CALLBACK_TOKEN;
 
-    if (!diharapkan || token !== diharapkan) {
+    if (!diharapkan || !token || !samaAman(token, diharapkan)) {
       set.status = 401;
       return { error: "unauthorized", message: "Token callback tidak cocok" };
     }
@@ -38,8 +56,9 @@ export const webhookRoutes = new Elysia().post(
     };
 
     try {
+      const idPeristiwa = await catat(sql, peristiwa);
+
       if (body.status !== "PAID" || !body.external_id) {
-        await catat(sql, peristiwa, false);
         return { received: true, ignored: true };
       }
 
@@ -49,11 +68,11 @@ export const webhookRoutes = new Elysia().post(
         body.payment_method ?? null,
       );
 
-      await catat(sql, peristiwa, hasil.ok);
+      if (hasil.ok) await tandaiDiproses(sql, idPeristiwa);
 
       return { received: true, applied: hasil.ok && !hasil.sudahPernah };
     } finally {
-      await sql.end();
+      await tutup(sql);
     }
   },
   {

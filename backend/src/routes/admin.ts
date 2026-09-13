@@ -2,7 +2,7 @@ import { env } from "cloudflare:workers";
 import { Elysia, t } from "elysia";
 
 import { periksaAdmin } from "../lib/auth";
-import { buatKoneksi } from "../lib/db";
+import { buatKoneksi, tutup } from "../lib/db";
 import { periksaPerubahan, periksaProdukBaru } from "../lib/products";
 import {
   daftarProdukAdmin,
@@ -52,7 +52,7 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
           offset,
         });
       } finally {
-        await sql.end();
+        await tutup(sql);
       }
     },
     {
@@ -90,7 +90,7 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
 
         return hasil.pesanan;
       } finally {
-        await sql.end();
+        await tutup(sql);
       }
     },
     {
@@ -111,18 +111,27 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
         order_nos: disapu,
       };
     } finally {
-      await sql.end();
+      await tutup(sql);
     }
   })
-  .get("/products", async () => {
-    const sql = koneksi();
+  .get(
+    "/products",
+    async ({ query }) => {
+      const sql = koneksi();
 
-    try {
-      return await daftarProdukAdmin(sql);
-    } finally {
-      await sql.end();
-    }
-  })
+      try {
+        return await daftarProdukAdmin(sql, query.limit ?? 100, query.offset ?? 0);
+      } finally {
+        await tutup(sql);
+      }
+    },
+    {
+      query: t.Object({
+        limit: t.Optional(t.Numeric({ minimum: 1, maximum: 200 })),
+        offset: t.Optional(t.Numeric({ minimum: 0 })),
+      }),
+    },
+  )
   .get(
     "/products/:slug",
     async ({ params, set }) => {
@@ -138,7 +147,7 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
 
         return produk;
       } finally {
-        await sql.end();
+        await tutup(sql);
       }
     },
     { params: t.Object({ slug: t.String({ maxLength: 120 }) }) },
@@ -170,7 +179,7 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
         set.status = 201;
         return hasil.produk;
       } finally {
-        await sql.end();
+        await tutup(sql);
       }
     },
     {
@@ -211,7 +220,7 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
 
         return produk;
       } finally {
-        await sql.end();
+        await tutup(sql);
       }
     },
     {

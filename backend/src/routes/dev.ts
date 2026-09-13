@@ -2,7 +2,7 @@ import { env } from "cloudflare:workers";
 import { Elysia, t } from "elysia";
 
 import { periksaAdmin } from "../lib/auth";
-import { buatKoneksi } from "../lib/db";
+import { buatKoneksi, tutup } from "../lib/db";
 import { tandaiTerbayar } from "../db/pesanan";
 
 export const devRoutes = new Elysia({ prefix: "/api/dev" })
@@ -43,7 +43,7 @@ export const devRoutes = new Elysia({ prefix: "/api/dev" })
           already_paid: hasil.sudahPernah,
         };
       } finally {
-        await sql.end();
+        await tutup(sql);
       }
     },
     {

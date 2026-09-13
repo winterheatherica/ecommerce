@@ -1,8 +1,11 @@
 import type { Kueri, Sql } from "../lib/db";
 import {
-  gabungkanItem,
-  nomorPesananBaru,
+  BATAS_RUPIAH,
   bersihkanHp,
+  emailSah,
+  gabungkanItem,
+  hpSah,
+  nomorPesananBaru,
   type ItemDiminta,
   type StatusPesanan,
 } from "../lib/orders";
@@ -302,6 +305,28 @@ export async function buatPesanan(
   req: PermintaanPesanan,
   storefrontUrl: string,
 ): Promise<HasilBuat> {
+  if (!hpSah(req.phone)) {
+    return {
+      ok: false,
+      status: 422,
+      badan: {
+        error: "invalid_phone",
+        message: "Nomor HP tidak valid. Contoh: 081234567890",
+      },
+    };
+  }
+
+  if (req.email && req.email.trim() && !emailSah(req.email)) {
+    return {
+      ok: false,
+      status: 422,
+      badan: {
+        error: "invalid_email",
+        message: "Alamat email tidak valid",
+      },
+    };
+  }
+
   const [tujuan] = await sql<{ id: string; province: string }[]>`
     select id, province from regions where id = ${req.dest_id} limit 1
   `;
@@ -330,6 +355,16 @@ export async function buatPesanan(
 
         const subtotal = baris.reduce((s, b) => s + b.produk.price * b.qty, 0);
         const weight_g = baris.reduce((s, b) => s + b.produk.weight_g * b.qty, 0);
+
+        if (subtotal > BATAS_RUPIAH) {
+          throw new GagalPesanan({
+            status: 422,
+            badan: {
+              error: "order_too_large",
+              message: "Nilai pesanan melebihi batas yang bisa diproses",
+            },
+          });
+        }
 
         const opsi = cariOpsi(tujuan.province, weight_g, req.courier, req.service);
 

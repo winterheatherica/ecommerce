@@ -17,3 +17,11 @@ export function buatKoneksi(env: Record<string, unknown>): Sql {
     fetch_types: false,
   });
 }
+
+export async function tutup(sql: Sql): Promise<void> {
+  try {
+    await sql.end();
+  } catch (e) {
+    console.error("[db] gagal menutup koneksi", e);
+  }
+}

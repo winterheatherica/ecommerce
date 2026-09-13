@@ -232,6 +232,53 @@ describe("buatPesanan", () => {
     expect(pesanan.tracking_number).toBeNull();
   });
 
+  it("menolak nomor HP yang bukan nomor, tanpa menyentuh stok", async () => {
+    const sebelum = await stok(KUCING);
+    const hasil = await buatPesanan(
+      sql,
+      permintaan({ phone: "abcdefghij" }),
+      TOKO,
+    );
+
+    expect(hasil.ok).toBe(false);
+    if (hasil.ok) return;
+    expect(hasil.status).toBe(422);
+    expect(hasil.badan.error).toBe("invalid_phone");
+    expect(await stok(KUCING)).toBe(sebelum);
+  });
+
+  it("menolak email yang tidak valid", async () => {
+    const hasil = await buatPesanan(
+      sql,
+      permintaan({ email: "bukan-email" }),
+      TOKO,
+    );
+
+    expect(hasil.ok).toBe(false);
+    if (hasil.ok) return;
+    expect(hasil.badan.error).toBe("invalid_email");
+  });
+
+  it("menerima pesanan tanpa email", async () => {
+    const hasil = await buatPesanan(sql, permintaan({ email: "" }), TOKO);
+
+    expect(hasil.ok).toBe(true);
+  });
+
+  it("menolak nilai pesanan yang melampaui batas integer, stok kembali utuh", async () => {
+    await sql`update products set price = 100000000, stock = 99 where slug = ${KUCING}`;
+    const hasil = await buatPesanan(
+      sql,
+      permintaan({ items: [{ slug: KUCING, qty: 99 }] }),
+      TOKO,
+    );
+
+    expect(hasil.ok).toBe(false);
+    if (hasil.ok) return;
+    expect(hasil.badan.error).toBe("order_too_large");
+    expect(await stok(KUCING)).toBe(99);
+  });
+
   it("menyertakan label kecamatan hasil join", async () => {
     const pesanan = await buat();
 

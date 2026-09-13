@@ -1,7 +1,7 @@
 import { env } from "cloudflare:workers";
 import { Elysia, t } from "elysia";
 
-import { buatKoneksi } from "../lib/db";
+import { buatKoneksi, tutup } from "../lib/db";
 import { daftarProduk, satuProduk } from "../db/produk";
 
 const BATAS_BAWAAN = 24;
@@ -24,7 +24,7 @@ export const productRoutes = new Elysia({ prefix: "/api/products" })
 
         return { ...hasil, limit, offset };
       } finally {
-        await sql.end();
+        await tutup(sql);
       }
     },
     {
@@ -52,7 +52,7 @@ export const productRoutes = new Elysia({ prefix: "/api/products" })
 
         return produk;
       } finally {
-        await sql.end();
+        await tutup(sql);
       }
     },
     {

@@ -140,7 +140,6 @@ export default function CheckoutForm({ produk }: { produk: Produk[] }) {
         dest_id: tujuan.id,
         courier: ongkirDipilih.courier,
         service: ongkirDipilih.service,
-        etd: ongkirDipilih.etd,
         items: baris.map((b) => ({ slug: b.produk.slug, qty: b.qty })),
       });
 

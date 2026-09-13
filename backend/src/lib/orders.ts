@@ -46,3 +46,16 @@ export function gabungkanItem(items: ItemDiminta[]): ItemDiminta[] {
     .map(([slug, qty]) => ({ slug, qty }))
     .sort((a, b) => a.slug.localeCompare(b.slug));
 }
+
+const POLA_HP = /^(?:0|\+62)\d{8,13}$/;
+const POLA_EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+export const BATAS_RUPIAH = 2_000_000_000;
+
+export function hpSah(phone: string): boolean {
+  return POLA_HP.test(bersihkanHp(phone));
+}
+
+export function emailSah(email: string): boolean {
+  return POLA_EMAIL.test(email.trim());
+}
