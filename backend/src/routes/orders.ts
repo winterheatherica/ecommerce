@@ -1,30 +1,27 @@
 import { env } from "cloudflare:workers";
 import { Elysia, t } from "elysia";
 
-import { orderItems, type Order } from "../data/orders";
-import { buatPesanan, cariPesanan } from "../lib/orders";
-
-function lengkapi(o: Order) {
-  return {
-    ...o,
-    items: orderItems
-      .filter((i) => i.order_id === o.id)
-      .map(({ order_id: _abaikan, ...sisa }) => sisa),
-  };
-}
+import { buatKoneksi } from "../lib/db";
+import { buatPesanan, cariPesanan } from "../db/pesanan";
 
 export const orderRoutes = new Elysia({ prefix: "/api/orders" })
   .get(
     "/:orderNo",
-    ({ params, set }) => {
-      const pesanan = cariPesanan(params.orderNo);
+    async ({ params, set }) => {
+      const sql = buatKoneksi(env as unknown as Record<string, unknown>);
 
-      if (!pesanan) {
-        set.status = 404;
-        return { error: "not_found", message: "Pesanan tidak ditemukan" };
+      try {
+        const pesanan = await cariPesanan(sql, params.orderNo);
+
+        if (!pesanan) {
+          set.status = 404;
+          return { error: "not_found", message: "Pesanan tidak ditemukan" };
+        }
+
+        return pesanan;
+      } finally {
+        await sql.end();
       }
-
-      return lengkapi(pesanan);
     },
     {
       params: t.Object({ orderNo: t.String({ maxLength: 40 }) }),
@@ -32,26 +29,30 @@ export const orderRoutes = new Elysia({ prefix: "/api/orders" })
   )
   .post(
     "/",
-    ({ body, set }) => {
-      const storefront =
-        (env as unknown as Record<string, string>).STOREFRONT_URL ??
-        "http://localhost:3000";
+    async ({ body, set }) => {
+      const wadah = env as unknown as Record<string, string>;
+      const storefront = wadah.STOREFRONT_URL ?? "http://localhost:3000";
+      const sql = buatKoneksi(wadah);
 
-      const hasil = buatPesanan(body, storefront);
+      try {
+        const hasil = await buatPesanan(sql, body, storefront);
 
-      if (!hasil.ok) {
-        set.status = hasil.status;
-        return hasil.badan;
+        if (!hasil.ok) {
+          set.status = hasil.status;
+          return hasil.badan;
+        }
+
+        set.status = 201;
+        return {
+          order_no: hasil.pesanan.order_no,
+          status: hasil.pesanan.status,
+          total: hasil.pesanan.total,
+          invoice_url: hasil.pesanan.xendit_invoice_url,
+          expires_at: hasil.pesanan.expires_at,
+        };
+      } finally {
+        await sql.end();
       }
-
-      set.status = 201;
-      return {
-        order_no: hasil.pesanan.order_no,
-        status: hasil.pesanan.status,
-        total: hasil.pesanan.total,
-        invoice_url: hasil.pesanan.xendit_invoice_url,
-        expires_at: hasil.pesanan.expires_at,
-      };
     },
     {
       body: t.Object({

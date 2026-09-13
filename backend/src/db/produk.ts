@@ -1,4 +1,5 @@
 import type { Sql } from "../lib/db";
+import type { PerubahanBersih, ProdukBersih } from "../lib/products";
 
 export type BarisProduk = {
   id: number;
@@ -23,6 +24,21 @@ export type FilterProduk = {
   offset: number;
 };
 
+const kolom = (sql: Sql) => sql`
+  id::int as id,
+  slug,
+  name,
+  description,
+  price,
+  weight_g,
+  stock,
+  category,
+  sold_per_month,
+  is_featured,
+  sort_order,
+  is_active
+`;
+
 function bersihkan(f: FilterProduk) {
   return {
     kategori: f.category?.trim() || null,
@@ -36,18 +52,7 @@ export async function daftarProduk(sql: Sql, f: FilterProduk) {
 
   const baris = await sql<(BarisProduk & { total: number })[]>`
     select
-      id::int as id,
-      slug,
-      name,
-      description,
-      price,
-      weight_g,
-      stock,
-      category,
-      sold_per_month,
-      is_featured,
-      sort_order,
-      is_active,
+      ${kolom(sql)},
       (count(*) over ())::int as total
     from products
     where is_active
@@ -89,22 +94,102 @@ export async function satuProduk(
   slug: string,
 ): Promise<BarisProduk | undefined> {
   const [produk] = await sql<BarisProduk[]>`
-    select
-      id::int as id,
-      slug,
-      name,
-      description,
-      price,
-      weight_g,
-      stock,
-      category,
-      sold_per_month,
-      is_featured,
-      sort_order,
-      is_active
+    select ${kolom(sql)}
     from products
     where slug = ${slug} and is_active
     limit 1
+  `;
+
+  return produk;
+}
+
+export async function daftarProdukAdmin(sql: Sql) {
+  const baris = await sql<BarisProduk[]>`
+    select ${kolom(sql)}
+    from products
+    order by sort_order
+  `;
+
+  return { data: [...baris], total: baris.length };
+}
+
+export async function satuProdukAdmin(
+  sql: Sql,
+  slug: string,
+): Promise<BarisProduk | undefined> {
+  const [produk] = await sql<BarisProduk[]>`
+    select ${kolom(sql)}
+    from products
+    where slug = ${slug}
+    limit 1
+  `;
+
+  return produk;
+}
+
+export type HasilSimpan =
+  | { ok: true; produk: BarisProduk }
+  | { ok: false; alasan: "slug_taken" };
+
+function slugBentrok(e: unknown): boolean {
+  return (
+    typeof e === "object" &&
+    e !== null &&
+    "code" in e &&
+    (e as { code: unknown }).code === "23505"
+  );
+}
+
+export async function simpanProdukBaru(
+  sql: Sql,
+  b: ProdukBersih,
+): Promise<HasilSimpan> {
+  try {
+    const [produk] = await sql<BarisProduk[]>`
+      insert into products (
+        slug, name, description, price, weight_g, stock,
+        category, is_featured, sold_per_month, sort_order, is_active
+      )
+      values (
+        ${b.slug},
+        ${b.name},
+        ${b.description},
+        ${b.price},
+        ${b.weight_g},
+        ${b.stock},
+        ${b.category},
+        ${b.is_featured},
+        ${b.sold_per_month},
+        coalesce(
+          ${b.sort_order}::int,
+          (select coalesce(max(sort_order), 0) + 1 from products)
+        ),
+        ${b.is_active}
+      )
+      returning ${kolom(sql)}
+    `;
+
+    return { ok: true, produk };
+  } catch (e) {
+    if (slugBentrok(e)) return { ok: false, alasan: "slug_taken" };
+    throw e;
+  }
+}
+
+export async function perbaruiProduk(
+  sql: Sql,
+  slug: string,
+  b: PerubahanBersih,
+): Promise<BarisProduk | undefined> {
+  if (Object.keys(b).length === 0) {
+    return satuProdukAdmin(sql, slug);
+  }
+
+  const [produk] = await sql<BarisProduk[]>`
+    update products
+    set ${sql(b as Record<string, never>)}
+    where slug = ${slug}
+    returning ${kolom(sql)}
   `;
 
   return produk;

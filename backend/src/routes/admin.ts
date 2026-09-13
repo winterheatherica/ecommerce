@@ -1,11 +1,21 @@
 import { env } from "cloudflare:workers";
 import { Elysia, t } from "elysia";
 
-import { products } from "../data/products";
-import { orderItems, orders, type Order } from "../data/orders";
 import { periksaAdmin } from "../lib/auth";
-import { buatProduk, ubahProduk } from "../lib/products";
-import { sapuKedaluwarsa } from "../lib/orders";
+import { buatKoneksi } from "../lib/db";
+import { periksaPerubahan, periksaProdukBaru } from "../lib/products";
+import {
+  daftarProdukAdmin,
+  perbaruiProduk,
+  satuProdukAdmin,
+  simpanProdukBaru,
+} from "../db/produk";
+import {
+  daftarPesanan,
+  sapuKedaluwarsa,
+  tandaiDikirim,
+} from "../db/pesanan";
+import type { StatusPesanan } from "../lib/orders";
 
 const STATUS = [
   "PENDING",
@@ -16,13 +26,8 @@ const STATUS = [
   "CANCELLED",
 ] as const;
 
-function lengkapi(o: Order) {
-  return {
-    ...o,
-    items: orderItems
-      .filter((i) => i.order_id === o.id)
-      .map(({ order_id: _abaikan, ...sisa }) => sisa),
-  };
+function koneksi() {
+  return buatKoneksi(env as unknown as Record<string, unknown>);
 }
 
 export const adminRoutes = new Elysia({ prefix: "/api/admin" })
@@ -36,20 +41,19 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
   })
   .get(
     "/orders",
-    ({ query }) => {
+    async ({ query }) => {
       const { status, limit = 50, offset = 0 } = query;
+      const sql = koneksi();
 
-      sapuKedaluwarsa();
-
-      let hasil = [...orders];
-      if (status) hasil = hasil.filter((o) => o.status === status);
-
-      hasil.sort((a, b) => b.created_at.localeCompare(a.created_at));
-
-      return {
-        data: hasil.slice(offset, offset + limit).map(lengkapi),
-        total: hasil.length,
-      };
+      try {
+        return await daftarPesanan(sql, {
+          status: status as StatusPesanan | undefined,
+          limit,
+          offset,
+        });
+      } finally {
+        await sql.end();
+      }
     },
     {
       query: t.Object({
@@ -61,28 +65,33 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
   )
   .patch(
     "/orders/:orderNo/ship",
-    ({ params, body, set }) => {
-      const cari = params.orderNo.trim().toUpperCase();
-      const pesanan = orders.find((o) => o.order_no.toUpperCase() === cari);
+    async ({ params, body, set }) => {
+      const sql = koneksi();
 
-      if (!pesanan) {
-        set.status = 404;
-        return { error: "not_found", message: "Pesanan tidak ditemukan" };
+      try {
+        const hasil = await tandaiDikirim(
+          sql,
+          params.orderNo,
+          body.tracking_number,
+        );
+
+        if (!hasil.ok) {
+          if (hasil.alasan === "not_found") {
+            set.status = 404;
+            return { error: "not_found", message: "Pesanan tidak ditemukan" };
+          }
+
+          set.status = 409;
+          return {
+            error: "invalid_status",
+            message: `Hanya pesanan berstatus PAID yang bisa dikirim (sekarang ${hasil.status})`,
+          };
+        }
+
+        return hasil.pesanan;
+      } finally {
+        await sql.end();
       }
-
-      if (pesanan.status !== "PAID") {
-        set.status = 409;
-        return {
-          error: "invalid_status",
-          message: `Hanya pesanan berstatus PAID yang bisa dikirim (sekarang ${pesanan.status})`,
-        };
-      }
-
-      pesanan.tracking_number = body.tracking_number.trim();
-      pesanan.status = "SHIPPED";
-      pesanan.shipped_at = new Date().toISOString();
-
-      return lengkapi(pesanan);
     },
     {
       params: t.Object({ orderNo: t.String({ maxLength: 40 }) }),
@@ -91,47 +100,78 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
       }),
     },
   )
-  .post("/orders/sweep", () => {
-    const disapu = sapuKedaluwarsa();
+  .post("/orders/sweep", async () => {
+    const sql = koneksi();
 
-    return {
-      swept: disapu.length,
-      order_nos: disapu,
-    };
+    try {
+      const disapu = await sapuKedaluwarsa(sql);
+
+      return {
+        swept: disapu.length,
+        order_nos: disapu,
+      };
+    } finally {
+      await sql.end();
+    }
+  })
+  .get("/products", async () => {
+    const sql = koneksi();
+
+    try {
+      return await daftarProdukAdmin(sql);
+    } finally {
+      await sql.end();
+    }
   })
   .get(
-    "/products",
-    () => ({
-      data: [...products].sort((a, b) => a.sort_order - b.sort_order),
-      total: products.length,
-    }),
-  )
-  .get(
     "/products/:slug",
-    ({ params, set }) => {
-      const produk = products.find((p) => p.slug === params.slug);
+    async ({ params, set }) => {
+      const sql = koneksi();
 
-      if (!produk) {
-        set.status = 404;
-        return { error: "not_found", message: "Produk tidak ditemukan" };
+      try {
+        const produk = await satuProdukAdmin(sql, params.slug);
+
+        if (!produk) {
+          set.status = 404;
+          return { error: "not_found", message: "Produk tidak ditemukan" };
+        }
+
+        return produk;
+      } finally {
+        await sql.end();
       }
-
-      return produk;
     },
     { params: t.Object({ slug: t.String({ maxLength: 120 }) }) },
   )
   .post(
     "/products",
-    ({ body, set }) => {
-      const hasil = buatProduk(body);
+    async ({ body, set }) => {
+      const periksa = periksaProdukBaru(body);
 
-      if (!hasil.ok) {
-        set.status = hasil.status;
-        return hasil.badan;
+      if (!periksa.ok) {
+        set.status = periksa.status;
+        return periksa.badan;
       }
 
-      set.status = 201;
-      return hasil.produk;
+      const sql = koneksi();
+
+      try {
+        const hasil = await simpanProdukBaru(sql, periksa.bersih);
+
+        if (!hasil.ok) {
+          set.status = 409;
+          return {
+            error: "slug_taken",
+            message: `Slug "${periksa.bersih.slug}" sudah dipakai produk lain`,
+            field: "slug",
+          };
+        }
+
+        set.status = 201;
+        return hasil.produk;
+      } finally {
+        await sql.end();
+      }
     },
     {
       body: t.Object({
@@ -151,15 +191,28 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
   )
   .patch(
     "/products/:slug",
-    ({ params, body, set }) => {
-      const hasil = ubahProduk(params.slug, body);
+    async ({ params, body, set }) => {
+      const periksa = periksaPerubahan(body);
 
-      if (!hasil.ok) {
-        set.status = hasil.status;
-        return hasil.badan;
+      if (!periksa.ok) {
+        set.status = periksa.status;
+        return periksa.badan;
       }
 
-      return hasil.produk;
+      const sql = koneksi();
+
+      try {
+        const produk = await perbaruiProduk(sql, params.slug, periksa.bersih);
+
+        if (!produk) {
+          set.status = 404;
+          return { error: "not_found", message: "Produk tidak ditemukan" };
+        }
+
+        return produk;
+      } finally {
+        await sql.end();
+      }
     },
     {
       params: t.Object({ slug: t.String({ maxLength: 120 }) }),

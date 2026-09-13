@@ -1,53 +1,60 @@
+import { env } from "cloudflare:workers";
 import { Elysia, t } from "elysia";
 
-import { tandaiTerbayar } from "../lib/orders";
+import { buatKoneksi, type Sql } from "../lib/db";
+import { tandaiTerbayar } from "../db/pesanan";
 
-type Catatan = {
-  id: number;
-  provider: string;
+type Peristiwa = {
   external_id: string | null;
-  event_type: string | null;
+  status: string | null;
   payload: unknown;
-  processed: boolean;
-  received_at: string;
 };
 
-export const webhookEvents: Catatan[] = [];
-
-let idBerikut = 1;
+async function catat(sql: Sql, p: Peristiwa, diproses: boolean): Promise<void> {
+  await sql`
+    insert into webhook_events (provider, external_id, event_type, payload, processed)
+    values ('xendit', ${p.external_id}, ${p.status}, ${JSON.stringify(p.payload)}::jsonb, ${diproses})
+  `;
+}
 
 export const webhookRoutes = new Elysia().post(
   "/api/webhooks/xendit",
-  ({ body, headers, set }) => {
+  async ({ body, headers, set }) => {
+    const wadah = env as unknown as Record<string, string>;
     const token = headers["x-callback-token"];
-    const diharapkan = process.env.XENDIT_CALLBACK_TOKEN;
+    const diharapkan = wadah.XENDIT_CALLBACK_TOKEN;
 
     if (!diharapkan || token !== diharapkan) {
       set.status = 401;
       return { error: "unauthorized", message: "Token callback tidak cocok" };
     }
 
-    webhookEvents.push({
-      id: idBerikut++,
-      provider: "xendit",
+    const sql = buatKoneksi(wadah);
+
+    const peristiwa: Peristiwa = {
       external_id: body.external_id ?? null,
-      event_type: body.status ?? null,
+      status: body.status ?? null,
       payload: body,
-      processed: false,
-      received_at: new Date().toISOString(),
-    });
+    };
 
-    if (body.status !== "PAID") {
-      return { received: true, ignored: true };
+    try {
+      if (body.status !== "PAID" || !body.external_id) {
+        await catat(sql, peristiwa, false);
+        return { received: true, ignored: true };
+      }
+
+      const hasil = await tandaiTerbayar(
+        sql,
+        body.external_id,
+        body.payment_method ?? null,
+      );
+
+      await catat(sql, peristiwa, hasil.ok);
+
+      return { received: true, applied: hasil.ok && !hasil.sudahPernah };
+    } finally {
+      await sql.end();
     }
-
-    if (!body.external_id) {
-      return { received: true, ignored: true };
-    }
-
-    const hasil = tandaiTerbayar(body.external_id, body.payment_method ?? null);
-
-    return { received: true, applied: hasil.ok && !hasil.sudahPernah };
   },
   {
     headers: t.Object({

@@ -1,5 +1,3 @@
-import { products, type Product } from "../data/products";
-
 export const KATEGORI = [
   "kucing",
   "tikus",
@@ -18,8 +16,6 @@ export type Gagal = {
   badan: { error: string; message: string; field?: string };
 };
 
-export type HasilProduk = ({ ok: true; produk: Product } | ({ ok: false } & Gagal));
-
 export type ProdukBaru = {
   slug: string;
   name: string;
@@ -36,6 +32,24 @@ export type ProdukBaru = {
 
 export type PerubahanProduk = Partial<Omit<ProdukBaru, "slug">>;
 
+export type ProdukBersih = {
+  slug: string;
+  name: string;
+  description: string;
+  price: number;
+  weight_g: number;
+  stock: number;
+  category: string;
+  is_featured: boolean;
+  sold_per_month: number;
+  sort_order: number | null;
+  is_active: boolean;
+};
+
+export type PerubahanBersih = Partial<Omit<ProdukBersih, "slug" | "sort_order">> & {
+  sort_order?: number;
+};
+
 function periksaKategori(kategori: string): Gagal | null {
   if (!(KATEGORI as readonly string[]).includes(kategori)) {
     return {
@@ -47,10 +61,13 @@ function periksaKategori(kategori: string): Gagal | null {
       },
     };
   }
+
   return null;
 }
 
-export function buatProduk(data: ProdukBaru): HasilProduk {
+export function periksaProdukBaru(
+  data: ProdukBaru,
+): { ok: true; bersih: ProdukBersih } | ({ ok: false } & Gagal) {
   const slug = data.slug.trim().toLowerCase();
 
   if (!POLA_SLUG.test(slug)) {
@@ -65,74 +82,47 @@ export function buatProduk(data: ProdukBaru): HasilProduk {
     };
   }
 
-  if (products.some((p) => p.slug === slug)) {
-    return {
-      ok: false,
-      status: 409,
-      badan: {
-        error: "slug_taken",
-        message: `Slug "${slug}" sudah dipakai produk lain`,
-        field: "slug",
-      },
-    };
-  }
-
   const galatKategori = periksaKategori(data.category);
   if (galatKategori) return { ok: false, ...galatKategori };
 
-  const produk: Product = {
-    id: Math.max(0, ...products.map((p) => p.id)) + 1,
-    slug,
-    name: data.name.trim(),
-    description: data.description?.trim() ?? "",
-    price: data.price,
-    weight_g: data.weight_g,
-    stock: data.stock ?? 0,
-    category: data.category,
-    is_featured: data.is_featured ?? false,
-    sold_per_month: data.sold_per_month ?? 0,
-    sort_order:
-      data.sort_order ?? Math.max(0, ...products.map((p) => p.sort_order)) + 1,
-    is_active: data.is_active ?? true,
+  return {
+    ok: true,
+    bersih: {
+      slug,
+      name: data.name.trim(),
+      description: data.description?.trim() ?? "",
+      price: data.price,
+      weight_g: data.weight_g,
+      stock: data.stock ?? 0,
+      category: data.category,
+      is_featured: data.is_featured ?? false,
+      sold_per_month: data.sold_per_month ?? 0,
+      sort_order: data.sort_order ?? null,
+      is_active: data.is_active ?? true,
+    },
   };
-
-  products.push(produk);
-  return { ok: true, produk };
 }
 
-export function ubahProduk(
-  slug: string,
-  perubahan: PerubahanProduk,
-): HasilProduk {
-  const produk = products.find((p) => p.slug === slug);
-
-  if (!produk) {
-    return {
-      ok: false,
-      status: 404,
-      badan: { error: "not_found", message: "Produk tidak ditemukan" },
-    };
-  }
-
-  if (perubahan.category !== undefined) {
-    const galat = periksaKategori(perubahan.category);
+export function periksaPerubahan(
+  p: PerubahanProduk,
+): { ok: true; bersih: PerubahanBersih } | ({ ok: false } & Gagal) {
+  if (p.category !== undefined) {
+    const galat = periksaKategori(p.category);
     if (galat) return { ok: false, ...galat };
-    produk.category = perubahan.category;
   }
 
-  if (perubahan.name !== undefined) produk.name = perubahan.name.trim();
-  if (perubahan.description !== undefined)
-    produk.description = perubahan.description.trim();
-  if (perubahan.price !== undefined) produk.price = perubahan.price;
-  if (perubahan.weight_g !== undefined) produk.weight_g = perubahan.weight_g;
-  if (perubahan.stock !== undefined) produk.stock = perubahan.stock;
-  if (perubahan.is_featured !== undefined)
-    produk.is_featured = perubahan.is_featured;
-  if (perubahan.sold_per_month !== undefined)
-    produk.sold_per_month = perubahan.sold_per_month;
-  if (perubahan.sort_order !== undefined)
-    produk.sort_order = perubahan.sort_order;
-  if (perubahan.is_active !== undefined) produk.is_active = perubahan.is_active;
+  const bersih: PerubahanBersih = {};
 
-  return { ok: true, produk };
+  if (p.name !== undefined) bersih.name = p.name.trim();
+  if (p.description !== undefined) bersih.description = p.description.trim();
+  if (p.price !== undefined) bersih.price = p.price;
+  if (p.weight_g !== undefined) bersih.weight_g = p.weight_g;
+  if (p.stock !== undefined) bersih.stock = p.stock;
+  if (p.category !== undefined) bersih.category = p.category;
+  if (p.is_featured !== undefined) bersih.is_featured = p.is_featured;
+  if (p.sold_per_month !== undefined) bersih.sold_per_month = p.sold_per_month;
+  if (p.sort_order !== undefined) bersih.sort_order = p.sort_order;
+  if (p.is_active !== undefined) bersih.is_active = p.is_active;
+
+  return { ok: true, bersih };
 }

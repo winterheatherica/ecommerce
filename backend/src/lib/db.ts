@@ -2,6 +2,8 @@ import postgres from "postgres";
 
 export type Sql = ReturnType<typeof postgres>;
 
+export type Kueri = postgres.ISql;
+
 export function buatKoneksi(env: Record<string, unknown>): Sql {
   const url = env.DATABASE_URL;
 

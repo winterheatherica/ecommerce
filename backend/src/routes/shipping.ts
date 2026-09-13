@@ -1,22 +1,30 @@
+import { env } from "cloudflare:workers";
 import { Elysia, t } from "elysia";
 
-import { regions } from "../data/regions";
+import { buatKoneksi } from "../lib/db";
+import { ambilWilayah, cariWilayah } from "../db/wilayah";
 import { opsiOngkir } from "../lib/shipping";
+
+function koneksi() {
+  return buatKoneksi(env as unknown as Record<string, unknown>);
+}
 
 export const shippingRoutes = new Elysia()
   .get(
     "/api/regions",
-    ({ query }) => {
-      const kata = (query.q ?? "").trim().toLowerCase();
+    async ({ query }) => {
+      const kata = (query.q ?? "").trim();
       const batas = query.limit ?? 8;
 
       if (kata.length < 2) return { data: [] };
 
-      return {
-        data: regions
-          .filter((r) => r.label.toLowerCase().includes(kata))
-          .slice(0, batas),
-      };
+      const sql = koneksi();
+
+      try {
+        return { data: await cariWilayah(sql, kata, batas) };
+      } finally {
+        await sql.end();
+      }
     },
     {
       query: t.Object({
@@ -27,22 +35,28 @@ export const shippingRoutes = new Elysia()
   )
   .post(
     "/api/shipping/cost",
-    ({ body, set }) => {
-      const tujuan = regions.find((r) => r.id === body.dest_id);
+    async ({ body, set }) => {
+      const sql = koneksi();
 
-      if (!tujuan) {
-        set.status = 404;
+      try {
+        const tujuan = await ambilWilayah(sql, body.dest_id);
+
+        if (!tujuan) {
+          set.status = 404;
+          return {
+            error: "region_not_found",
+            message: "Kecamatan tujuan tidak dikenal",
+          };
+        }
+
         return {
-          error: "region_not_found",
-          message: "Kecamatan tujuan tidak dikenal",
+          dest_id: tujuan.id,
+          weight_g: body.weight_g,
+          options: opsiOngkir(tujuan.province, body.weight_g),
         };
+      } finally {
+        await sql.end();
       }
-
-      return {
-        dest_id: tujuan.id,
-        weight_g: body.weight_g,
-        options: opsiOngkir(tujuan.id, body.weight_g),
-      };
     },
     {
       body: t.Object({

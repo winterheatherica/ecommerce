@@ -1,5 +1,3 @@
-import { regions } from "../data/regions";
-
 export type OpsiOngkir = {
   courier: string;
   service: string;
@@ -24,11 +22,8 @@ const KURIR = [
   { courier: "SiCepat", service: "BEST", faktor: 1.25, etd: ["1-1", "1-2", "2-3", "3-5"] },
 ];
 
-export function opsiOngkir(destId: string, weightG: number): OpsiOngkir[] {
-  const tujuan = regions.find((r) => r.id === destId);
-  if (!tujuan) return [];
-
-  const zona = ZONA[tujuan.province] ?? 3;
+export function opsiOngkir(provinsi: string, weightG: number): OpsiOngkir[] {
+  const zona = ZONA[provinsi] ?? 3;
   const kg = Math.max(1, Math.ceil(weightG / 1000));
   const dasar = 9000 + (zona - 1) * 7000;
 
@@ -41,13 +36,13 @@ export function opsiOngkir(destId: string, weightG: number): OpsiOngkir[] {
 }
 
 export function cariOpsi(
-  destId: string,
+  provinsi: string,
   weightG: number,
   courier: string,
   service: string,
 ): OpsiOngkir | null {
   return (
-    opsiOngkir(destId, weightG).find(
+    opsiOngkir(provinsi, weightG).find(
       (o) => o.courier === courier && o.service === service,
     ) ?? null
   );
