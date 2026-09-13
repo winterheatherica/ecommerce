@@ -1,9 +1,11 @@
 import ProductCard from "./product-card";
-import { daftarProduk } from "../data/produk";
+import { ambilProduk } from "@/app/lib/api";
 
-const unggulan = daftarProduk.filter((p) => p.unggulan).slice(0, 6);
+export default async function FeaturedProducts() {
+  const unggulan = await ambilProduk({ unggulan: true, limit: 6 });
 
-export default function FeaturedProducts() {
+  if (unggulan.length === 0) return null;
+
   return (
     <section className="mx-auto w-full max-w-6xl px-6 pb-24">
       <div className="flex flex-wrap items-end justify-between gap-4">

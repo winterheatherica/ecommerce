@@ -5,13 +5,14 @@ import { useRouter } from "next/navigation";
 
 import ProductCard from "./product-card";
 import {
-  daftarProduk,
   kategoriJudul,
   kategoriLabel,
   type Kategori,
+  type Produk,
 } from "../data/produk";
 
 type Props = {
+  produk: Produk[];
   kategori: string;
   urut: string;
 };
@@ -24,7 +25,7 @@ const opsiUrut = [
   { nilai: "termahal", label: "Harga tertinggi" },
 ];
 
-export default function ProductCatalog({ kategori, urut }: Props) {
+export default function ProductCatalog({ produk, kategori, urut }: Props) {
   const router = useRouter();
   const [cari, setCari] = useState("");
 
@@ -47,7 +48,7 @@ export default function ProductCatalog({ kategori, urut }: Props) {
   const hasil = useMemo(() => {
     const kata = cari.trim().toLowerCase();
 
-    const disaring = daftarProduk.filter((p) => {
+    const disaring = produk.filter((p) => {
       const cocokKategori = !kategori || p.kategori === kategori;
       const cocokKata = !kata || p.nama.toLowerCase().includes(kata);
       return cocokKategori && cocokKata;
@@ -56,7 +57,7 @@ export default function ProductCatalog({ kategori, urut }: Props) {
     if (urut === "termurah") return [...disaring].sort((a, b) => a.harga - b.harga);
     if (urut === "termahal") return [...disaring].sort((a, b) => b.harga - a.harga);
     return [...disaring].sort((a, b) => b.terjualPerBulan - a.terjualPerBulan);
-  }, [cari, kategori, urut]);
+  }, [produk, cari, kategori, urut]);
 
   const adaSaringan = Boolean(kategori) || cari.trim() !== "";
 

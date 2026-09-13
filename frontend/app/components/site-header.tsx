@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 
+import { useKeranjang } from "@/app/lib/keranjang";
+
 const THRESHOLD = 8;
 const TOP_ZONE = 80;
 
@@ -11,6 +13,9 @@ export default function SiteHeader() {
   const [atTop, setAtTop] = useState(true);
   const lastY = useRef(0);
   const pathname = usePathname();
+  const keranjang = useKeranjang();
+
+  const jumlahItem = keranjang.reduce((n, i) => n + i.qty, 0);
 
   const aktif = (href: string) =>
     href === "/" ? pathname === "/" : pathname.startsWith(href);
@@ -61,7 +66,7 @@ export default function SiteHeader() {
             aria-label="Beranda"
             title="Beranda"
             aria-current={aktif("/") ? "page" : undefined}
-            className={kelasNav("/")}
+            className={`hidden sm:block ${kelasNav("/")}`}
           >
             <svg
               className="h-[18px] w-[18px]"
@@ -91,6 +96,37 @@ export default function SiteHeader() {
             className={kelasNav("/faq")}
           >
             FAQ
+          </a>
+          <a
+            href="/keranjang"
+            aria-label={
+              jumlahItem > 0 ? `Keranjang, ${jumlahItem} item` : "Keranjang"
+            }
+            title="Keranjang"
+            aria-current={aktif("/keranjang") ? "page" : undefined}
+            className={`relative ${kelasNav("/keranjang")}`}
+          >
+            <svg
+              className="h-[18px] w-[18px]"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={1.6}
+              aria-hidden="true"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M2.25 3h1.5l2.1 11.2a1.5 1.5 0 0 0 1.48 1.22h8.9a1.5 1.5 0 0 0 1.47-1.18l1.6-7.24H5.1"
+              />
+              <circle cx="9" cy="19.5" r="1.25" />
+              <circle cx="16.5" cy="19.5" r="1.25" />
+            </svg>
+            {jumlahItem > 0 && (
+              <span className="absolute -top-2 -right-2.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-brand-500 px-1 font-mono text-[9px] leading-none text-white">
+                {jumlahItem}
+              </span>
+            )}
           </a>
           <a
             href="#kontak"

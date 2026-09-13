@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
-import ProductCatalog from "../components/product-catalog";
+import ProductCatalog from "@/app/components/product-catalog";
+import { ambilProduk } from "@/app/lib/api";
 
 export const metadata: Metadata = {
   title: "Produk — Menik Store",
@@ -14,6 +15,7 @@ type Props = {
 
 export default async function ProdukPage({ searchParams }: Props) {
   const { kategori = "", urut = "populer" } = await searchParams;
+  const produk = await ambilProduk({ limit: 100 });
 
-  return <ProductCatalog kategori={kategori} urut={urut} />;
+  return <ProductCatalog produk={produk} kategori={kategori} urut={urut} />;
 }

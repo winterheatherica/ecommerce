@@ -11,7 +11,7 @@ const produk = [
 
 const bantuan = [
   { label: "Cara Pemesanan", href: "/faq" },
-  { label: "Lacak Pesanan", href: "/faq" },
+  { label: "Lacak Pesanan", href: "/order" },
   { label: "Ongkos Kirim", href: "/faq" },
   { label: "Pengembalian Barang", href: "/faq" },
   { label: "Pertanyaan Umum", href: "/faq" },

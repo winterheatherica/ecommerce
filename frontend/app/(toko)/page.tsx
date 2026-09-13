@@ -1,6 +1,6 @@
 import Image from "next/image";
-import ProblemPicker from "./components/problem-picker";
-import FeaturedProducts from "./components/featured-products";
+import ProblemPicker from "@/app/components/problem-picker";
+import FeaturedProducts from "@/app/components/featured-products";
 
 export default function Home() {
   return (
