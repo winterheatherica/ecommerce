@@ -3,6 +3,7 @@
   "name": "ecommerce-api",
   "main": "src/index.ts",
   "compatibility_date": "2025-06-01",
+  "compatibility_flags": ["nodejs_compat"],
   "observability": {
     "enabled": true
   }

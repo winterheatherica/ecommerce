@@ -10,7 +10,8 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "elysia": "^1.4.29"
+    "elysia": "^1.4.29",
+    "postgres": "^3.4.9"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^5.20260809.1",

@@ -1,38 +1,31 @@
+import { env } from "cloudflare:workers";
 import { Elysia, t } from "elysia";
 
-import { products } from "../data/products";
+import { buatKoneksi } from "../lib/db";
+import { daftarProduk, satuProduk } from "../db/produk";
 
 const BATAS_BAWAAN = 24;
 
 export const productRoutes = new Elysia({ prefix: "/api/products" })
   .get(
     "/",
-    ({ query }) => {
+    async ({ query }) => {
       const { category, search, featured, limit = BATAS_BAWAAN, offset = 0 } = query;
+      const sql = buatKoneksi(env as unknown as Record<string, unknown>);
 
-      let hasil = products.filter((p) => p.is_active);
+      try {
+        const hasil = await daftarProduk(sql, {
+          category,
+          featured,
+          search,
+          limit,
+          offset,
+        });
 
-      if (category) {
-        hasil = hasil.filter((p) => p.category === category);
+        return { ...hasil, limit, offset };
+      } finally {
+        await sql.end();
       }
-
-      if (featured) {
-        hasil = hasil.filter((p) => p.is_featured);
-      }
-
-      if (search) {
-        const kata = search.trim().toLowerCase();
-        hasil = hasil.filter((p) => p.name.toLowerCase().includes(kata));
-      }
-
-      hasil = hasil.sort((a, b) => a.sort_order - b.sort_order);
-
-      return {
-        data: hasil.slice(offset, offset + limit),
-        total: hasil.length,
-        limit,
-        offset,
-      };
     },
     {
       query: t.Object({
@@ -46,17 +39,21 @@ export const productRoutes = new Elysia({ prefix: "/api/products" })
   )
   .get(
     "/:slug",
-    ({ params, set }) => {
-      const produk = products.find(
-        (p) => p.slug === params.slug && p.is_active,
-      );
+    async ({ params, set }) => {
+      const sql = buatKoneksi(env as unknown as Record<string, unknown>);
 
-      if (!produk) {
-        set.status = 404;
-        return { error: "not_found", message: "Produk tidak ditemukan" };
+      try {
+        const produk = await satuProduk(sql, params.slug);
+
+        if (!produk) {
+          set.status = 404;
+          return { error: "not_found", message: "Produk tidak ditemukan" };
+        }
+
+        return produk;
+      } finally {
+        await sql.end();
       }
-
-      return produk;
     },
     {
       params: t.Object({
