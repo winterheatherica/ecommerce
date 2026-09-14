@@ -3,7 +3,11 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-import { tandaiDikirim } from "@/app/lib/api-client";
+import {
+  batalkanPesanan,
+  tandaiDikirim,
+  tandaiSelesai,
+} from "@/app/lib/api-client";
 import type { Pesanan } from "@/app/lib/api";
 import { rupiah } from "@/app/data/produk";
 import { statusLabel, statusWarna } from "@/app/data/status-pesanan";
@@ -14,6 +18,7 @@ const saringan: { nilai: string; label: string }[] = [
   { nilai: "PENDING", label: "Menunggu bayar" },
   { nilai: "SHIPPED", label: "Dikirim" },
   { nilai: "DELIVERED", label: "Selesai" },
+  { nilai: "CANCELLED", label: "Dibatalkan" },
 ];
 
 const tanggal = (iso: string) =>
@@ -36,6 +41,34 @@ export default function AdminOrders({ pesanan, status }: Props) {
   const [resi, setResi] = useState("");
   const [memproses, setMemproses] = useState(false);
   const [galat, setGalat] = useState<string | null>(null);
+
+  const jalankan = async (aksi: () => Promise<void>, pesanGagal: string) => {
+    setMemproses(true);
+    setGalat(null);
+
+    try {
+      await aksi();
+      setDibuka(null);
+      router.refresh();
+    } catch (err) {
+      setGalat(err instanceof Error ? err.message : pesanGagal);
+    } finally {
+      setMemproses(false);
+    }
+  };
+
+  const selesai = (orderNo: string) =>
+    jalankan(() => tandaiSelesai(orderNo), "Gagal menandai selesai");
+
+  const batal = (orderNo: string) => {
+    const yakin = window.confirm(
+      `Batalkan pesanan ${orderNo}? Stoknya akan dikembalikan ke katalog.`,
+    );
+
+    if (!yakin) return;
+
+    return jalankan(() => batalkanPesanan(orderNo), "Gagal membatalkan");
+  };
 
   const kirim = async (orderNo: string) => {
     const nomor = resi.trim();
@@ -196,6 +229,38 @@ export default function AdminOrders({ pesanan, status }: Props) {
                       >
                         {memproses ? "Menyimpan..." : "Tandai dikirim"}
                       </button>
+                    </div>
+                  )}
+
+                  {p.status === "SHIPPED" && (
+                    <div className="mt-8 flex flex-wrap items-center gap-3 border-t border-ink/10 pt-6">
+                      <button
+                        type="button"
+                        onClick={() => selesai(p.order_no)}
+                        disabled={memproses}
+                        className="border border-emerald-600 bg-emerald-600 px-6 py-2.5 font-mono text-[11px] tracking-[0.18em] text-white uppercase transition-colors hover:border-emerald-700 hover:bg-emerald-700 disabled:cursor-not-allowed disabled:border-stone-300 disabled:bg-stone-300"
+                      >
+                        {memproses ? "Menyimpan..." : "Tandai selesai"}
+                      </button>
+                      <span className="text-xs text-stone-500">
+                        Tekan setelah paket diterima pembeli.
+                      </span>
+                    </div>
+                  )}
+
+                  {p.status === "PENDING" && (
+                    <div className="mt-8 flex flex-wrap items-center gap-3 border-t border-ink/10 pt-6">
+                      <button
+                        type="button"
+                        onClick={() => batal(p.order_no)}
+                        disabled={memproses}
+                        className="border border-ink/20 px-6 py-2.5 font-mono text-[11px] tracking-[0.18em] text-stone-600 uppercase transition-colors hover:border-red-400 hover:text-red-600 disabled:cursor-not-allowed disabled:border-stone-200 disabled:text-stone-300"
+                      >
+                        {memproses ? "Membatalkan..." : "Batalkan pesanan"}
+                      </button>
+                      <span className="text-xs text-stone-500">
+                        Stok kembali ke katalog.
+                      </span>
                     </div>
                   )}
 

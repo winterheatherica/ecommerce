@@ -487,15 +487,33 @@ export async function tandaiTerbayar(
   return { ok: false, alasan: "invalid_status" };
 }
 
-export type HasilKirim =
+export type HasilUbahStatus =
   | { ok: true; pesanan: Pesanan }
-  | { ok: false; alasan: "not_found" | "invalid_status"; status?: StatusPesanan };
+  | {
+      ok: false;
+      alasan: "not_found" | "invalid_status";
+      status?: StatusPesanan;
+    };
+
+async function hasilUbah(
+  sql: Sql,
+  orderNo: string,
+  diubah: { order_no: string } | undefined,
+): Promise<HasilUbahStatus> {
+  const kunci = diubah ? diubah.order_no : orderNo;
+  const pesanan = await ambilPesanan(sql, kunci);
+
+  if (!pesanan) return { ok: false, alasan: "not_found" };
+  if (diubah) return { ok: true, pesanan };
+
+  return { ok: false, alasan: "invalid_status", status: pesanan.status };
+}
 
 export async function tandaiDikirim(
   sql: Sql,
   orderNo: string,
   trackingNumber: string,
-): Promise<HasilKirim> {
+): Promise<HasilUbahStatus> {
   const [diubah] = await sql<{ order_no: string }[]>`
     update orders
     set status = 'SHIPPED',
@@ -506,15 +524,50 @@ export async function tandaiDikirim(
     returning order_no
   `;
 
-  if (diubah) {
-    const pesanan = await ambilPesanan(sql, diubah.order_no);
-    if (!pesanan) return { ok: false, alasan: "not_found" };
-    return { ok: true, pesanan };
-  }
+  return hasilUbah(sql, orderNo, diubah);
+}
 
-  const pesanan = await ambilPesanan(sql, orderNo);
+export async function tandaiSelesai(
+  sql: Sql,
+  orderNo: string,
+): Promise<HasilUbahStatus> {
+  const [diubah] = await sql<{ order_no: string }[]>`
+    update orders
+    set status = 'DELIVERED'
+    where upper(order_no) = upper(${orderNo.trim()})
+      and status = 'SHIPPED'
+    returning order_no
+  `;
 
-  if (!pesanan) return { ok: false, alasan: "not_found" };
+  return hasilUbah(sql, orderNo, diubah);
+}
 
-  return { ok: false, alasan: "invalid_status", status: pesanan.status };
+export async function batalkanPesanan(
+  sql: Sql,
+  orderNo: string,
+): Promise<HasilUbahStatus> {
+  const [diubah] = await sql<{ order_no: string }[]>`
+    with dibatalkan as (
+      update orders o
+      set status = 'CANCELLED'
+      where upper(o.order_no) = upper(${orderNo.trim()})
+        and o.status = 'PENDING'
+      returning o.id, o.order_no
+    ),
+    pulih as (
+      update products p
+      set stock = p.stock + x.qty
+      from (
+        select i.product_id, sum(i.qty)::int as qty
+        from order_items i
+        join dibatalkan d on d.id = i.order_id
+        group by i.product_id
+      ) x
+      where p.id = x.product_id
+      returning p.id
+    )
+    select order_no from dibatalkan
+  `;
+
+  return hasilUbah(sql, orderNo, diubah);
 }

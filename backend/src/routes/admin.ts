@@ -11,9 +11,12 @@ import {
   simpanProdukBaru,
 } from "../db/produk";
 import {
+  batalkanPesanan,
   daftarPesanan,
   sapuKedaluwarsa,
   tandaiDikirim,
+  tandaiSelesai,
+  type HasilUbahStatus,
 } from "../db/pesanan";
 import type { StatusPesanan } from "../lib/orders";
 
@@ -25,6 +28,26 @@ const STATUS = [
   "EXPIRED",
   "CANCELLED",
 ] as const;
+
+function galatUbah(
+  hasil: Extract<HasilUbahStatus, { ok: false }>,
+  syarat: string,
+) {
+  if (hasil.alasan === "not_found") {
+    return {
+      status: 404,
+      badan: { error: "not_found", message: "Pesanan tidak ditemukan" },
+    };
+  }
+
+  return {
+    status: 409,
+    badan: {
+      error: "invalid_status",
+      message: `${syarat} (sekarang ${hasil.status})`,
+    },
+  };
+}
 
 function koneksi() {
   return buatKoneksi(env as unknown as Record<string, unknown>);
@@ -69,23 +92,15 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
       const sql = koneksi();
 
       try {
-        const hasil = await tandaiDikirim(
-          sql,
-          params.orderNo,
-          body.tracking_number,
-        );
+        const hasil = await tandaiDikirim(sql, params.orderNo, body.tracking_number);
 
         if (!hasil.ok) {
-          if (hasil.alasan === "not_found") {
-            set.status = 404;
-            return { error: "not_found", message: "Pesanan tidak ditemukan" };
-          }
-
-          set.status = 409;
-          return {
-            error: "invalid_status",
-            message: `Hanya pesanan berstatus PAID yang bisa dikirim (sekarang ${hasil.status})`,
-          };
+          const g = galatUbah(
+            hasil,
+            "Hanya pesanan berstatus PAID yang bisa dikirim",
+          );
+          set.status = g.status;
+          return g.badan;
         }
 
         return hasil.pesanan;
@@ -99,6 +114,54 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
         tracking_number: t.String({ minLength: 4, maxLength: 60 }),
       }),
     },
+  )
+  .patch(
+    "/orders/:orderNo/deliver",
+    async ({ params, set }) => {
+      const sql = koneksi();
+
+      try {
+        const hasil = await tandaiSelesai(sql, params.orderNo);
+
+        if (!hasil.ok) {
+          const g = galatUbah(
+            hasil,
+            "Hanya pesanan berstatus SHIPPED yang bisa diselesaikan",
+          );
+          set.status = g.status;
+          return g.badan;
+        }
+
+        return hasil.pesanan;
+      } finally {
+        await tutup(sql);
+      }
+    },
+    { params: t.Object({ orderNo: t.String({ maxLength: 40 }) }) },
+  )
+  .patch(
+    "/orders/:orderNo/cancel",
+    async ({ params, set }) => {
+      const sql = koneksi();
+
+      try {
+        const hasil = await batalkanPesanan(sql, params.orderNo);
+
+        if (!hasil.ok) {
+          const g = galatUbah(
+            hasil,
+            "Hanya pesanan yang belum dibayar yang bisa dibatalkan di sini",
+          );
+          set.status = g.status;
+          return g.badan;
+        }
+
+        return hasil.pesanan;
+      } finally {
+        await tutup(sql);
+      }
+    },
+    { params: t.Object({ orderNo: t.String({ maxLength: 40 }) }) },
   )
   .post("/orders/sweep", async () => {
     const sql = koneksi();

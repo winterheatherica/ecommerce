@@ -3,11 +3,13 @@ import { afterAll, beforeEach, describe, expect, it } from "vitest";
 import type { Sql } from "../lib/db";
 import { bersihkan, koneksiTes } from "../test/db";
 import {
+  batalkanPesanan,
   buatPesanan,
   cariPesanan,
   daftarPesanan,
   sapuKedaluwarsa,
   tandaiDikirim,
+  tandaiSelesai,
   tandaiTerbayar,
   type PermintaanPesanan,
 } from "./pesanan";
@@ -535,5 +537,98 @@ describe("daftarPesanan", () => {
 
     expect(data).toEqual([]);
     expect(total).toBe(0);
+  });
+});
+
+describe("tandaiSelesai", () => {
+  it("mengubah SHIPPED jadi DELIVERED", async () => {
+    const pesanan = await buat();
+    await tandaiTerbayar(sql, pesanan.order_no, null);
+    await tandaiDikirim(sql, pesanan.order_no, "JNE123456");
+
+    const hasil = await tandaiSelesai(sql, pesanan.order_no);
+
+    expect(hasil.ok).toBe(true);
+    if (!hasil.ok) return;
+    expect(hasil.pesanan.status).toBe("DELIVERED");
+    expect(hasil.pesanan.tracking_number).toBe("JNE123456");
+  });
+
+  it("menolak pesanan yang belum dikirim", async () => {
+    const pesanan = await buat();
+    await tandaiTerbayar(sql, pesanan.order_no, null);
+
+    const hasil = await tandaiSelesai(sql, pesanan.order_no);
+
+    expect(hasil.ok).toBe(false);
+    if (hasil.ok) return;
+    expect(hasil.alasan).toBe("invalid_status");
+    expect(hasil.status).toBe("PAID");
+  });
+
+  it("menolak pesanan yang tidak ada", async () => {
+    const hasil = await tandaiSelesai(sql, "MNK-TIDAKADA");
+
+    expect(hasil.ok).toBe(false);
+    if (hasil.ok) return;
+    expect(hasil.alasan).toBe("not_found");
+  });
+});
+
+describe("batalkanPesanan", () => {
+  it("membatalkan pesanan yang belum dibayar dan mengembalikan stok", async () => {
+    const sebelum = await stok(KUCING);
+    const pesanan = await buat({ items: [{ slug: KUCING, qty: 2 }] });
+
+    expect(await stok(KUCING)).toBe(sebelum - 2);
+
+    const hasil = await batalkanPesanan(sql, pesanan.order_no);
+
+    expect(hasil.ok).toBe(true);
+    if (!hasil.ok) return;
+    expect(hasil.pesanan.status).toBe("CANCELLED");
+    expect(await stok(KUCING)).toBe(sebelum);
+  });
+
+  it("tidak mengembalikan stok dua kali", async () => {
+    const sebelum = await stok(KUCING);
+    const pesanan = await buat({ items: [{ slug: KUCING, qty: 2 }] });
+
+    await batalkanPesanan(sql, pesanan.order_no);
+    await batalkanPesanan(sql, pesanan.order_no);
+    await batalkanPesanan(sql, pesanan.order_no);
+
+    expect(await stok(KUCING)).toBe(sebelum);
+  });
+
+  it("menolak pesanan yang sudah dibayar, stok tetap terpotong", async () => {
+    const sebelum = await stok(KUCING);
+    const pesanan = await buat({ items: [{ slug: KUCING, qty: 2 }] });
+    await tandaiTerbayar(sql, pesanan.order_no, null);
+
+    const hasil = await batalkanPesanan(sql, pesanan.order_no);
+
+    expect(hasil.ok).toBe(false);
+    if (hasil.ok) return;
+    expect(hasil.alasan).toBe("invalid_status");
+    expect(hasil.status).toBe("PAID");
+    expect(await stok(KUCING)).toBe(sebelum - 2);
+  });
+
+  it("pesanan yang dibatalkan tidak bisa dibayar", async () => {
+    const pesanan = await buat();
+    await batalkanPesanan(sql, pesanan.order_no);
+
+    const hasil = await tandaiTerbayar(sql, pesanan.order_no, null);
+
+    expect(hasil.ok).toBe(false);
+  });
+
+  it("menolak pesanan yang tidak ada", async () => {
+    const hasil = await batalkanPesanan(sql, "MNK-TIDAKADA");
+
+    expect(hasil.ok).toBe(false);
+    if (hasil.ok) return;
+    expect(hasil.alasan).toBe("not_found");
   });
 });

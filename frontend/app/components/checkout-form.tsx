@@ -257,6 +257,22 @@ export default function CheckoutForm({ produk }: { produk: Produk[] }) {
               </p>
             )}
 
+            {tujuan && (
+              <p className="mt-2 font-mono text-[10px] tracking-[0.18em] text-emerald-700 uppercase">
+                Terpilih &middot; {tujuan.label}
+              </p>
+            )}
+
+            {!mencariWilayah &&
+              !tujuan &&
+              kataWilayah.trim().length >= 2 &&
+              saran.length === 0 && (
+                <p className="mt-2 text-xs leading-relaxed text-red-600">
+                  Kecamatan &ldquo;{kataWilayah.trim()}&rdquo; tidak ditemukan.
+                  Coba ketik nama kota, atau tanyakan lewat WhatsApp.
+                </p>
+              )}
+
             {saran.length > 0 && (
               <ul
                 id="saran-wilayah"

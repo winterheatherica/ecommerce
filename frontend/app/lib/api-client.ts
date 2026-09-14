@@ -105,6 +105,30 @@ export async function tandaiDikirim(
   }
 }
 
+export async function tandaiSelesai(orderNo: string): Promise<void> {
+  const res = await fetch(
+    `/api/admin/orders/${encodeURIComponent(orderNo)}/deliver`,
+    { method: "PATCH" },
+  );
+
+  if (!res.ok) {
+    const galat = (await res.json().catch(() => ({}))) as { message?: string };
+    throw new Error(galat.message ?? `Gagal menandai selesai (${res.status})`);
+  }
+}
+
+export async function batalkanPesanan(orderNo: string): Promise<void> {
+  const res = await fetch(
+    `/api/admin/orders/${encodeURIComponent(orderNo)}/cancel`,
+    { method: "PATCH" },
+  );
+
+  if (!res.ok) {
+    const galat = (await res.json().catch(() => ({}))) as { message?: string };
+    throw new Error(galat.message ?? `Gagal membatalkan (${res.status})`);
+  }
+}
+
 export type PerubahanProduk = {
   stock?: number;
   price?: number;
