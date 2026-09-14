@@ -122,7 +122,8 @@ export default async function DetailProdukPage({ params }: Props) {
                 Keamanan
               </dt>
               <dd className="mt-1 leading-relaxed text-ink">
-                Berbahan alami, non-toksik. Produk terdaftar Kemenkes RI.
+                Berbahan dasar tumbuhan. Simpan di luar jangkauan anak dan
+                jangan sampai termakan.
               </dd>
             </div>
           </dl>

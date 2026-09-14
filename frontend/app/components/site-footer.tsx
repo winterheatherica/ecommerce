@@ -68,13 +68,8 @@ export default function SiteFooter() {
                 Menik Store
               </p>
               <p className="mt-5 max-w-xs text-sm leading-relaxed text-white/55">
-                Pengusir hama berbahan dasar tumbuhan. Aman untuk keluarga dan
-                hewan peliharaan, tanpa bahan sintetis.
-              </p>
-              <p className="mt-5 font-mono text-[11px] tracking-[0.18em] text-white/40 uppercase">
-                Terdaftar Kemenkes RI PKD
-                <br />
-                20601321378
+                Pengusir hama berbahan dasar tumbuhan. Bekerja dengan aroma
+                yang dihindari hama, bukan dengan racun.
               </p>
               <ul className="mt-7 flex flex-wrap gap-x-5 gap-y-2">
                 {sosial.map((s) => (

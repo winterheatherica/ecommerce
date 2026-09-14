@@ -13,7 +13,7 @@ const kelompok = [
       {
         tanya: "Aman untuk anak dan hewan peliharaan?",
         jawab:
-          "Bahan dasarnya tumbuhan, tanpa pestisida sintetis, dan produknya terdaftar Kemenkes RI PKD. Tetap simpan di luar jangkauan anak kecil dan jangan sampai termakan.",
+          "Bahan dasarnya tumbuhan dan bekerja dengan aroma yang dihindari hama, bukan racun. Tetap simpan di luar jangkauan anak kecil dan jangan sampai termakan.",
       },
       {
         tanya: "Berapa lama efeknya bertahan?",

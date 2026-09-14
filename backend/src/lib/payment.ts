@@ -11,7 +11,7 @@ export type PermintaanInvoice = {
   email: string | null;
 };
 
-const UMUR_JAM = 24;
+const UMUR_JAM = 1;
 
 export function buatInvoice(
   req: PermintaanInvoice,

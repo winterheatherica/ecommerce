@@ -30,8 +30,8 @@ export default function Home() {
             </h1>
 
             <p className="mt-6 max-w-md leading-relaxed text-stone-600 sm:text-lg">
-              Pengusir kucing, tikus, kecoa, dan cicak berbahan alami. Aman untuk
-              keluarga dan hewan peliharaan.
+              Pengusir kucing, tikus, kecoa, dan cicak berbahan dasar tumbuhan.
+              Bekerja dengan aroma yang dihindari hama, bukan dengan racun.
             </p>
 
             <div className="mt-10 flex flex-wrap items-center gap-x-8 gap-y-4">
@@ -50,11 +50,8 @@ export default function Home() {
             </div>
 
             <div className="mt-14 space-y-2 font-mono text-[11px] tracking-[0.18em] text-stone-500 uppercase">
-              <p>Terdaftar Kemenkes RI PKD</p>
-              <p>Non-toksik &middot; Berbahan alami</p>
-              <p>
-                Efektivitas <span className="text-brand-600">&gt; 95%</span>
-              </p>
+              <p>Berbahan dasar tumbuhan</p>
+              <p>Mengusir, bukan membunuh</p>
             </div>
           </div>
         </div>

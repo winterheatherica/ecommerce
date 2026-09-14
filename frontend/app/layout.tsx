@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Menik Store",
   description:
-    "Pengusir kucing, tikus, kecoa, cicak, dan nyamuk berbahan alami. Aman untuk keluarga dan hewan peliharaan.",
+    "Pengusir kucing, tikus, kecoa, cicak, dan nyamuk berbahan dasar tumbuhan. Mengusir dengan aroma, bukan dengan racun.",
 };
 
 export default function RootLayout({
