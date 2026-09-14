@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
@@ -126,12 +127,20 @@ export default function PaymentPicker({ orderNo, total }: Props) {
                     type="button"
                     onClick={() => setDipilih(c.code)}
                     aria-pressed={dipilih === c.code}
-                    className={`border px-4 py-2 text-sm transition-colors ${
+                    className={`flex items-center gap-3 border px-4 py-2.5 text-sm transition-colors ${
                       dipilih === c.code
                         ? "border-brand-500 bg-brand-50 text-brand-700"
                         : "border-ink/15 text-stone-600 hover:border-brand-400 hover:text-brand-600"
                     }`}
                   >
+                    <Image
+                      src={c.icon_url}
+                      alt=""
+                      width={40}
+                      height={20}
+                      unoptimized
+                      className="h-5 w-10 object-contain"
+                    />
                     {c.name}
                   </button>
                 ))}

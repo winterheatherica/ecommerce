@@ -4,7 +4,7 @@ const CSP = [
   "default-src 'self'",
   "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
   "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob:",
+  "img-src 'self' data: blob: https://assets.tripay.co.id",
   "font-src 'self' data:",
   "connect-src 'self'",
   "object-src 'none'",
@@ -17,6 +17,9 @@ const CSP = [
 const nextConfig: NextConfig = {
   images: {
     qualities: [75, 92],
+    remotePatterns: [
+      { protocol: "https", hostname: "assets.tripay.co.id", pathname: "/**" },
+    ],
   },
   async headers() {
     return [

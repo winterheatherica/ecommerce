@@ -71,8 +71,6 @@ export type ChannelBayar = {
   name: string;
   group: string;
   icon_url: string;
-  fee_flat: number;
-  fee_percent: number;
   minimum_amount: number;
   maximum_amount: number;
 };

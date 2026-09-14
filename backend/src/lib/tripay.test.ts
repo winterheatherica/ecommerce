@@ -101,6 +101,18 @@ describe("bacaKonfig", () => {
     expect(bacaKonfig({ ...lengkap, TRIPAY_SANDBOX: "0" })?.sandbox).toBe(true);
   });
 
+  it("membuang spasi dan baris baru yang ikut tertempel", () => {
+    const k = bacaKonfig({
+      TRIPAY_API_KEY: "  a  ",
+      TRIPAY_PRIVATE_KEY: "b\n",
+      TRIPAY_MERCHANT_CODE: " T39114 ",
+    });
+
+    expect(k?.apiKey).toBe("a");
+    expect(k?.privateKey).toBe("b");
+    expect(k?.merchantCode).toBe("T39114");
+  });
+
   it("undefined kalau ada kredensial yang hilang atau kosong", () => {
     expect(bacaKonfig({})).toBeUndefined();
     expect(bacaKonfig({ TRIPAY_API_KEY: "a" })).toBeUndefined();

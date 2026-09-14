@@ -12,8 +12,6 @@ export type Channel = {
   group: string;
   icon_url: string;
   active: boolean;
-  fee_flat: number;
-  fee_percent: number;
   minimum_amount: number;
   maximum_amount: number;
 };
@@ -105,5 +103,21 @@ export async function buatTransaksi(
     body: form,
   });
 
-  return baca<Transaksi>(res);
+  const hasil = await baca<Transaksi>(res);
+
+  if (!hasil.ok) {
+    console.error("[tripay] transaksi ditolak", {
+      pesan: hasil.pesan,
+      dasar: dasarTripay(konfig),
+      merchantCode: konfig.merchantCode,
+      panjangApiKey: konfig.apiKey.length,
+      panjangPrivateKey: konfig.privateKey.length,
+      pesanTandaTangan: `${konfig.merchantCode}${req.order_no}${req.amount}`,
+      tandaTangan: signature,
+      method: req.method,
+      expired_time: form.get("expired_time"),
+    });
+  }
+
+  return hasil;
 }

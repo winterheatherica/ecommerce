@@ -32,8 +32,6 @@ export const paymentRoutes = new Elysia().get(
           name: c.name,
           group: c.group,
           icon_url: c.icon_url,
-          fee_flat: c.fee_flat,
-          fee_percent: c.fee_percent,
           minimum_amount: c.minimum_amount,
           maximum_amount: c.maximum_amount,
         })),

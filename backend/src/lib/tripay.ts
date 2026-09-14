@@ -31,9 +31,9 @@ export function bacaKonfig(
   }
 
   return {
-    apiKey,
-    privateKey,
-    merchantCode,
+    apiKey: apiKey.trim(),
+    privateKey: privateKey.trim(),
+    merchantCode: merchantCode.trim(),
     sandbox: env.TRIPAY_SANDBOX !== "false",
   };
 }
