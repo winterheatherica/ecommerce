@@ -1,19 +1,38 @@
 import { env } from "cloudflare:workers";
-import { Elysia, t } from "elysia";
+import { Elysia } from "elysia";
 
 import { buatKoneksi, tutup, type Sql } from "../lib/db";
-import { tandaiTerbayar } from "../db/pesanan";
+import {
+  ambilPesanan,
+  gagalkanPembayaran,
+  tandaiTerbayar,
+} from "../db/pesanan";
+import { bacaKonfig, samaAman, tandaTanganCallback } from "../lib/tripay";
 
-type Peristiwa = {
-  external_id: string | null;
-  status: string | null;
-  payload: unknown;
+type Callback = {
+  reference?: string;
+  merchant_ref?: string;
+  payment_method?: string;
+  payment_method_code?: string;
+  total_amount?: number;
+  status?: string;
+  is_closed_payment?: number;
 };
 
-async function catat(sql: Sql, p: Peristiwa): Promise<number> {
+async function catat(
+  sql: Sql,
+  isi: Callback,
+  mentah: string,
+): Promise<number> {
   const [baris] = await sql<{ id: number }[]>`
     insert into webhook_events (provider, external_id, event_type, payload, processed)
-    values ('xendit', ${p.external_id}, ${p.status}, ${JSON.stringify(p.payload)}::jsonb, false)
+    values (
+      'tripay',
+      ${isi.merchant_ref ?? null},
+      ${isi.status ?? null},
+      ${mentah}::jsonb,
+      false
+    )
     returning id::int as id
   `;
 
@@ -24,48 +43,78 @@ async function tandaiDiproses(sql: Sql, id: number): Promise<void> {
   await sql`update webhook_events set processed = true where id = ${id}`;
 }
 
-function samaAman(a: string, b: string): boolean {
-  if (a.length !== b.length) return false;
-
-  let beda = 0;
-  for (let i = 0; i < a.length; i++) {
-    beda |= a.charCodeAt(i) ^ b.charCodeAt(i);
-  }
-
-  return beda === 0;
-}
-
 export const webhookRoutes = new Elysia().post(
-  "/api/webhooks/xendit",
+  "/api/webhooks/tripay",
   async ({ body, headers, set }) => {
-    const wadah = env as unknown as Record<string, string>;
-    const token = headers["x-callback-token"];
-    const diharapkan = wadah.XENDIT_CALLBACK_TOKEN;
+    const wadah = env as unknown as Record<string, unknown>;
+    const konfig = bacaKonfig(wadah);
 
-    if (!diharapkan || !token || !samaAman(token, diharapkan)) {
+    if (!konfig) {
+      set.status = 503;
+      return { error: "payment_unconfigured" };
+    }
+
+    const mentah = typeof body === "string" ? body : "";
+    const dikirim = headers["x-callback-signature"];
+    const diharapkan = await tandaTanganCallback(konfig, mentah);
+
+    if (!dikirim || !samaAman(dikirim, diharapkan)) {
       set.status = 401;
-      return { error: "unauthorized", message: "Token callback tidak cocok" };
+      return { error: "invalid_signature" };
+    }
+
+    let isi: Callback;
+
+    try {
+      isi = JSON.parse(mentah) as Callback;
+    } catch {
+      set.status = 400;
+      return { error: "bad_request" };
     }
 
     const sql = buatKoneksi(wadah);
 
-    const peristiwa: Peristiwa = {
-      external_id: body.external_id ?? null,
-      status: body.status ?? null,
-      payload: body,
-    };
-
     try {
-      const idPeristiwa = await catat(sql, peristiwa);
+      const idPeristiwa = await catat(sql, isi, mentah);
 
-      if (body.status !== "PAID" || !body.external_id) {
+      if (!isi.merchant_ref) {
         return { received: true, ignored: true };
+      }
+
+      if (isi.status !== "PAID") {
+        if (isi.status === "EXPIRED" || isi.status === "FAILED") {
+          await gagalkanPembayaran(sql, isi.merchant_ref, "EXPIRED");
+          await tandaiDiproses(sql, idPeristiwa);
+          return { received: true, expired: true };
+        }
+
+        return { received: true, ignored: true };
+      }
+
+      const pesanan = await ambilPesanan(sql, isi.merchant_ref);
+
+      if (!pesanan) {
+        return { received: true, ignored: true };
+      }
+
+      if (isi.total_amount !== pesanan.total) {
+        console.error(
+          "[tripay] nominal tidak cocok",
+          isi.merchant_ref,
+          "callback:",
+          isi.total_amount,
+          "pesanan:",
+          pesanan.total,
+        );
+
+        set.status = 409;
+        return { received: true, error: "amount_mismatch" };
       }
 
       const hasil = await tandaiTerbayar(
         sql,
-        body.external_id,
-        body.payment_method ?? null,
+        isi.merchant_ref,
+        isi.payment_method ?? isi.payment_method_code ?? null,
       );
 
       if (hasil.ok) await tandaiDiproses(sql, idPeristiwa);
@@ -76,14 +125,6 @@ export const webhookRoutes = new Elysia().post(
     }
   },
   {
-    headers: t.Object({
-      "x-callback-token": t.Optional(t.String({ maxLength: 200 })),
-    }),
-    body: t.Object({
-      external_id: t.Optional(t.String({ maxLength: 80 })),
-      status: t.Optional(t.String({ maxLength: 40 })),
-      payment_method: t.Optional(t.String({ maxLength: 40 })),
-      amount: t.Optional(t.Number()),
-    }),
+    parse: ({ request }) => request.text(),
   },
 );

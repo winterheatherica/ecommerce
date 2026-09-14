@@ -107,7 +107,9 @@ export type Pesanan = {
   shipping_cost: number;
   total: number;
   status: StatusPesanan;
-  xendit_invoice_url: string | null;
+  payment_reference: string | null;
+  payment_url: string | null;
+  payment_channel: string | null;
   expires_at: string | null;
   payment_method: string | null;
   tracking_number: string | null;

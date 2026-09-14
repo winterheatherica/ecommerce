@@ -40,7 +40,11 @@ const nextConfig: NextConfig = {
     ];
   },
   async rewrites() {
-    const base = process.env.API_URL ?? "http://localhost:8787";
+    const base =
+      process.env.API_URL ??
+      (process.env.NODE_ENV === "production"
+        ? "https://ecommerce-api.xerika.workers.dev"
+        : "http://localhost:8787");
 
     return [
       {

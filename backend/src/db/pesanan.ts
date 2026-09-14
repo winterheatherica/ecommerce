@@ -10,7 +10,6 @@ import {
   type StatusPesanan,
 } from "../lib/orders";
 import { cariOpsi } from "../lib/shipping";
-import { buatInvoice } from "../lib/payment";
 
 export type ItemPesanan = {
   product_id: number;
@@ -38,8 +37,9 @@ export type Pesanan = {
   shipping_cost: number;
   total: number;
   status: StatusPesanan;
-  xendit_invoice_id: string | null;
-  xendit_invoice_url: string | null;
+  payment_reference: string | null;
+  payment_url: string | null;
+  payment_channel: string | null;
   expires_at: string | null;
   payment_method: string | null;
   tracking_number: string | null;
@@ -91,8 +91,9 @@ const pilih = (sql: Sql) => sql`
   o.shipping_cost,
   o.total,
   o.status,
-  o.xendit_invoice_id,
-  o.xendit_invoice_url,
+  o.payment_reference,
+  o.payment_url,
+  o.payment_channel,
   o.expires_at,
   o.payment_method,
   o.tracking_number,
@@ -214,7 +215,7 @@ export async function daftarPesanan(sql: Sql, f: FilterPesanan) {
 export type PermintaanPesanan = {
   customer_name: string;
   phone: string;
-  email?: string;
+  email: string;
   address: string;
   notes?: string;
   dest_id: string;
@@ -303,7 +304,7 @@ async function kurangiStok(
 export async function buatPesanan(
   sql: Sql,
   req: PermintaanPesanan,
-  storefrontUrl: string,
+  umurJam: number,
 ): Promise<HasilBuat> {
   if (!hpSah(req.phone)) {
     return {
@@ -316,13 +317,13 @@ export async function buatPesanan(
     };
   }
 
-  if (req.email && req.email.trim() && !emailSah(req.email)) {
+  if (!emailSah(req.email)) {
     return {
       ok: false,
       status: 422,
       badan: {
         error: "invalid_email",
-        message: "Alamat email tidak valid",
+        message: "Alamat email wajib diisi dan harus valid",
       },
     };
   }
@@ -380,28 +381,20 @@ export async function buatPesanan(
 
         const nomor = nomorPesananBaru();
         const total = subtotal + opsi.cost;
-
-        const invoice = buatInvoice(
-          {
-            order_no: nomor,
-            amount: total,
-            customer_name: req.customer_name.trim(),
-            email: req.email?.trim() || null,
-          },
-          storefrontUrl,
-        );
+        const kedaluwarsa = new Date(
+          Date.now() + umurJam * 60 * 60 * 1000,
+        ).toISOString();
 
         const [pesanan] = await tx<{ id: number }[]>`
           insert into orders (
             order_no, customer_name, phone, email, address, notes,
             dest_id, courier, service, etd, weight_g,
-            subtotal, shipping_cost, total, status,
-            xendit_invoice_id, xendit_invoice_url, expires_at
+            subtotal, shipping_cost, total, status, expires_at
           ) values (
             ${nomor},
             ${req.customer_name.trim()},
             ${bersihkanHp(req.phone)},
-            ${req.email?.trim() || null},
+            ${req.email.trim()},
             ${req.address.trim()},
             ${req.notes?.trim() || null},
             ${req.dest_id},
@@ -413,9 +406,7 @@ export async function buatPesanan(
             ${opsi.cost},
             ${total},
             'PENDING',
-            ${invoice.invoice_id},
-            ${invoice.invoice_url},
-            ${invoice.expires_at}
+            ${kedaluwarsa}
           )
           returning id::int as id
         `;
@@ -570,4 +561,61 @@ export async function batalkanPesanan(
   `;
 
   return hasilUbah(sql, orderNo, diubah);
+}
+
+export type Pembayaran = {
+  reference: string;
+  url: string;
+  channel: string;
+  method: string;
+};
+
+export async function simpanPembayaran(
+  sql: Sql,
+  orderNo: string,
+  bayar: Pembayaran,
+): Promise<HasilUbahStatus> {
+  const [diubah] = await sql<{ order_no: string }[]>`
+    update orders
+    set payment_reference = ${bayar.reference},
+        payment_url = ${bayar.url},
+        payment_channel = ${bayar.channel},
+        payment_method = ${bayar.method}
+    where upper(order_no) = upper(${orderNo.trim()})
+      and status = 'PENDING'
+    returning order_no
+  `;
+
+  return hasilUbah(sql, orderNo, diubah);
+}
+
+export async function gagalkanPembayaran(
+  sql: Sql,
+  orderNo: string,
+  status: "EXPIRED" | "CANCELLED",
+): Promise<string | undefined> {
+  const [baris] = await sql<{ order_no: string }[]>`
+    with digagalkan as (
+      update orders o
+      set status = ${status}
+      where upper(o.order_no) = upper(${orderNo.trim()})
+        and o.status = 'PENDING'
+      returning o.id, o.order_no
+    ),
+    pulih as (
+      update products p
+      set stock = p.stock + x.qty
+      from (
+        select i.product_id, sum(i.qty)::int as qty
+        from order_items i
+        join digagalkan d on d.id = i.order_id
+        group by i.product_id
+      ) x
+      where p.id = x.product_id
+      returning p.id
+    )
+    select order_no from digagalkan
+  `;
+
+  return baris?.order_no;
 }

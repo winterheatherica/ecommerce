@@ -13,8 +13,8 @@ function permintaan(header: Record<string, string> = {}): Request {
 }
 
 describe("bebasDariBatas", () => {
-  it("membebaskan webhook supaya Xendit tidak pernah ditolak", () => {
-    expect(bebasDariBatas("/api/webhooks/xendit")).toBe(true);
+  it("membebaskan webhook supaya Tripay tidak pernah ditolak", () => {
+    expect(bebasDariBatas("/api/webhooks/tripay")).toBe(true);
   });
 
   it("membebaskan health check", () => {

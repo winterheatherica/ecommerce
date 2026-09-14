@@ -117,6 +117,8 @@ export default function CheckoutForm({ produk }: { produk: Produk[] }) {
     if (nama.trim().length < 3) pesan.push("Nama penerima belum diisi.");
     if (!/^0\d{8,13}$/.test(telepon.replace(/[\s-]/g, "")))
       pesan.push("Nomor HP tidak valid. Contoh: 081234567890.");
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()))
+      pesan.push("Email belum diisi atau formatnya salah.");
     if (alamat.trim().length < 10)
       pesan.push("Alamat terlalu pendek. Tulis lengkap sampai nomor rumah.");
     if (!tujuan) pesan.push("Kecamatan tujuan belum dipilih.");
@@ -136,7 +138,7 @@ export default function CheckoutForm({ produk }: { produk: Produk[] }) {
       const hasil = await buatPesanan({
         customer_name: nama,
         phone: telepon,
-        email: email || undefined,
+        email: email.trim(),
         address: alamat,
         notes: catatan || undefined,
         dest_id: tujuan.id,
@@ -146,7 +148,7 @@ export default function CheckoutForm({ produk }: { produk: Produk[] }) {
       });
 
       kosongkanKeranjang();
-      router.push(hasil.invoice_url ?? `/order/${hasil.order_no}`);
+      router.push(`/bayar/${hasil.order_no}`);
     } catch (err) {
       setGalat([err instanceof Error ? err.message : "Pesanan gagal dibuat."]);
       setMengirim(false);
@@ -221,14 +223,14 @@ export default function CheckoutForm({ produk }: { produk: Produk[] }) {
 
           <div>
             <label className={labelInput} htmlFor="email">
-              Email <span className="normal-case">(opsional)</span>
+              Email
             </label>
             <input
               id="email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="untuk bukti pembayaran"
+              placeholder="untuk bukti pembayaran dari Tripay"
               autoComplete="email"
               className={kotakInput}
             />

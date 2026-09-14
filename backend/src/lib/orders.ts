@@ -59,3 +59,10 @@ export function hpSah(phone: string): boolean {
 export function emailSah(email: string): boolean {
   return POLA_EMAIL.test(email.trim());
 }
+
+export const UMUR_PESANAN_JAM = 1;
+
+export function umurPesananJam(env: Record<string, unknown>): number {
+  const n = Number(env.UMUR_PESANAN_JAM);
+  return Number.isFinite(n) && n > 0 && n <= 72 ? n : UMUR_PESANAN_JAM;
+}

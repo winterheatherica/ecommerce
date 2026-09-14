@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 
-import PaymentSimulator from "@/app/components/payment-simulator";
+import PaymentPicker from "@/app/components/payment-picker";
 import { ambilPesanan } from "@/app/lib/api";
 import { rupiah } from "@/app/data/produk";
 
@@ -36,12 +36,12 @@ export default async function BayarPage({ params }: Props) {
   return (
     <main className="mx-auto flex min-h-svh w-full max-w-xl flex-col justify-center px-6 py-16">
       <div className="border border-ink/10 bg-white p-8 shadow-sm sm:p-10">
-        <p className="font-mono text-[10px] tracking-[0.28em] text-amber-700 uppercase">
-          Simulasi pembayaran
+        <p className="font-mono text-[10px] tracking-[0.28em] text-accent-600 uppercase">
+          Pembayaran
         </p>
         <p className="mt-3 text-sm leading-relaxed text-stone-600">
-          Halaman ini menggantikan halaman pembayaran Xendit yang belum dipasang.
-          Tidak ada uang yang berpindah.
+          Pilih metode pembayaran, lalu kamu akan diarahkan ke halaman
+          pembayaran yang aman.
         </p>
 
         <div className="mt-8 border-t border-ink/10 pt-8">
@@ -64,7 +64,7 @@ export default async function BayarPage({ params }: Props) {
           )}
         </div>
 
-        <PaymentSimulator orderNo={pesanan.order_no} total={pesanan.total} />
+        <PaymentPicker orderNo={pesanan.order_no} total={pesanan.total} />
       </div>
     </main>
   );

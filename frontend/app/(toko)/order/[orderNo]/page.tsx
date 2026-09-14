@@ -128,13 +128,13 @@ export default async function StatusPesananPage({ params }: Props) {
                   </p>
                 )}
 
-                {sekarang && l.status === "PENDING" && pesanan.xendit_invoice_url && (
-                  <a
-                    href={pesanan.xendit_invoice_url}
+                {sekarang && l.status === "PENDING" && (
+                  <Link
+                    href={`/bayar/${pesanan.order_no}`}
                     className="mt-4 inline-block border border-brand-500 bg-brand-500 px-8 py-3 font-mono text-[11px] tracking-[0.22em] text-white uppercase transition-colors hover:border-brand-600 hover:bg-brand-600"
                   >
                     Bayar sekarang
-                  </a>
+                  </Link>
                 )}
               </li>
             );

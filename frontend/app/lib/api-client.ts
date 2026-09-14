@@ -50,7 +50,7 @@ export async function ambilOngkir(
 export type PesananBaru = {
   customer_name: string;
   phone: string;
-  email?: string;
+  email: string;
   address: string;
   notes?: string;
   dest_id: string;
@@ -63,9 +63,53 @@ export type HasilPesanan = {
   order_no: string;
   status: string;
   total: number;
-  invoice_url: string | null;
   expires_at: string | null;
 };
+
+export type ChannelBayar = {
+  code: string;
+  name: string;
+  group: string;
+  icon_url: string;
+  fee_flat: number;
+  fee_percent: number;
+  minimum_amount: number;
+  maximum_amount: number;
+};
+
+export async function ambilChannel(
+  signal?: AbortSignal,
+): Promise<{ data: ChannelBayar[]; sandbox: boolean }> {
+  const res = await fetch("/api/payment-channels", { signal });
+
+  if (!res.ok) {
+    const galat = (await res.json().catch(() => ({}))) as { message?: string };
+    throw new Error(galat.message ?? `Gagal memuat metode bayar (${res.status})`);
+  }
+
+  return (await res.json()) as { data: ChannelBayar[]; sandbox: boolean };
+}
+
+export async function bayarPesanan(
+  orderNo: string,
+  method: string,
+): Promise<{ checkout_url: string }> {
+  const res = await fetch(
+    `/api/orders/${encodeURIComponent(orderNo)}/pay`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ method }),
+    },
+  );
+
+  if (!res.ok) {
+    const galat = (await res.json().catch(() => ({}))) as { message?: string };
+    throw new Error(galat.message ?? `Gagal membuat pembayaran (${res.status})`);
+  }
+
+  return (await res.json()) as { checkout_url: string };
+}
 
 export async function buatPesanan(
   data: PesananBaru,
@@ -149,22 +193,6 @@ export async function ubahProduk(
   if (!res.ok) {
     const galat = (await res.json().catch(() => ({}))) as { message?: string };
     throw new Error(galat.message ?? `Gagal menyimpan (${res.status})`);
-  }
-}
-
-export async function bayarSimulasi(
-  orderNo: string,
-  paymentMethod: string,
-): Promise<void> {
-  const res = await fetch(`/api/dev/pay/${encodeURIComponent(orderNo)}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ payment_method: paymentMethod }),
-  });
-
-  if (!res.ok) {
-    const galat = (await res.json().catch(() => ({}))) as { message?: string };
-    throw new Error(galat.message ?? `Pembayaran gagal (${res.status})`);
   }
 }
 

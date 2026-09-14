@@ -12,6 +12,7 @@ import {
 
 import { productRoutes } from "./routes/products";
 import { shippingRoutes } from "./routes/shipping";
+import { paymentRoutes } from "./routes/payment";
 import { orderRoutes } from "./routes/orders";
 import { webhookRoutes } from "./routes/webhooks";
 import { adminRoutes } from "./routes/admin";
@@ -69,6 +70,7 @@ export default new Elysia({ adapter: CloudflareAdapter })
   }))
   .use(productRoutes)
   .use(shippingRoutes)
+  .use(paymentRoutes)
   .use(orderRoutes)
   .use(webhookRoutes)
   .use(adminRoutes)

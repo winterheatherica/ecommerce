@@ -3,18 +3,21 @@ import { afterAll, beforeEach, describe, expect, it } from "vitest";
 import type { Sql } from "../lib/db";
 import { bersihkan, koneksiTes } from "../test/db";
 import {
+  ambilPesanan,
   batalkanPesanan,
   buatPesanan,
   cariPesanan,
   daftarPesanan,
+  gagalkanPembayaran,
   sapuKedaluwarsa,
+  simpanPembayaran,
   tandaiDikirim,
   tandaiSelesai,
   tandaiTerbayar,
   type PermintaanPesanan,
 } from "./pesanan";
 
-const TOKO = "http://localhost:3000";
+const UMUR_JAM = 1;
 const KUCING = "bye-bye-cat-50g";
 const NYAMUK = "goito-gel-nyamuk";
 const HABIS = "bye-bye-cicak-gel-80gr";
@@ -33,6 +36,7 @@ function permintaan(ubah: Partial<PermintaanPesanan> = {}): PermintaanPesanan {
   return {
     customer_name: "Rina Kartika",
     phone: "0812-3456-7890",
+    email: "rina@contoh.test",
     address: "Jl. Cihampelas No. 42, Bandung",
     dest_id: "50001",
     courier: "JNE",
@@ -57,7 +61,7 @@ async function lewatkanBatas(orderNo: string): Promise<void> {
 }
 
 async function buat(ubah: Partial<PermintaanPesanan> = {}) {
-  const hasil = await buatPesanan(sql, permintaan(ubah), TOKO);
+  const hasil = await buatPesanan(sql, permintaan(ubah), UMUR_JAM);
   if (!hasil.ok) throw new Error(`Gagal membuat pesanan: ${hasil.badan.error}`);
   return hasil.pesanan;
 }
@@ -93,7 +97,7 @@ describe("buatPesanan", () => {
     const hasil = await buatPesanan(
       sql,
       permintaan({ items: [{ slug: KUCING, qty: sebelum + 1 }] }),
-      TOKO,
+      UMUR_JAM,
     );
 
     expect(hasil.ok).toBe(false);
@@ -114,7 +118,7 @@ describe("buatPesanan", () => {
           { slug: KUCING, qty: 1 },
         ],
       }),
-      TOKO,
+      UMUR_JAM,
     );
 
     expect(hasil.ok).toBe(false);
@@ -137,7 +141,7 @@ describe("buatPesanan", () => {
     const hasil = await buatPesanan(
       sql,
       permintaan({ items: [{ slug: HABIS, qty: 1 }] }),
-      TOKO,
+      UMUR_JAM,
     );
 
     expect(hasil.ok).toBe(false);
@@ -148,7 +152,7 @@ describe("buatPesanan", () => {
   it("menolak produk yang tidak aktif", async () => {
     await sql`update products set is_active = false where slug = ${KUCING}`;
 
-    const hasil = await buatPesanan(sql, permintaan(), TOKO);
+    const hasil = await buatPesanan(sql, permintaan(), UMUR_JAM);
 
     expect(hasil.ok).toBe(false);
     if (hasil.ok) return;
@@ -160,7 +164,7 @@ describe("buatPesanan", () => {
     const hasil = await buatPesanan(
       sql,
       permintaan({ items: [{ slug: "tidak-ada", qty: 1 }] }),
-      TOKO,
+      UMUR_JAM,
     );
 
     expect(hasil.ok).toBe(false);
@@ -169,7 +173,7 @@ describe("buatPesanan", () => {
   });
 
   it("menolak kecamatan tujuan yang tidak dikenal", async () => {
-    const hasil = await buatPesanan(sql, permintaan({ dest_id: "99999" }), TOKO);
+    const hasil = await buatPesanan(sql, permintaan({ dest_id: "99999" }), UMUR_JAM);
 
     expect(hasil.ok).toBe(false);
     if (hasil.ok) return;
@@ -181,7 +185,7 @@ describe("buatPesanan", () => {
     const hasil = await buatPesanan(
       sql,
       permintaan({ courier: "POS", service: "KILAT" }),
-      TOKO,
+      UMUR_JAM,
     );
 
     expect(hasil.ok).toBe(false);
@@ -210,14 +214,29 @@ describe("buatPesanan", () => {
     expect(a.order_no).toMatch(/^MNK-/);
   });
 
-  it("membuat invoice dan batas waktu pembayaran", async () => {
+  it("belum punya transaksi pembayaran, tapi sudah punya batas waktu", async () => {
     const pesanan = await buat();
 
-    expect(pesanan.xendit_invoice_id).toBeTruthy();
-    expect(pesanan.xendit_invoice_url).toContain(pesanan.order_no);
+    expect(pesanan.payment_reference).toBeNull();
+    expect(pesanan.payment_url).toBeNull();
+    expect(pesanan.payment_channel).toBeNull();
     expect(new Date(pesanan.expires_at as string).getTime()).toBeGreaterThan(
       Date.now(),
     );
+  });
+
+  it("batas waktu mengikuti umur yang diminta", async () => {
+    const hasil = await buatPesanan(sql, permintaan(), 3);
+
+    expect(hasil.ok).toBe(true);
+    if (!hasil.ok) return;
+
+    const jam =
+      (new Date(hasil.pesanan.expires_at as string).getTime() - Date.now()) /
+      3_600_000;
+
+    expect(jam).toBeGreaterThan(2.9);
+    expect(jam).toBeLessThan(3.1);
   });
 
   it("membersihkan spasi dan tanda hubung di nomor HP", async () => {
@@ -239,7 +258,7 @@ describe("buatPesanan", () => {
     const hasil = await buatPesanan(
       sql,
       permintaan({ phone: "abcdefghij" }),
-      TOKO,
+      UMUR_JAM,
     );
 
     expect(hasil.ok).toBe(false);
@@ -253,7 +272,7 @@ describe("buatPesanan", () => {
     const hasil = await buatPesanan(
       sql,
       permintaan({ email: "bukan-email" }),
-      TOKO,
+      UMUR_JAM,
     );
 
     expect(hasil.ok).toBe(false);
@@ -261,10 +280,12 @@ describe("buatPesanan", () => {
     expect(hasil.badan.error).toBe("invalid_email");
   });
 
-  it("menerima pesanan tanpa email", async () => {
-    const hasil = await buatPesanan(sql, permintaan({ email: "" }), TOKO);
+  it("menolak pesanan tanpa email karena Tripay mewajibkannya", async () => {
+    const hasil = await buatPesanan(sql, permintaan({ email: "" }), UMUR_JAM);
 
-    expect(hasil.ok).toBe(true);
+    expect(hasil.ok).toBe(false);
+    if (hasil.ok) return;
+    expect(hasil.badan.error).toBe("invalid_email");
   });
 
   it("menolak nilai pesanan yang melampaui batas integer, stok kembali utuh", async () => {
@@ -272,7 +293,7 @@ describe("buatPesanan", () => {
     const hasil = await buatPesanan(
       sql,
       permintaan({ items: [{ slug: KUCING, qty: 99 }] }),
-      TOKO,
+      UMUR_JAM,
     );
 
     expect(hasil.ok).toBe(false);
@@ -297,8 +318,8 @@ describe("balapan stok", () => {
 
     try {
       const hasil = await Promise.all([
-        buatPesanan(a, permintaan(), TOKO),
-        buatPesanan(b, permintaan(), TOKO),
+        buatPesanan(a, permintaan(), UMUR_JAM),
+        buatPesanan(b, permintaan(), UMUR_JAM),
       ]);
 
       expect(hasil.filter((h) => h.ok)).toHaveLength(1);
@@ -630,5 +651,83 @@ describe("batalkanPesanan", () => {
     expect(hasil.ok).toBe(false);
     if (hasil.ok) return;
     expect(hasil.alasan).toBe("not_found");
+  });
+});
+
+describe("simpanPembayaran", () => {
+  const bayar = {
+    reference: "T0001000000000000006",
+    url: "https://tripay.co.id/checkout/T0001000000000000006",
+    channel: "QRIS",
+    method: "QRIS by ShopeePay",
+  };
+
+  it("menyimpan referensi dan alamat pembayaran", async () => {
+    const pesanan = await buat();
+    const hasil = await simpanPembayaran(sql, pesanan.order_no, bayar);
+
+    expect(hasil.ok).toBe(true);
+    if (!hasil.ok) return;
+    expect(hasil.pesanan.payment_reference).toBe(bayar.reference);
+    expect(hasil.pesanan.payment_url).toBe(bayar.url);
+    expect(hasil.pesanan.payment_channel).toBe("QRIS");
+    expect(hasil.pesanan.payment_method).toBe(bayar.method);
+    expect(hasil.pesanan.status).toBe("PENDING");
+  });
+
+  it("menolak pesanan yang sudah dibayar", async () => {
+    const pesanan = await buat();
+    await tandaiTerbayar(sql, pesanan.order_no, null);
+
+    const hasil = await simpanPembayaran(sql, pesanan.order_no, bayar);
+
+    expect(hasil.ok).toBe(false);
+    if (hasil.ok) return;
+    expect(hasil.alasan).toBe("invalid_status");
+  });
+
+  it("menolak pesanan yang tidak ada", async () => {
+    const hasil = await simpanPembayaran(sql, "MNK-TIDAKADA", bayar);
+
+    expect(hasil.ok).toBe(false);
+    if (hasil.ok) return;
+    expect(hasil.alasan).toBe("not_found");
+  });
+});
+
+describe("gagalkanPembayaran", () => {
+  it("mengembalikan stok saat Tripay bilang kedaluwarsa", async () => {
+    const sebelum = await stok(KUCING);
+    const pesanan = await buat({ items: [{ slug: KUCING, qty: 2 }] });
+
+    expect(await stok(KUCING)).toBe(sebelum - 2);
+
+    const nomor = await gagalkanPembayaran(sql, pesanan.order_no, "EXPIRED");
+
+    expect(nomor).toBe(pesanan.order_no);
+    expect(await stok(KUCING)).toBe(sebelum);
+    expect((await ambilPesanan(sql, pesanan.order_no))?.status).toBe("EXPIRED");
+  });
+
+  it("tidak mengembalikan stok dua kali", async () => {
+    const sebelum = await stok(KUCING);
+    const pesanan = await buat({ items: [{ slug: KUCING, qty: 2 }] });
+
+    await gagalkanPembayaran(sql, pesanan.order_no, "EXPIRED");
+    await gagalkanPembayaran(sql, pesanan.order_no, "EXPIRED");
+
+    expect(await stok(KUCING)).toBe(sebelum);
+  });
+
+  it("tidak menyentuh pesanan yang sudah dibayar", async () => {
+    const sebelum = await stok(KUCING);
+    const pesanan = await buat({ items: [{ slug: KUCING, qty: 2 }] });
+    await tandaiTerbayar(sql, pesanan.order_no, null);
+
+    const nomor = await gagalkanPembayaran(sql, pesanan.order_no, "EXPIRED");
+
+    expect(nomor).toBeUndefined();
+    expect(await stok(KUCING)).toBe(sebelum - 2);
+    expect((await ambilPesanan(sql, pesanan.order_no))?.status).toBe("PAID");
   });
 });
