@@ -5,6 +5,14 @@ import { buatKoneksi, tutup } from "../lib/db";
 import { ambilWilayah, cariWilayah, simpanWilayah } from "../db/wilayah";
 import { opsiUntuk } from "../lib/ongkir";
 import { bacaKonfigOngkir, cariTujuan } from "../lib/rajaongkir";
+import {
+  UMUR_WILAYAH_DETIK,
+  ambilCache,
+  bacaKonfigRedis,
+  kunciWilayah,
+  simpanCache,
+} from "../lib/redis";
+import type { Wilayah } from "../db/wilayah";
 
 const MIN_KATA = 3;
 
@@ -25,12 +33,20 @@ export const shippingRoutes = new Elysia()
 
       if (kata.length < MIN_KATA) return { data: [], sumber: "kosong" };
 
+      const redis = bacaKonfigRedis(wadah());
+      const kunci = kunciWilayah(kata, batas);
+
+      const dariCache = await ambilCache<Wilayah[]>(redis, kunci);
+
+      if (dariCache) return { data: dariCache, sumber: "cache" };
+
       const sql = koneksi();
 
       try {
         const tersimpan = await cariWilayah(sql, kata, batas);
 
         if (tersimpan.length > 0) {
+          await simpanCache(redis, kunci, tersimpan, UMUR_WILAYAH_DETIK);
           return { data: tersimpan, sumber: "lokal" };
         }
 
@@ -55,6 +71,7 @@ export const shippingRoutes = new Elysia()
         }));
 
         await simpanWilayah(sql, wilayah);
+        await simpanCache(redis, kunci, wilayah, UMUR_WILAYAH_DETIK);
 
         return { data: wilayah, sumber: "rajaongkir" };
       } finally {
