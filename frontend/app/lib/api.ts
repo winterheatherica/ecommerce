@@ -5,6 +5,15 @@ function basis(): string {
   return process.env.API_URL ?? "http://localhost:8787";
 }
 
+function kepalaAdmin(): HeadersInit {
+  const pengguna = process.env.ADMIN_USER?.trim();
+  const sandi = process.env.ADMIN_PASSWORD?.trim();
+
+  if (!pengguna || !sandi) return {};
+
+  return { Authorization: `Basic ${btoa(`${pengguna}:${sandi}`)}` };
+}
+
 type ProdukAPI = {
   id: number;
   slug: string;
@@ -143,6 +152,7 @@ export async function ambilDaftarPesanan(
   const sisa = q.toString();
   const res = await fetch(`${basis()}/api/admin/orders${sisa ? `?${sisa}` : ""}`, {
     cache: "no-store",
+    headers: kepalaAdmin(),
   });
 
   if (!res.ok) {
@@ -154,7 +164,10 @@ export async function ambilDaftarPesanan(
 }
 
 export async function ambilProdukAdmin(): Promise<Produk[]> {
-  const res = await fetch(`${basis()}/api/admin/products`, { cache: "no-store" });
+  const res = await fetch(`${basis()}/api/admin/products`, {
+    cache: "no-store",
+    headers: kepalaAdmin(),
+  });
 
   if (!res.ok) {
     throw new Error(`Gagal mengambil produk admin (${res.status})`);
@@ -169,7 +182,7 @@ export async function ambilSatuProdukAdmin(
 ): Promise<Produk | null> {
   const res = await fetch(
     `${basis()}/api/admin/products/${encodeURIComponent(slug)}`,
-    { cache: "no-store" },
+    { cache: "no-store", headers: kepalaAdmin() },
   );
 
   if (res.status === 404) return null;

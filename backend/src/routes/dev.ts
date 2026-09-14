@@ -6,8 +6,11 @@ import { buatKoneksi, tutup } from "../lib/db";
 import { tandaiTerbayar } from "../db/pesanan";
 
 export const devRoutes = new Elysia({ prefix: "/api/dev" })
-  .onBeforeHandle(({ set }) => {
-    const hasil = periksaAdmin(env as unknown as Record<string, unknown>);
+  .onBeforeHandle(({ set, headers }) => {
+    const hasil = periksaAdmin(
+      env as unknown as Record<string, unknown>,
+      headers.authorization,
+    );
 
     if (!hasil.lolos) {
       set.status = 404;

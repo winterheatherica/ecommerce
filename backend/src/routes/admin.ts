@@ -54,8 +54,11 @@ function koneksi() {
 }
 
 export const adminRoutes = new Elysia({ prefix: "/api/admin" })
-  .onBeforeHandle(({ set }) => {
-    const hasil = periksaAdmin(env as unknown as Record<string, unknown>);
+  .onBeforeHandle(({ set, headers }) => {
+    const hasil = periksaAdmin(
+      env as unknown as Record<string, unknown>,
+      headers.authorization,
+    );
 
     if (!hasil.lolos) {
       set.status = hasil.status;
