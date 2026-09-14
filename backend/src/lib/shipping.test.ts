@@ -6,6 +6,7 @@ import {
   cariOpsi,
   kurirDipakai,
   petakanOpsi,
+  pilihTerbaik,
   rapikanEtd,
   type OpsiOngkir,
 } from "./shipping";
@@ -134,5 +135,31 @@ describe("kiloBulat", () => {
 
   it("berat di bawah 1 kg berbagi kunci cache yang sama", () => {
     expect(kiloBulat(50)).toBe(kiloBulat(950));
+  });
+});
+
+describe("pilihTerbaik", () => {
+  const banyak: OpsiOngkir[] = Array.from({ length: 12 }, (_, i) => ({
+    courier: "JNE",
+    service: `S${i}`,
+    cost: (i + 1) * 1000,
+    etd: "1 hari",
+  }));
+
+  it("hanya menampilkan enam termurah", () => {
+    const hasil = pilihTerbaik(banyak);
+
+    expect(hasil).toHaveLength(6);
+    expect(hasil.at(-1)?.cost).toBe(6000);
+  });
+
+  it("membuang layanan kargo yang jauh lebih mahal", () => {
+    const hasil = pilihTerbaik(banyak);
+
+    expect(hasil.some((o) => o.cost >= 300000)).toBe(false);
+  });
+
+  it("membiarkan daftar pendek apa adanya", () => {
+    expect(pilihTerbaik(banyak.slice(0, 3))).toHaveLength(3);
   });
 });

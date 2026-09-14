@@ -351,6 +351,43 @@ export async function buatPesanan(
 
   const diminta = gabungkanItem(req.items);
 
+  const praProduk = await sql<{ slug: string; weight_g: number }[]>`
+    select slug, weight_g
+    from products
+    where is_active and slug in ${sql(diminta.map((i) => i.slug))}
+  `;
+
+  const beratPra = diminta.reduce((s, item) => {
+    const p = praProduk.find((x) => x.slug === item.slug);
+    return s + (p ? p.weight_g * item.qty : 0);
+  }, 0);
+
+  if (beratPra <= 0) {
+    return {
+      ok: false,
+      status: 422,
+      badan: {
+        error: "product_not_found",
+        message: "Produk yang dipesan tidak tersedia",
+      },
+    };
+  }
+  const daftarOngkir = await cariOngkir(req.dest_id, beratPra);
+  const opsiTerpilih = daftarOngkir
+    ? cariOpsi(daftarOngkir, req.courier, req.service)
+    : null;
+
+  if (!opsiTerpilih) {
+    return {
+      ok: false,
+      status: 422,
+      badan: {
+        error: "service_unavailable",
+        message: "Layanan pengiriman itu tidak tersedia untuk tujuan ini",
+      },
+    };
+  }
+
   for (let percobaan = 0; percobaan < 3; percobaan++) {
     try {
       const orderNo = await sql.begin(async (tx) => {
@@ -373,18 +410,7 @@ export async function buatPesanan(
           });
         }
 
-        const daftar = await cariOngkir(req.dest_id, weight_g);
-        const opsi = daftar ? cariOpsi(daftar, req.courier, req.service) : null;
-
-        if (!opsi) {
-          throw new GagalPesanan({
-            status: 422,
-            badan: {
-              error: "service_unavailable",
-              message: "Layanan pengiriman itu tidak tersedia untuk tujuan ini",
-            },
-          });
-        }
+        const opsi = opsiTerpilih;
 
         const nomor = nomorPesananBaru();
         const total = subtotal + opsi.cost;
@@ -429,7 +455,6 @@ export async function buatPesanan(
             })) as unknown as Record<string, never>[],
           )}
         `;
-
         return nomor;
       });
 

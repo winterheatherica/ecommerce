@@ -290,9 +290,6 @@ export default function CheckoutForm({ produk }: { produk: Produk[] }) {
                       className="block w-full px-4 py-3 text-left text-sm text-stone-700 transition-colors hover:bg-brand-50 hover:text-brand-700"
                     >
                       {w.label}
-                      <span className="ml-2 font-mono text-xs text-stone-400">
-                        {w.postal_code}
-                      </span>
                     </button>
                   </li>
                 ))}
@@ -374,9 +371,11 @@ export default function CheckoutForm({ produk }: { produk: Produk[] }) {
                           <span className="text-sm font-medium text-ink">
                             {o.courier} {o.service}
                           </span>
-                          <span className="mt-0.5 block font-mono text-[11px] text-stone-500">
-                            estimasi {o.etd}
-                          </span>
+                          {o.etd !== "-" && (
+                            <span className="mt-0.5 block font-mono text-[11px] text-stone-500">
+                              estimasi {o.etd}
+                            </span>
+                          )}
                         </span>
                         <span className="font-mono text-sm text-brand-600">
                           {rupiah(o.cost)}

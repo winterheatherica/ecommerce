@@ -9,6 +9,7 @@ export type OpsiOngkir = {
 
 export const KURIR_BAWAAN = "jne:jnt:sicepat";
 export const UMUR_TARIF_JAM = 24;
+export const MAKS_OPSI = 6;
 
 export function kurirDipakai(env: Record<string, unknown>): string {
   const pilihan = env.RAJAONGKIR_KURIR;
@@ -49,4 +50,8 @@ export function cariOpsi(
   return (
     daftar.find((o) => o.courier === courier && o.service === service) ?? null
   );
+}
+
+export function pilihTerbaik(daftar: OpsiOngkir[], maks = MAKS_OPSI): OpsiOngkir[] {
+  return daftar.slice(0, maks);
 }

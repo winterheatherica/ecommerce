@@ -30,7 +30,7 @@ async function catat(
       'tripay',
       ${isi.merchant_ref ?? null},
       ${isi.status ?? null},
-      ${mentah}::jsonb,
+      ${sql.json(JSON.parse(mentah))},
       false
     )
     returning id::int as id

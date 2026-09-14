@@ -164,7 +164,7 @@ export default async function StatusPesananPage({ params }: Props) {
           )}
           <p className="mt-3 font-mono text-xs text-stone-500">
             {pesanan.courier} {pesanan.service} &middot; {pesanan.weight_g} g
-            {pesanan.etd ? ` · estimasi ${pesanan.etd} hari` : ""}
+            {pesanan.etd && pesanan.etd !== "-" ? ` · estimasi ${pesanan.etd}` : ""}
           </p>
           {pesanan.notes && (
             <p className="mt-3 text-sm text-stone-500">Catatan: {pesanan.notes}</p>

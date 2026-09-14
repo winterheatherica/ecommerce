@@ -38,7 +38,7 @@ export async function simpanTarif(
       ${destId},
       ${kiloBulat(weightG)},
       ${courier},
-      ${JSON.stringify(opsi)}::jsonb,
+      ${sql.json(opsi)},
       now()
     )
     on conflict (dest_id, weight_kg, courier) do update

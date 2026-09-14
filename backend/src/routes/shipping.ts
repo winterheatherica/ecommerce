@@ -4,6 +4,7 @@ import { Elysia, t } from "elysia";
 import { buatKoneksi, tutup } from "../lib/db";
 import { ambilWilayah, cariWilayah, simpanWilayah } from "../db/wilayah";
 import { opsiUntuk } from "../lib/ongkir";
+import { pilihTerbaik } from "../lib/shipping";
 import { bacaKonfigOngkir, cariTujuan } from "../lib/rajaongkir";
 import {
   UMUR_WILAYAH_DETIK,
@@ -111,7 +112,7 @@ export const shippingRoutes = new Elysia()
         return {
           dest_id: tujuan.id,
           weight_g: body.weight_g,
-          options: hasil.opsi,
+          options: pilihTerbaik(hasil.opsi),
           sumber: hasil.sumber,
         };
       } finally {
