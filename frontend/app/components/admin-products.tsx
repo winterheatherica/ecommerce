@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 
 import { ubahProduk } from "@/app/lib/api-client";
@@ -54,12 +55,12 @@ export default function AdminProducts({ awal }: { awal: Produk[] }) {
     <div className="mx-auto max-w-5xl">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <h1 className="text-2xl font-semibold tracking-tight text-ink">Produk</h1>
-        <a
+        <Link
           href="/admin/produk/baru"
           className="border border-brand-500 bg-brand-500 px-5 py-2.5 font-mono text-[11px] tracking-[0.18em] text-white uppercase transition-colors hover:border-brand-600 hover:bg-brand-600"
         >
           + Tambah produk
-        </a>
+        </Link>
       </div>
       <p className="mt-1 text-sm text-stone-500">
         {produk.length} produk &middot; {produk.filter((p) => p.unggulan).length} ditandai
@@ -142,12 +143,12 @@ export default function AdminProducts({ awal }: { awal: Produk[] }) {
                   </button>
                 </td>
                 <td className="px-6 py-3 text-right">
-                  <a
+                  <Link
                     href={`/admin/produk/${p.slug}/ubah`}
                     className="font-mono text-[10px] tracking-[0.16em] text-stone-500 uppercase transition-colors hover:text-brand-600"
                   >
                     Ubah
-                  </a>
+                  </Link>
                 </td>
               </tr>
             ))}

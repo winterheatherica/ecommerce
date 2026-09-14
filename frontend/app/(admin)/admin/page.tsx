@@ -1,4 +1,5 @@
 import AdminSweepButton from "@/app/components/admin-sweep-button";
+import Link from "next/link";
 import { rupiah } from "@/app/data/produk";
 import { statusLabel, statusWarna } from "@/app/data/status-pesanan";
 import { ambilDaftarPesanan, ambilProduk } from "@/app/lib/api";
@@ -29,7 +30,7 @@ export default async function AdminRingkasanPage() {
       </p>
 
       <div className="mt-8 grid gap-4 sm:grid-cols-2">
-        <a
+        <Link
           href="/admin/pesanan?status=PAID"
           className="border border-ink/10 bg-white p-6 transition-colors hover:border-brand-400"
         >
@@ -42,9 +43,9 @@ export default async function AdminRingkasanPage() {
           <p className="mt-2 text-sm text-stone-500">
             Sudah dibayar, belum ada resi.
           </p>
-        </a>
+        </Link>
 
-        <a
+        <Link
           href="/admin/produk"
           className="border border-ink/10 bg-white p-6 transition-colors hover:border-brand-400"
         >
@@ -57,7 +58,7 @@ export default async function AdminRingkasanPage() {
           <p className="mt-2 text-sm text-stone-500">
             Sisa {AMBANG_STOK_MENIPIS} unit atau kurang.
           </p>
-        </a>
+        </Link>
       </div>
 
       {stokMenipis.length > 0 && (
@@ -85,12 +86,12 @@ export default async function AdminRingkasanPage() {
       <div className="mt-10 border border-ink/10 bg-white">
         <div className="flex items-center justify-between border-b border-ink/10 px-6 py-4">
           <h2 className="text-sm font-medium text-ink">Pesanan terbaru</h2>
-          <a
+          <Link
             href="/admin/pesanan"
             className="font-mono text-[11px] tracking-[0.2em] text-brand-600 uppercase"
           >
             Semua &rarr;
-          </a>
+          </Link>
         </div>
         <ul className="divide-y divide-ink/5">
           {terbaru.map((p) => (

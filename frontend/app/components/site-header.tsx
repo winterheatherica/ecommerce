@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 
@@ -53,15 +54,15 @@ export default function SiteHeader() {
       ].join(" ")}
     >
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
-        <a
+        <Link
           href="/"
           className="shrink-0 font-mono text-xs tracking-[0.12em] whitespace-nowrap text-ink uppercase sm:text-sm sm:tracking-[0.35em]"
         >
           Menik Store
-        </a>
+        </Link>
 
         <nav className="flex shrink-0 items-center gap-4 font-mono text-[11px] tracking-[0.16em] text-ink/70 uppercase sm:gap-8 sm:tracking-[0.22em]">
-          <a
+          <Link
             href="/"
             aria-label="Beranda"
             title="Beranda"
@@ -82,22 +83,22 @@ export default function SiteHeader() {
                 d="M3 10.5 12 3l9 7.5M5.25 9.75v9a1.5 1.5 0 0 0 1.5 1.5H9.75v-5.25a1.5 1.5 0 0 1 1.5-1.5h1.5a1.5 1.5 0 0 1 1.5 1.5v5.25h3a1.5 1.5 0 0 0 1.5-1.5v-9"
               />
             </svg>
-          </a>
-          <a
+          </Link>
+          <Link
             href="/produk"
             aria-current={aktif("/produk") ? "page" : undefined}
             className={kelasNav("/produk")}
           >
             Produk
-          </a>
-          <a
+          </Link>
+          <Link
             href="/faq"
             aria-current={aktif("/faq") ? "page" : undefined}
             className={kelasNav("/faq")}
           >
             FAQ
-          </a>
-          <a
+          </Link>
+          <Link
             href="/keranjang"
             aria-label={
               jumlahItem > 0 ? `Keranjang, ${jumlahItem} item` : "Keranjang"
@@ -127,7 +128,7 @@ export default function SiteHeader() {
                 {jumlahItem}
               </span>
             )}
-          </a>
+          </Link>
           <a
             href="#kontak"
             className="font-semibold text-ink transition-colors hover:text-brand-600"

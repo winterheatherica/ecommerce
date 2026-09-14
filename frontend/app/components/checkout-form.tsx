@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
@@ -32,12 +33,14 @@ export default function CheckoutForm({ produk }: { produk: Produk[] }) {
 
   const [kataWilayah, setKataWilayah] = useState("");
   const [tujuan, setTujuan] = useState<Wilayah | null>(null);
-  const [saran, setSaran] = useState<Wilayah[]>([]);
+  const [saranMentah, setSaranMentah] = useState<Wilayah[]>([]);
   const [mencariWilayah, setMencariWilayah] = useState(false);
 
-  const [opsiOngkir, setOpsiOngkir] = useState<OpsiOngkir[]>([]);
-  const [memuatOngkir, setMemuatOngkir] = useState(false);
-  const [ongkirDipilih, setOngkirDipilih] = useState<OpsiOngkir | null>(null);
+  const [ongkir, setOngkir] = useState<{ kunci: string; opsi: OpsiOngkir[] }>({
+    kunci: "",
+    opsi: [],
+  });
+  const [layananDipilih, setLayananDipilih] = useState<string | null>(null);
 
   const [galat, setGalat] = useState<string[]>([]);
   const [mengirim, setMengirim] = useState(false);
@@ -51,27 +54,31 @@ export default function CheckoutForm({ produk }: { produk: Produk[] }) {
 
   const subtotal = baris.reduce((s, b) => s + b.produk.harga * b.qty, 0);
   const beratTotal = baris.reduce((s, b) => s + b.produk.beratG * b.qty, 0);
+
+  const kataBersih = kataWilayah.trim();
+  const saran = tujuan || kataBersih.length < 2 ? [] : saranMentah;
+
+  const kunciOngkir = tujuan ? `${tujuan.id}|${beratTotal}` : "";
+  const opsiOngkir = ongkir.kunci === kunciOngkir ? ongkir.opsi : [];
+  const memuatOngkir =
+    Boolean(tujuan) && beratTotal > 0 && ongkir.kunci !== kunciOngkir;
+
+  const ongkirDipilih =
+    opsiOngkir.find((o) => `${o.courier}|${o.service}` === layananDipilih) ??
+    null;
+
   const total = subtotal + (ongkirDipilih?.cost ?? 0);
 
   useEffect(() => {
-    if (tujuan) {
-      setSaran([]);
-      return;
-    }
-
-    const q = kataWilayah.trim();
-    if (q.length < 2) {
-      setSaran([]);
-      return;
-    }
+    if (tujuan || kataBersih.length < 2) return;
 
     const kendali = new AbortController();
     const timer = window.setTimeout(async () => {
       setMencariWilayah(true);
       try {
-        setSaran(await cariWilayah(q, kendali.signal));
+        setSaranMentah(await cariWilayah(kataBersih, kendali.signal));
       } catch {
-        setSaran([]);
+        if (!kendali.signal.aborted) setSaranMentah([]);
       } finally {
         setMencariWilayah(false);
       }
@@ -81,33 +88,28 @@ export default function CheckoutForm({ produk }: { produk: Produk[] }) {
       kendali.abort();
       window.clearTimeout(timer);
     };
-  }, [kataWilayah, tujuan]);
+  }, [kataBersih, tujuan]);
 
   useEffect(() => {
-    if (!tujuan || beratTotal <= 0) {
-      setOpsiOngkir([]);
-      return;
-    }
+    if (!tujuan || beratTotal <= 0) return;
 
+    const kunci = `${tujuan.id}|${beratTotal}`;
     const kendali = new AbortController();
-    setMemuatOngkir(true);
 
     ambilOngkir(tujuan.id, beratTotal, kendali.signal)
-      .then(setOpsiOngkir)
-      .catch(() => setOpsiOngkir([]))
-      .finally(() => setMemuatOngkir(false));
+      .then((opsi) => {
+        if (!kendali.signal.aborted) setOngkir({ kunci, opsi });
+      })
+      .catch(() => {
+        if (!kendali.signal.aborted) setOngkir({ kunci, opsi: [] });
+      });
 
     return () => kendali.abort();
-  }, [tujuan, beratTotal]);
-
-  useEffect(() => {
-    setOngkirDipilih(null);
   }, [tujuan, beratTotal]);
 
   const pilihWilayah = (w: Wilayah) => {
     setTujuan(w);
     setKataWilayah(w.label);
-    setSaran([]);
   };
 
   const periksa = () => {
@@ -163,12 +165,12 @@ export default function CheckoutForm({ produk }: { produk: Produk[] }) {
         <p className="mt-4 leading-relaxed text-stone-600">
           Tidak ada yang bisa di-checkout. Pilih produknya dulu.
         </p>
-        <a
+        <Link
           href="/produk"
           className="mt-8 inline-block border border-ink px-8 py-3.5 font-mono text-[11px] tracking-[0.22em] text-ink uppercase transition-colors hover:bg-ink hover:text-white"
         >
           Lihat produk
-        </a>
+        </Link>
       </div>
     );
   }
@@ -356,7 +358,9 @@ export default function CheckoutForm({ produk }: { produk: Produk[] }) {
                     <li key={`${o.courier}-${o.service}`}>
                       <button
                         type="button"
-                        onClick={() => setOngkirDipilih(o)}
+                        onClick={() =>
+                          setLayananDipilih(`${o.courier}|${o.service}`)
+                        }
                         aria-pressed={dipilih}
                         className={`flex w-full items-center justify-between gap-4 border px-4 py-3.5 text-left transition-colors ${
                           dipilih
@@ -426,12 +430,12 @@ export default function CheckoutForm({ produk }: { produk: Produk[] }) {
               {mengirim ? "Memproses..." : "Lanjut ke pembayaran"}
             </button>
 
-            <a
+            <Link
               href="/keranjang"
               className="mt-4 block text-center font-mono text-[10px] tracking-[0.18em] text-stone-500 uppercase transition-colors hover:text-brand-600"
             >
               Kembali ke keranjang
-            </a>
+            </Link>
           </div>
 
           {galat.length > 0 && (

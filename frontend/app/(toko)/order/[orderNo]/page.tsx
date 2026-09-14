@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { ambilPesanan } from "@/app/lib/api";
@@ -11,10 +12,30 @@ type Props = {
 
 const ALUR: StatusPesanan[] = ["PENDING", "PAID", "SHIPPED", "DELIVERED"];
 
-const LANGKAH: { status: StatusPesanan; judul: string; catatan: string }[] = [
-  { status: "PENDING", judul: "Pesanan dibuat", catatan: "Menunggu pembayaran" },
-  { status: "PAID", judul: "Pembayaran diterima", catatan: "Pesanan sedang disiapkan" },
-  { status: "SHIPPED", judul: "Dikirim", catatan: "Paket sudah diserahkan ke kurir" },
+const LANGKAH: {
+  status: StatusPesanan;
+  judul: string;
+  catatan: string;
+  catatanAktif?: string;
+}[] = [
+  {
+    status: "PENDING",
+    judul: "Pesanan dibuat",
+    catatan: "Nomor pesanan diterbitkan",
+    catatanAktif: "Menunggu pembayaran",
+  },
+  {
+    status: "PAID",
+    judul: "Pembayaran diterima",
+    catatan: "Dana sudah masuk",
+    catatanAktif: "Pesanan sedang disiapkan",
+  },
+  {
+    status: "SHIPPED",
+    judul: "Dikirim",
+    catatan: "Paket diserahkan ke kurir",
+    catatanAktif: "Paket dalam perjalanan",
+  },
   { status: "DELIVERED", judul: "Selesai", catatan: "Paket diterima" },
 ];
 
@@ -64,12 +85,12 @@ export default async function StatusPesananPage({ params }: Props) {
               ? "Batas waktu pembayaran sudah lewat, jadi pesanan ini otomatis dibatalkan. Kamu bisa memesan ulang kapan saja."
               : "Pesanan ini dibatalkan. Kalau ini bukan kamu yang membatalkan, hubungi kami lewat WhatsApp."}
           </p>
-          <a
+          <Link
             href="/produk"
             className="mt-6 inline-block border border-ink px-8 py-3.5 font-mono text-[11px] tracking-[0.22em] text-ink uppercase transition-colors hover:bg-ink hover:text-white"
           >
             Pesan lagi
-          </a>
+          </Link>
         </div>
       ) : (
         <ol className="mt-12 border-l border-ink/15 pl-8">
@@ -98,7 +119,7 @@ export default async function StatusPesananPage({ params }: Props) {
                 <p
                   className={`mt-1.5 text-sm ${lewat ? "text-stone-600" : "text-stone-400"}`}
                 >
-                  {l.catatan}
+                  {sekarang ? (l.catatanAktif ?? l.catatan) : l.catatan}
                 </p>
 
                 {sekarang && l.status === "SHIPPED" && pesanan.tracking_number && (

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
@@ -95,12 +96,12 @@ export default function AdminProductForm({ awal }: Props) {
 
   return (
     <div className="mx-auto max-w-2xl">
-      <a
+      <Link
         href="/admin/produk"
         className="font-mono text-[10px] tracking-[0.2em] text-stone-500 uppercase transition-colors hover:text-brand-600"
       >
         &larr; Kembali ke daftar
-      </a>
+      </Link>
 
       <h1 className="mt-4 text-2xl font-semibold tracking-tight text-ink">
         {ubahMode ? "Ubah produk" : "Tambah produk"}
@@ -261,12 +262,12 @@ export default function AdminProductForm({ awal }: Props) {
             {menyimpan ? "Menyimpan..." : ubahMode ? "Simpan perubahan" : "Tambah produk"}
           </button>
 
-          <a
+          <Link
             href="/admin/produk"
             className="border border-ink/15 px-8 py-3 font-mono text-[11px] tracking-[0.2em] text-stone-600 uppercase transition-colors hover:border-ink hover:text-ink"
           >
             Batal
-          </a>
+          </Link>
         </div>
       </form>
     </div>

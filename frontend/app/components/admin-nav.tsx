@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const menu = [
@@ -45,12 +46,12 @@ export default function AdminNav() {
       </div>
 
       <div className="hidden px-6 pb-6 lg:block">
-        <a
+        <Link
           href="/"
           className="font-mono text-[10px] tracking-[0.2em] text-stone-400 uppercase transition-colors hover:text-brand-600"
         >
           &larr; Lihat toko
-        </a>
+        </Link>
       </div>
     </aside>
   );

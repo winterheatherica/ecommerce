@@ -1,3 +1,4 @@
+import Link from "next/link";
 export default function TokoNotFound() {
   return (
     <div className="mx-auto w-full max-w-3xl px-6 pt-32 pb-24">
@@ -12,12 +13,12 @@ export default function TokoNotFound() {
       </p>
 
       <div className="mt-8 flex flex-wrap gap-4">
-        <a href="/produk" className="inline-block border border-ink px-8 py-3.5 font-mono text-[11px] tracking-[0.22em] text-ink uppercase transition-colors hover:bg-ink hover:text-white">
+        <Link href="/produk" className="inline-block border border-ink px-8 py-3.5 font-mono text-[11px] tracking-[0.22em] text-ink uppercase transition-colors hover:bg-ink hover:text-white">
           Lihat produk
-        </a>
-        <a href="/order" className="inline-block border border-ink px-8 py-3.5 font-mono text-[11px] tracking-[0.22em] text-ink uppercase transition-colors hover:bg-ink hover:text-white">
+        </Link>
+        <Link href="/order" className="inline-block border border-ink px-8 py-3.5 font-mono text-[11px] tracking-[0.22em] text-ink uppercase transition-colors hover:bg-ink hover:text-white">
           Lacak pesanan
-        </a>
+        </Link>
       </div>
     </div>
   );

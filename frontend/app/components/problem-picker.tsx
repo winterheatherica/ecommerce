@@ -1,3 +1,4 @@
+import Link from "next/link";
 const masalah = [
   { nomor: "01", nama: "Kucing", keluhan: "Berak di teras & motor", slug: "kucing" },
   { nomor: "02", nama: "Tikus", keluhan: "Gerogoti kabel, bau plafon", slug: "tikus" },
@@ -18,7 +19,7 @@ export default function ProblemPicker() {
 
       <div className="mt-12 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
         {masalah.map((m) => (
-          <a
+          <Link
             key={m.slug}
             href={`/produk?kategori=${m.slug}`}
             className="group flex flex-col border border-ink/12 p-6 transition-colors hover:border-brand-500 hover:bg-brand-50"
@@ -35,18 +36,18 @@ export default function ProblemPicker() {
             <span className="mt-6 font-mono text-sm text-stone-400 transition-colors group-hover:text-brand-600">
               &rarr;
             </span>
-          </a>
+          </Link>
         ))}
       </div>
 
       <p className="mt-10 font-mono text-[11px] tracking-[0.2em] text-stone-500 uppercase">
         Bukan soal hama?{" "}
-        <a
+        <Link
           href="/produk?kategori=perawatan-kulit"
           className="border-b border-stone-300 pb-0.5 text-ink transition-colors hover:border-brand-600 hover:text-brand-600"
         >
           Lihat perawatan kulit &rarr;
-        </a>
+        </Link>
       </p>
     </section>
   );

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import Image from "next/image";
 
 import { hapusDariKeranjang, ubahQty, useKeranjang } from "@/app/lib/keranjang";
@@ -35,12 +36,12 @@ export default function CartView({ produk }: { produk: Produk[] }) {
           Belum ada produk yang dimasukkan. Mulai dari masalah yang sedang
           mengganggu di rumahmu.
         </p>
-        <a
+        <Link
           href="/produk"
           className="mt-8 inline-block border border-ink px-8 py-3.5 font-mono text-[11px] tracking-[0.22em] text-ink uppercase transition-colors hover:bg-ink hover:text-white"
         >
           Lihat produk
-        </a>
+        </Link>
       </div>
     );
   }
@@ -61,7 +62,7 @@ export default function CartView({ produk }: { produk: Produk[] }) {
 
             return (
               <li key={produk.slug} className="flex gap-5 py-6">
-                <a
+                <Link
                   href={`/produk/${produk.slug}`}
                   className="relative aspect-square w-24 shrink-0 overflow-hidden border border-brand-100 bg-brand-50 sm:w-28"
                 >
@@ -78,15 +79,15 @@ export default function CartView({ produk }: { produk: Produk[] }) {
                       Foto
                     </span>
                   )}
-                </a>
+                </Link>
 
                 <div className="flex min-w-0 flex-1 flex-col">
-                  <a
+                  <Link
                     href={`/produk/${produk.slug}`}
                     className="text-sm leading-relaxed text-ink transition-colors hover:text-brand-600"
                   >
                     {produk.nama}
-                  </a>
+                  </Link>
                   <p className="mt-1 font-mono text-sm text-brand-600">
                     {rupiah(produk.harga)}
                   </p>
@@ -161,7 +162,7 @@ export default function CartView({ produk }: { produk: Produk[] }) {
               </div>
             </dl>
 
-            <a
+            <Link
               href="/checkout"
               aria-disabled={adaMelebihiStok}
               className={`mt-8 block border px-8 py-3.5 text-center font-mono text-[11px] tracking-[0.22em] uppercase transition-colors ${
@@ -171,14 +172,14 @@ export default function CartView({ produk }: { produk: Produk[] }) {
               }`}
             >
               Lanjut ke checkout
-            </a>
+            </Link>
 
-            <a
+            <Link
               href="/produk"
               className="mt-4 block text-center font-mono text-[10px] tracking-[0.18em] text-stone-500 uppercase transition-colors hover:text-brand-600"
             >
               Lanjut belanja
-            </a>
+            </Link>
           </div>
         </aside>
       </div>

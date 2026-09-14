@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 
@@ -40,16 +41,16 @@ export default async function DetailProdukPage({ params }: Props) {
         aria-label="Breadcrumb"
         className="font-mono text-[11px] tracking-[0.18em] text-stone-500 uppercase"
       >
-        <a href="/produk" className="transition-colors hover:text-brand-600">
+        <Link href="/produk" className="transition-colors hover:text-brand-600">
           Produk
-        </a>
+        </Link>
         <span className="mx-2 text-stone-300">/</span>
-        <a
+        <Link
           href={`/produk?kategori=${produk.kategori}`}
           className="transition-colors hover:text-brand-600"
         >
           {kategoriLabel[produk.kategori]}
-        </a>
+        </Link>
       </nav>
 
       <div className="mt-8 grid gap-12 lg:grid-cols-2 lg:gap-16">

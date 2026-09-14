@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 
 import { rupiah, type Produk } from "../data/produk";
 
@@ -6,7 +7,7 @@ export default function ProductCard({ produk }: { produk: Produk }) {
   const habis = produk.stok === 0;
 
   return (
-    <a href={`/produk/${produk.slug}`} className="group flex flex-col">
+    <Link href={`/produk/${produk.slug}`} className="group flex flex-col">
       <div className="relative aspect-square overflow-hidden border border-brand-100 bg-brand-50 transition-colors group-hover:border-brand-300">
         {produk.gambar ? (
           <Image
@@ -41,6 +42,6 @@ export default function ProductCard({ produk }: { produk: Produk }) {
           {produk.terjualPerBulan} terjual/bln
         </span>
       </div>
-    </a>
+    </Link>
   );
 }

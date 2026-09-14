@@ -6,7 +6,11 @@ import type { Sql } from "../lib/db";
 
 export const NAMA_DB_TES = "ecommerce_test";
 
-const SEED = ["0002_seed_products.sql", "0004_seed_descriptions.sql"];
+const SEED = [
+  "0002_seed_products.sql",
+  "0004_seed_descriptions.sql",
+  "0006_fix_description_claims.sql",
+];
 
 function bacaEnv(): Record<string, string> {
   try {

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect } from "react";
 
 export default function TokoError({
@@ -30,9 +31,9 @@ export default function TokoError({
         <button type="button" onClick={reset} className="inline-block border border-ink px-8 py-3.5 font-mono text-[11px] tracking-[0.22em] text-ink uppercase transition-colors hover:bg-ink hover:text-white">
           Coba lagi
         </button>
-        <a href="/" className="inline-block border border-ink px-8 py-3.5 font-mono text-[11px] tracking-[0.22em] text-ink uppercase transition-colors hover:bg-ink hover:text-white">
+        <Link href="/" className="inline-block border border-ink px-8 py-3.5 font-mono text-[11px] tracking-[0.22em] text-ink uppercase transition-colors hover:bg-ink hover:text-white">
           Ke beranda
-        </a>
+        </Link>
       </div>
 
       {error.digest && (

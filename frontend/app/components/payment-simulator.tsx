@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
@@ -67,12 +68,12 @@ export default function PaymentSimulator({ orderNo, total }: Props) {
         {memproses ? "Memproses..." : `Bayar ${rupiah(total)}`}
       </button>
 
-      <a
+      <Link
         href={`/order/${orderNo}`}
         className="mt-4 block font-mono text-[10px] tracking-[0.18em] text-stone-500 uppercase transition-colors hover:text-brand-600 sm:mt-6"
       >
         Bayar nanti
-      </a>
+      </Link>
 
       {galat && (
         <p role="alert" className="mt-6 border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">

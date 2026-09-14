@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 
 import { tambahKeKeranjang } from "@/app/lib/keranjang";
@@ -89,9 +90,9 @@ export default function ProductBuyBox({ produk }: { produk: Produk }) {
           className="mt-4 border border-brand-200 bg-brand-50 px-4 py-3 text-sm text-brand-700"
         >
           Ditambahkan ke keranjang.{" "}
-          <a href="/keranjang" className="font-medium underline underline-offset-2">
+          <Link href="/keranjang" className="font-medium underline underline-offset-2">
             Lihat keranjang
-          </a>
+          </Link>
         </p>
       )}
     </div>

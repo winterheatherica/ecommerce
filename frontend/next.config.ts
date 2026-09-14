@@ -40,8 +40,7 @@ const nextConfig: NextConfig = {
     ];
   },
   async rewrites() {
-    const base = process.env.API_URL;
-    if (!base) return [];
+    const base = process.env.API_URL ?? "http://localhost:8787";
 
     return [
       {
