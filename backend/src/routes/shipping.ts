@@ -2,11 +2,18 @@ import { env } from "cloudflare:workers";
 import { Elysia, t } from "elysia";
 
 import { buatKoneksi, tutup } from "../lib/db";
-import { ambilWilayah, cariWilayah } from "../db/wilayah";
-import { opsiOngkir } from "../lib/shipping";
+import { ambilWilayah, cariWilayah, simpanWilayah } from "../db/wilayah";
+import { opsiUntuk } from "../lib/ongkir";
+import { bacaKonfigOngkir, cariTujuan } from "../lib/rajaongkir";
+
+const MIN_KATA = 3;
+
+function wadah() {
+  return env as unknown as Record<string, unknown>;
+}
 
 function koneksi() {
-  return buatKoneksi(env as unknown as Record<string, unknown>);
+  return buatKoneksi(wadah());
 }
 
 export const shippingRoutes = new Elysia()
@@ -16,12 +23,40 @@ export const shippingRoutes = new Elysia()
       const kata = (query.q ?? "").trim();
       const batas = query.limit ?? 8;
 
-      if (kata.length < 2) return { data: [] };
+      if (kata.length < MIN_KATA) return { data: [], sumber: "kosong" };
 
       const sql = koneksi();
 
       try {
-        return { data: await cariWilayah(sql, kata, batas) };
+        const tersimpan = await cariWilayah(sql, kata, batas);
+
+        if (tersimpan.length > 0) {
+          return { data: tersimpan, sumber: "lokal" };
+        }
+
+        const konfig = bacaKonfigOngkir(wadah());
+
+        if (!konfig) return { data: [], sumber: "lokal" };
+
+        const hasil = await cariTujuan(konfig, kata, batas);
+
+        if (!hasil.ok) {
+          console.error("[rajaongkir] cari tujuan gagal", hasil.status, hasil.pesan);
+          return { data: [], sumber: "gagal" };
+        }
+
+        const wilayah = hasil.data.map((t) => ({
+          id: String(t.id),
+          province: t.province_name,
+          city: t.city_name,
+          district: t.district_name,
+          postal_code: t.zip_code,
+          label: t.label,
+        }));
+
+        await simpanWilayah(sql, wilayah);
+
+        return { data: wilayah, sumber: "rajaongkir" };
       } finally {
         await tutup(sql);
       }
@@ -49,10 +84,18 @@ export const shippingRoutes = new Elysia()
           };
         }
 
+        const hasil = await opsiUntuk(sql, wadah(), tujuan.id, body.weight_g);
+
+        if (!hasil.ok) {
+          set.status = 502;
+          return { error: "shipping_unavailable", message: hasil.pesan };
+        }
+
         return {
           dest_id: tujuan.id,
           weight_g: body.weight_g,
-          options: opsiOngkir(tujuan.province, body.weight_g),
+          options: hasil.opsi,
+          sumber: hasil.sumber,
         };
       } finally {
         await tutup(sql);

@@ -1,3 +1,5 @@
+import type { OpsiRO } from "./rajaongkir";
+
 export type OpsiOngkir = {
   courier: string;
   service: string;
@@ -5,45 +7,46 @@ export type OpsiOngkir = {
   etd: string;
 };
 
-const ZONA: Record<string, number> = {
-  "Jawa Barat": 1,
-  "DKI Jakarta": 1,
-  "Jawa Tengah": 2,
-  "DI Yogyakarta": 2,
-  "Jawa Timur": 2,
-  Bali: 3,
-  "Sumatera Utara": 4,
-  "Sulawesi Selatan": 4,
-};
+export const KURIR_BAWAAN = "jne:jnt:sicepat";
+export const UMUR_TARIF_JAM = 24;
 
-const KURIR = [
-  { courier: "JNE", service: "REG", faktor: 1.0, etd: ["1-2", "2-3", "3-4", "4-6"] },
-  { courier: "J&T", service: "EZ", faktor: 0.92, etd: ["1-2", "2-3", "3-5", "4-7"] },
-  { courier: "SiCepat", service: "BEST", faktor: 1.25, etd: ["1-1", "1-2", "2-3", "3-5"] },
-];
+export function kurirDipakai(env: Record<string, unknown>): string {
+  const pilihan = env.RAJAONGKIR_KURIR;
+  return typeof pilihan === "string" && pilihan.trim()
+    ? pilihan.trim()
+    : KURIR_BAWAAN;
+}
 
-export function opsiOngkir(provinsi: string, weightG: number): OpsiOngkir[] {
-  const zona = ZONA[provinsi] ?? 3;
-  const kg = Math.max(1, Math.ceil(weightG / 1000));
-  const dasar = 9000 + (zona - 1) * 7000;
+export function rapikanEtd(etd: string | null | undefined): string {
+  const bersih = (etd ?? "")
+    .replace(/days?|hari/gi, "")
+    .replace(/\s+/g, " ")
+    .trim();
 
-  return KURIR.map((k) => ({
-    courier: k.courier,
-    service: k.service,
-    cost: Math.round((dasar * kg * k.faktor) / 500) * 500,
-    etd: k.etd[zona - 1],
-  }));
+  if (!bersih) return "-";
+  if (bersih === "0") return "hari ini";
+
+  return `${bersih} hari`;
+}
+
+export function petakanOpsi(daftar: OpsiRO[]): OpsiOngkir[] {
+  return daftar
+    .filter((o) => Number.isFinite(o.cost) && o.cost > 0)
+    .map((o) => ({
+      courier: (o.code || o.name).toUpperCase(),
+      service: o.service,
+      cost: o.cost,
+      etd: rapikanEtd(o.etd),
+    }))
+    .sort((a, b) => a.cost - b.cost);
 }
 
 export function cariOpsi(
-  provinsi: string,
-  weightG: number,
+  daftar: OpsiOngkir[],
   courier: string,
   service: string,
 ): OpsiOngkir | null {
   return (
-    opsiOngkir(provinsi, weightG).find(
-      (o) => o.courier === courier && o.service === service,
-    ) ?? null
+    daftar.find((o) => o.courier === courier && o.service === service) ?? null
   );
 }

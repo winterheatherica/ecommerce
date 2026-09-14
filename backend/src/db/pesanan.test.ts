@@ -14,10 +14,20 @@ import {
   tandaiDikirim,
   tandaiSelesai,
   tandaiTerbayar,
+  type CariOngkir,
   type PermintaanPesanan,
 } from "./pesanan";
+import type { OpsiOngkir } from "../lib/shipping";
 
 const UMUR_JAM = 1;
+
+const ONGKIR: OpsiOngkir[] = [
+  { courier: "JNE", service: "REG", cost: 9000, etd: "1-2" },
+  { courier: "J&T", service: "EZ", cost: 8500, etd: "2-3" },
+];
+
+const cariOngkir: CariOngkir = async () => ONGKIR;
+const ongkirKosong: CariOngkir = async () => null;
 const KUCING = "bye-bye-cat-50g";
 const NYAMUK = "goito-gel-nyamuk";
 const HABIS = "bye-bye-cicak-gel-80gr";
@@ -61,7 +71,7 @@ async function lewatkanBatas(orderNo: string): Promise<void> {
 }
 
 async function buat(ubah: Partial<PermintaanPesanan> = {}) {
-  const hasil = await buatPesanan(sql, permintaan(ubah), UMUR_JAM);
+  const hasil = await buatPesanan(sql, permintaan(ubah), UMUR_JAM, cariOngkir);
   if (!hasil.ok) throw new Error(`Gagal membuat pesanan: ${hasil.badan.error}`);
   return hasil.pesanan;
 }
@@ -98,6 +108,7 @@ describe("buatPesanan", () => {
       sql,
       permintaan({ items: [{ slug: KUCING, qty: sebelum + 1 }] }),
       UMUR_JAM,
+      cariOngkir,
     );
 
     expect(hasil.ok).toBe(false);
@@ -119,6 +130,7 @@ describe("buatPesanan", () => {
         ],
       }),
       UMUR_JAM,
+      cariOngkir,
     );
 
     expect(hasil.ok).toBe(false);
@@ -142,6 +154,7 @@ describe("buatPesanan", () => {
       sql,
       permintaan({ items: [{ slug: HABIS, qty: 1 }] }),
       UMUR_JAM,
+      cariOngkir,
     );
 
     expect(hasil.ok).toBe(false);
@@ -152,7 +165,7 @@ describe("buatPesanan", () => {
   it("menolak produk yang tidak aktif", async () => {
     await sql`update products set is_active = false where slug = ${KUCING}`;
 
-    const hasil = await buatPesanan(sql, permintaan(), UMUR_JAM);
+    const hasil = await buatPesanan(sql, permintaan(), UMUR_JAM, cariOngkir);
 
     expect(hasil.ok).toBe(false);
     if (hasil.ok) return;
@@ -165,6 +178,7 @@ describe("buatPesanan", () => {
       sql,
       permintaan({ items: [{ slug: "tidak-ada", qty: 1 }] }),
       UMUR_JAM,
+      cariOngkir,
     );
 
     expect(hasil.ok).toBe(false);
@@ -173,11 +187,26 @@ describe("buatPesanan", () => {
   });
 
   it("menolak kecamatan tujuan yang tidak dikenal", async () => {
-    const hasil = await buatPesanan(sql, permintaan({ dest_id: "99999" }), UMUR_JAM);
+    const hasil = await buatPesanan(sql, permintaan({ dest_id: "99999" }), UMUR_JAM, cariOngkir);
 
     expect(hasil.ok).toBe(false);
     if (hasil.ok) return;
     expect(hasil.badan.error).toBe("region_not_found");
+  });
+
+  it("menolak kalau ongkir tidak bisa diambil sama sekali", async () => {
+    const sebelum = await stok(KUCING);
+    const hasil = await buatPesanan(
+      sql,
+      permintaan(),
+      UMUR_JAM,
+      ongkirKosong,
+    );
+
+    expect(hasil.ok).toBe(false);
+    if (hasil.ok) return;
+    expect(hasil.badan.error).toBe("service_unavailable");
+    expect(await stok(KUCING)).toBe(sebelum);
   });
 
   it("menolak layanan pengiriman yang tidak ada, dan stok tetap utuh", async () => {
@@ -186,6 +215,7 @@ describe("buatPesanan", () => {
       sql,
       permintaan({ courier: "POS", service: "KILAT" }),
       UMUR_JAM,
+      cariOngkir,
     );
 
     expect(hasil.ok).toBe(false);
@@ -226,7 +256,7 @@ describe("buatPesanan", () => {
   });
 
   it("batas waktu mengikuti umur yang diminta", async () => {
-    const hasil = await buatPesanan(sql, permintaan(), 3);
+    const hasil = await buatPesanan(sql, permintaan(), 3, cariOngkir);
 
     expect(hasil.ok).toBe(true);
     if (!hasil.ok) return;
@@ -259,6 +289,7 @@ describe("buatPesanan", () => {
       sql,
       permintaan({ phone: "abcdefghij" }),
       UMUR_JAM,
+      cariOngkir,
     );
 
     expect(hasil.ok).toBe(false);
@@ -273,6 +304,7 @@ describe("buatPesanan", () => {
       sql,
       permintaan({ email: "bukan-email" }),
       UMUR_JAM,
+      cariOngkir,
     );
 
     expect(hasil.ok).toBe(false);
@@ -281,7 +313,7 @@ describe("buatPesanan", () => {
   });
 
   it("menolak pesanan tanpa email karena Tripay mewajibkannya", async () => {
-    const hasil = await buatPesanan(sql, permintaan({ email: "" }), UMUR_JAM);
+    const hasil = await buatPesanan(sql, permintaan({ email: "" }), UMUR_JAM, cariOngkir);
 
     expect(hasil.ok).toBe(false);
     if (hasil.ok) return;
@@ -294,6 +326,7 @@ describe("buatPesanan", () => {
       sql,
       permintaan({ items: [{ slug: KUCING, qty: 99 }] }),
       UMUR_JAM,
+      cariOngkir,
     );
 
     expect(hasil.ok).toBe(false);
@@ -318,8 +351,8 @@ describe("balapan stok", () => {
 
     try {
       const hasil = await Promise.all([
-        buatPesanan(a, permintaan(), UMUR_JAM),
-        buatPesanan(b, permintaan(), UMUR_JAM),
+        buatPesanan(a, permintaan(), UMUR_JAM, cariOngkir),
+        buatPesanan(b, permintaan(), UMUR_JAM, cariOngkir),
       ]);
 
       expect(hasil.filter((h) => h.ok)).toHaveLength(1);

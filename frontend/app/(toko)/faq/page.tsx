@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { WA_URL } from "@/app/data/kontak";
 
 export const metadata: Metadata = {
   title: "Pertanyaan Umum — Menik Store",
@@ -147,7 +148,7 @@ export default function FaqPage() {
           Ceritakan masalah di rumahmu, kami bantu pilihkan produk yang cocok.
         </p>
         <a
-          href="https://wa.me/6281234567890"
+          href={WA_URL}
           className="mt-8 inline-block border border-ink px-8 py-3.5 font-mono text-[11px] tracking-[0.22em] text-ink uppercase transition-colors hover:bg-ink hover:text-white"
         >
           Chat WhatsApp

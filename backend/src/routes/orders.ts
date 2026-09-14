@@ -5,6 +5,7 @@ import { buatKoneksi, tutup } from "../lib/db";
 import { buatPesanan, cariPesanan, simpanPembayaran } from "../db/pesanan";
 import { buatTransaksi } from "../lib/payment";
 import { umurPesananJam } from "../lib/orders";
+import { opsiUntuk } from "../lib/ongkir";
 import { bacaKonfig } from "../lib/tripay";
 import {
   BADAN_PADAT,
@@ -63,6 +64,15 @@ export const orderRoutes = new Elysia({ prefix: "/api/orders" })
           sql,
           body,
           umurPesananJam(wadah as unknown as Record<string, unknown>),
+          async (destId, weightG) => {
+            const opsi = await opsiUntuk(
+              sql,
+              wadah as unknown as Record<string, unknown>,
+              destId,
+              weightG,
+            );
+            return opsi.ok ? opsi.opsi : null;
+          },
         );
 
         if (!hasil.ok) {

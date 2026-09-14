@@ -1,5 +1,6 @@
 "use client";
 
+import { WA_URL } from "@/app/data/kontak";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -35,7 +36,7 @@ export default function ProductBuyBox({ produk }: { produk: Produk }) {
           tersedia lagi.
         </p>
         <a
-          href="https://wa.me/6281234567890"
+          href={WA_URL}
           className="mt-6 inline-block border border-ink px-8 py-3.5 font-mono text-[11px] tracking-[0.22em] text-ink uppercase transition-colors hover:bg-ink hover:text-white"
         >
           Tanya stok

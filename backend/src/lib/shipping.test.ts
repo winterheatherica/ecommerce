@@ -1,69 +1,138 @@
 import { describe, expect, it } from "vitest";
 
-import { cariOpsi, opsiOngkir } from "./shipping";
+import { kiloBulat } from "../db/ongkir";
+import {
+  KURIR_BAWAAN,
+  cariOpsi,
+  kurirDipakai,
+  petakanOpsi,
+  rapikanEtd,
+  type OpsiOngkir,
+} from "./shipping";
+import type { OpsiRO } from "./rajaongkir";
 
-describe("opsiOngkir", () => {
-  it("mengembalikan tiga kurir untuk tujuan yang dikenal", () => {
-    const hasil = opsiOngkir("Jawa Barat", 100);
+function mentah(ubah: Partial<OpsiRO> = {}): OpsiRO {
+  return {
+    name: "JNE",
+    code: "jne",
+    service: "REG",
+    description: "Layanan Reguler",
+    cost: 12000,
+    etd: "2-3 day",
+    ...ubah,
+  };
+}
 
-    expect(hasil).toHaveLength(3);
-    expect(hasil.map((o) => o.courier)).toEqual(["JNE", "J&T", "SiCepat"]);
+describe("petakanOpsi", () => {
+  it("mengubah bentuk RajaOngkir jadi bentuk kita", () => {
+    const [o] = petakanOpsi([mentah()]);
+
+    expect(o).toEqual({
+      courier: "JNE",
+      service: "REG",
+      cost: 12000,
+      etd: "2-3 hari",
+    });
   });
 
-  it("memberi zona tengah untuk provinsi di luar tabel", () => {
-    const jawaBarat = opsiOngkir("Jawa Barat", 100)[0].cost;
-    const papua = opsiOngkir("Papua", 100)[0].cost;
-    const sumut = opsiOngkir("Sumatera Utara", 100)[0].cost;
+  it("mengurutkan dari yang termurah", () => {
+    const hasil = petakanOpsi([
+      mentah({ service: "YES", cost: 30000 }),
+      mentah({ service: "REG", cost: 12000 }),
+      mentah({ service: "OKE", cost: 9000 }),
+    ]);
 
-    expect(papua).toBeGreaterThan(jawaBarat);
-    expect(papua).toBeLessThan(sumut);
+    expect(hasil.map((o) => o.cost)).toEqual([9000, 12000, 30000]);
   });
 
-  it("menagih lebih mahal untuk zona yang lebih jauh", () => {
-    const bandung = opsiOngkir("Jawa Barat", 100)[0].cost;
-    const surabaya = opsiOngkir("Jawa Timur", 100)[0].cost;
-    const medan = opsiOngkir("Sumatera Utara", 100)[0].cost;
+  it("membuang layanan tanpa tarif", () => {
+    const hasil = petakanOpsi([
+      mentah({ service: "REG", cost: 12000 }),
+      mentah({ service: "KOSONG", cost: 0 }),
+    ]);
 
-    expect(surabaya).toBeGreaterThan(bandung);
-    expect(medan).toBeGreaterThan(surabaya);
+    expect(hasil).toHaveLength(1);
+    expect(hasil[0].service).toBe("REG");
   });
 
-  it("membulatkan berat ke atas per kilogram", () => {
-    const satuGram = opsiOngkir("Jawa Barat", 1)[0].cost;
-    const seribuGram = opsiOngkir("Jawa Barat", 1000)[0].cost;
-    const seribuSatu = opsiOngkir("Jawa Barat", 1001)[0].cost;
+  it("memakai kode kurir, bukan nama hukumnya yang panjang", () => {
+    const [o] = petakanOpsi([
+      mentah({ name: "Jalur Nugraha Ekakurir (JNE)", code: "jne" }),
+    ]);
 
-    expect(satuGram).toBe(seribuGram);
-    expect(seribuSatu).toBeGreaterThan(seribuGram);
+    expect(o.courier).toBe("JNE");
+  });
+});
+
+describe("rapikanEtd", () => {
+  it("membuang satuan bahasa Inggris dan memakai bahasa kita", () => {
+    expect(rapikanEtd("2-3 day")).toBe("2-3 hari");
+    expect(rapikanEtd("1 days")).toBe("1 hari");
+    expect(rapikanEtd("4")).toBe("4 hari");
   });
 
-  it("membulatkan biaya ke kelipatan 500", () => {
-    for (const o of opsiOngkir("Bali", 2300)) {
-      expect(o.cost % 500).toBe(0);
-    }
+  it("menerjemahkan nol jadi hari ini", () => {
+    expect(rapikanEtd("0 day")).toBe("hari ini");
   });
 
-  it("selalu memberi etd", () => {
-    for (const o of opsiOngkir("DKI Jakarta", 500)) {
-      expect(o.etd).toMatch(/^\d+-\d+$/);
-    }
+  it("memberi tanda hubung kalau kosong", () => {
+    expect(rapikanEtd("   ")).toBe("-");
+    expect(rapikanEtd(null)).toBe("-");
+  });
+
+  it("tidak menggandakan kata hari", () => {
+    expect(rapikanEtd("2 hari")).toBe("2 hari");
   });
 });
 
 describe("cariOpsi", () => {
-  it("menemukan kombinasi kurir dan layanan yang cocok", () => {
-    const o = cariOpsi("Jawa Barat", 100, "JNE", "REG");
+  const daftar: OpsiOngkir[] = [
+    { courier: "JNE", service: "REG", cost: 12000, etd: "2-3" },
+    { courier: "SiCepat", service: "BEST", cost: 15000, etd: "1-2" },
+  ];
 
-    expect(o).not.toBeNull();
-    expect(o?.courier).toBe("JNE");
-    expect(o?.service).toBe("REG");
+  it("menemukan kombinasi kurir dan layanan yang cocok", () => {
+    expect(cariOpsi(daftar, "JNE", "REG")?.cost).toBe(12000);
   });
 
   it("menolak layanan yang tidak dimiliki kurir itu", () => {
-    expect(cariOpsi("Jawa Barat", 100, "JNE", "BEST")).toBeNull();
+    expect(cariOpsi(daftar, "JNE", "BEST")).toBeNull();
   });
 
   it("menolak kurir yang tidak dikenal", () => {
-    expect(cariOpsi("Jawa Barat", 100, "Ninja", "REG")).toBeNull();
+    expect(cariOpsi(daftar, "Ninja", "REG")).toBeNull();
+  });
+
+  it("menolak dari daftar kosong", () => {
+    expect(cariOpsi([], "JNE", "REG")).toBeNull();
+  });
+});
+
+describe("kurirDipakai", () => {
+  it("memakai daftar bawaan kalau tidak diatur", () => {
+    expect(kurirDipakai({})).toBe(KURIR_BAWAAN);
+    expect(kurirDipakai({ RAJAONGKIR_KURIR: "   " })).toBe(KURIR_BAWAAN);
+  });
+
+  it("memakai daftar dari lingkungan kalau diisi", () => {
+    expect(kurirDipakai({ RAJAONGKIR_KURIR: " jne:pos " })).toBe("jne:pos");
+  });
+});
+
+describe("kiloBulat", () => {
+  it("membulatkan ke atas per kilogram", () => {
+    expect(kiloBulat(1)).toBe(1);
+    expect(kiloBulat(999)).toBe(1);
+    expect(kiloBulat(1000)).toBe(1);
+    expect(kiloBulat(1001)).toBe(2);
+    expect(kiloBulat(2500)).toBe(3);
+  });
+
+  it("tidak pernah nol, supaya kunci cache selalu sah", () => {
+    expect(kiloBulat(0)).toBe(1);
+  });
+
+  it("berat di bawah 1 kg berbagi kunci cache yang sama", () => {
+    expect(kiloBulat(50)).toBe(kiloBulat(950));
   });
 });

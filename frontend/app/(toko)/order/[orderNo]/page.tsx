@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { WA_URL } from "@/app/data/kontak";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -207,7 +208,7 @@ export default async function StatusPesananPage({ params }: Props) {
       <p className="mt-12 border-t border-ink/10 pt-8 text-sm leading-relaxed text-stone-500">
         Ada yang perlu ditanyakan soal pesanan ini?{" "}
         <a
-          href="https://wa.me/6281234567890"
+          href={WA_URL}
           className="border-b border-stone-400 pb-0.5 text-ink transition-colors hover:border-brand-600 hover:text-brand-600"
         >
           Chat WhatsApp

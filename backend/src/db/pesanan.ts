@@ -9,7 +9,7 @@ import {
   type ItemDiminta,
   type StatusPesanan,
 } from "../lib/orders";
-import { cariOpsi } from "../lib/shipping";
+import { cariOpsi, type OpsiOngkir } from "../lib/shipping";
 
 export type ItemPesanan = {
   product_id: number;
@@ -301,10 +301,16 @@ async function kurangiStok(
   });
 }
 
+export type CariOngkir = (
+  destId: string,
+  weightG: number,
+) => Promise<OpsiOngkir[] | null>;
+
 export async function buatPesanan(
   sql: Sql,
   req: PermintaanPesanan,
   umurJam: number,
+  cariOngkir: CariOngkir,
 ): Promise<HasilBuat> {
   if (!hpSah(req.phone)) {
     return {
@@ -328,8 +334,8 @@ export async function buatPesanan(
     };
   }
 
-  const [tujuan] = await sql<{ id: string; province: string }[]>`
-    select id, province from regions where id = ${req.dest_id} limit 1
+  const [tujuan] = await sql<{ id: string }[]>`
+    select id from regions where id = ${req.dest_id} limit 1
   `;
 
   if (!tujuan) {
@@ -367,7 +373,8 @@ export async function buatPesanan(
           });
         }
 
-        const opsi = cariOpsi(tujuan.province, weight_g, req.courier, req.service);
+        const daftar = await cariOngkir(req.dest_id, weight_g);
+        const opsi = daftar ? cariOpsi(daftar, req.courier, req.service) : null;
 
         if (!opsi) {
           throw new GagalPesanan({

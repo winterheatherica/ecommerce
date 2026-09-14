@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { WA_URL } from "@/app/data/kontak";
 
 import OrderLookup from "@/app/components/order-lookup";
 
@@ -26,7 +27,7 @@ export default function LacakPesananPage() {
       <p className="mt-10 text-sm leading-relaxed text-stone-500">
         Lupa nomor pesanannya?{" "}
         <a
-          href="https://wa.me/6281234567890"
+          href={WA_URL}
           className="border-b border-stone-400 pb-0.5 text-ink transition-colors hover:border-brand-600 hover:text-brand-600"
         >
           Chat WhatsApp

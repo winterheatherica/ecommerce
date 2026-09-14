@@ -1,5 +1,7 @@
 import Image from "next/image";
 
+import { KONTAK, SOSIAL, WA_URL } from "@/app/data/kontak";
+
 const produk = [
   "Pengusir Kucing",
   "Pengusir Tikus",
@@ -17,9 +19,7 @@ const bantuan = [
   { label: "Pertanyaan Umum", href: "/faq" },
 ];
 
-const sosial = ["WhatsApp", "Instagram", "TikTok", "Shopee"];
-
-const pembayaran = ["BCA", "Mandiri", "BNI", "QRIS", "GoPay", "OVO", "DANA"];
+const pembayaran = ["QRIS", "BCA", "BNI", "OVO", "DANA", "ShopeePay"];
 
 export default function SiteFooter() {
   return (
@@ -51,7 +51,7 @@ export default function SiteFooter() {
               satu jam pada hari kerja.
             </p>
             <a
-              href="https://wa.me/6281234567890"
+              href={WA_URL}
               className="mt-8 inline-block border border-ink px-8 py-3.5 font-mono text-[11px] tracking-[0.22em] text-ink uppercase transition-colors hover:bg-ink hover:text-white"
             >
               Chat WhatsApp
@@ -72,13 +72,13 @@ export default function SiteFooter() {
                 yang dihindari hama, bukan dengan racun.
               </p>
               <ul className="mt-7 flex flex-wrap gap-x-5 gap-y-2">
-                {sosial.map((s) => (
-                  <li key={s}>
+                {SOSIAL.map((s) => (
+                  <li key={s.label}>
                     <a
-                      href="#"
+                      href={s.href}
                       className="font-mono text-[11px] tracking-[0.18em] text-white/60 uppercase transition-colors hover:text-brand-400"
                     >
-                      {s}
+                      {s.label}
                     </a>
                   </li>
                 ))}
@@ -128,23 +128,18 @@ export default function SiteFooter() {
                 </p>
                 <ul className="mt-6 space-y-4 text-sm text-white/70">
                   <li>
-                    <a href="https://wa.me/6281234567890" className="transition-colors hover:text-white">
-                      0812&#8209;3456&#8209;7890
-                    </a>
-                  </li>
-                  <li>
-                    <a href="mailto:halo@menikstore.id" className="transition-colors hover:text-white">
-                      halo@menikstore.id
+                    <a href={WA_URL} className="transition-colors hover:text-white">
+                      {KONTAK.waTampil}
                     </a>
                   </li>
                   <li className="leading-relaxed text-white/55">
-                    Jl. Contoh Alamat No. 12
-                    <br />
-                    Bandung, Jawa Barat 40123
+                    {KONTAK.alamatBaris.map((baris) => (
+                      <span key={baris} className="block">
+                        {baris}
+                      </span>
+                    ))}
                   </li>
-                  <li className="leading-relaxed text-white/55">
-                    Senin&ndash;Sabtu, 08.00&ndash;17.00 WIB
-                  </li>
+                  <li className="leading-relaxed text-white/55">{KONTAK.jam}</li>
                 </ul>
               </div>
             </div>

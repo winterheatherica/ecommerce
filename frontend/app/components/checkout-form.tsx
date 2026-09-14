@@ -375,7 +375,7 @@ export default function CheckoutForm({ produk }: { produk: Produk[] }) {
                             {o.courier} {o.service}
                           </span>
                           <span className="mt-0.5 block font-mono text-[11px] text-stone-500">
-                            estimasi {o.etd} hari
+                            estimasi {o.etd}
                           </span>
                         </span>
                         <span className="font-mono text-sm text-brand-600">

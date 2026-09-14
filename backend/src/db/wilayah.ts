@@ -38,3 +38,18 @@ export async function ambilWilayah(
 
   return wilayah;
 }
+
+export async function simpanWilayah(
+  sql: Kueri,
+  daftar: Wilayah[],
+): Promise<void> {
+  if (daftar.length === 0) return;
+
+  for (const w of daftar) {
+    await sql`
+      insert into regions (id, province, city, district, postal_code, label)
+      values (${w.id}, ${w.province}, ${w.city}, ${w.district}, ${w.postal_code}, ${w.label})
+      on conflict (id) do nothing
+    `;
+  }
+}
