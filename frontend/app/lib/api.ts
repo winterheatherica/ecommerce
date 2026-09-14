@@ -1,9 +1,9 @@
 import type { Kategori, Produk } from "@/app/data/produk";
 import type { StatusPesanan } from "@/app/data/status-pesanan";
 
-const BASE = process.env.API_URL ?? "http://localhost:8787";
-
-const REVALIDASI = 60;
+function basis(): string {
+  return process.env.API_URL ?? "http://localhost:8787";
+}
 
 type ProdukAPI = {
   id: number;
@@ -53,12 +53,13 @@ export async function ambilProduk(opsi: OpsiDaftar = {}): Promise<Produk[]> {
   if (opsi.limit) q.set("limit", String(opsi.limit));
 
   const sisa = q.toString();
-  const res = await fetch(`${BASE}/api/products${sisa ? `?${sisa}` : ""}`, {
-    next: { revalidate: REVALIDASI },
-  });
+  const alamat = `${basis()}/api/products${sisa ? `?${sisa}` : ""}`;
+  const res = await fetch(alamat, { cache: "no-store" });
 
   if (!res.ok) {
-    throw new Error(`Gagal mengambil daftar produk (${res.status})`);
+    throw new Error(
+      `Gagal mengambil daftar produk (${res.status}) dari ${alamat}`,
+    );
   }
 
   const isi = (await res.json()) as DaftarAPI;
@@ -66,15 +67,15 @@ export async function ambilProduk(opsi: OpsiDaftar = {}): Promise<Produk[]> {
 }
 
 export async function ambilSatuProduk(slug: string): Promise<Produk | null> {
-  const res = await fetch(
-    `${BASE}/api/products/${encodeURIComponent(slug)}`,
-    { next: { revalidate: REVALIDASI } },
-  );
+  const alamat = `${basis()}/api/products/${encodeURIComponent(slug)}`;
+  const res = await fetch(alamat, { cache: "no-store" });
 
   if (res.status === 404) return null;
 
   if (!res.ok) {
-    throw new Error(`Gagal mengambil produk ${slug} (${res.status})`);
+    throw new Error(
+      `Gagal mengambil produk ${slug} (${res.status}) dari ${alamat}`,
+    );
   }
 
   return petakan((await res.json()) as ProdukAPI);
@@ -118,7 +119,7 @@ export type Pesanan = {
 
 export async function ambilPesanan(orderNo: string): Promise<Pesanan | null> {
   const res = await fetch(
-    `${BASE}/api/orders/${encodeURIComponent(orderNo)}`,
+    `${basis()}/api/orders/${encodeURIComponent(orderNo)}`,
     { cache: "no-store" },
   );
 
@@ -138,7 +139,7 @@ export async function ambilDaftarPesanan(
   if (status) q.set("status", status);
 
   const sisa = q.toString();
-  const res = await fetch(`${BASE}/api/admin/orders${sisa ? `?${sisa}` : ""}`, {
+  const res = await fetch(`${basis()}/api/admin/orders${sisa ? `?${sisa}` : ""}`, {
     cache: "no-store",
   });
 
@@ -151,7 +152,7 @@ export async function ambilDaftarPesanan(
 }
 
 export async function ambilProdukAdmin(): Promise<Produk[]> {
-  const res = await fetch(`${BASE}/api/admin/products`, { cache: "no-store" });
+  const res = await fetch(`${basis()}/api/admin/products`, { cache: "no-store" });
 
   if (!res.ok) {
     throw new Error(`Gagal mengambil produk admin (${res.status})`);
@@ -165,7 +166,7 @@ export async function ambilSatuProdukAdmin(
   slug: string,
 ): Promise<Produk | null> {
   const res = await fetch(
-    `${BASE}/api/admin/products/${encodeURIComponent(slug)}`,
+    `${basis()}/api/admin/products/${encodeURIComponent(slug)}`,
     { cache: "no-store" },
   );
 
