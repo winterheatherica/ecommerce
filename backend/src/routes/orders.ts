@@ -3,6 +3,12 @@ import { Elysia, t } from "elysia";
 
 import { buatKoneksi, tutup } from "../lib/db";
 import { buatPesanan, cariPesanan } from "../db/pesanan";
+import {
+  BADAN_PADAT,
+  ambilPembatas,
+  kunciIp,
+  lolos,
+} from "../lib/ratelimit";
 
 export const orderRoutes = new Elysia({ prefix: "/api/orders" })
   .get(
@@ -29,8 +35,20 @@ export const orderRoutes = new Elysia({ prefix: "/api/orders" })
   )
   .post(
     "/",
-    async ({ body, set }) => {
+    async ({ body, set, request }) => {
       const wadah = env as unknown as Record<string, string>;
+
+      const pembatas = ambilPembatas(
+        wadah as unknown as Record<string, unknown>,
+        "PESANAN_LIMIT",
+      );
+
+      if (!(await lolos(pembatas, kunciIp(request, "pesanan")))) {
+        set.status = 429;
+        set.headers["retry-after"] = "60";
+        return BADAN_PADAT;
+      }
+
       const storefront = wadah.STOREFRONT_URL ?? "http://localhost:3000";
       const sql = buatKoneksi(wadah);
 
