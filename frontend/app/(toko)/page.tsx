@@ -1,13 +1,26 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import ProblemPicker from "@/app/components/problem-picker";
 import FeaturedProducts from "@/app/components/featured-products";
+import JsonLd from "@/app/components/json-ld";
+import { NAMA_SITUS, RINGKASAN, metaHalaman, skemaToko } from "@/app/lib/seo";
+
+export function generateMetadata(): Metadata {
+  return metaHalaman({
+    judul: "Beranda",
+    judulUtuh: `${NAMA_SITUS} | Pengusir Hama Alami Berbahan Tumbuhan`,
+    ringkasan: RINGKASAN,
+    path: "/",
+  });
+}
 
 export default function Home() {
   return (
     <>
+      <JsonLd data={skemaToko()} />
       <section className="relative h-svh w-full overflow-hidden">
         <Image
-          src="/banner.jpg"
+          src="/banner.webp"
           alt=""
           fill
           priority

@@ -7,6 +7,7 @@ import ProductCard from "./product-card";
 import {
   kategoriJudul,
   kategoriLabel,
+  kategoriSah,
   type Kategori,
   type Produk,
 } from "../data/produk";
@@ -25,9 +26,18 @@ const opsiUrut = [
   { nilai: "termahal", label: "Harga tertinggi" },
 ];
 
-export default function ProductCatalog({ produk, kategori, urut }: Props) {
+export default function ProductCatalog({
+  produk,
+  kategori: kategoriMentah,
+  urut: urutMentah,
+}: Props) {
   const router = useRouter();
   const [cari, setCari] = useState("");
+
+  const kategori = kategoriSah(kategoriMentah);
+  const urut = opsiUrut.some((o) => o.nilai === urutMentah)
+    ? urutMentah
+    : "populer";
 
   const perbarui = (kunci: "kategori" | "urut", nilai: string) => {
     const berikut = { kategori, urut, [kunci]: nilai };
@@ -67,9 +77,7 @@ export default function ProductCatalog({ produk, kategori, urut }: Props) {
         Katalog
       </p>
       <h1 className="mt-3 text-3xl leading-tight font-semibold tracking-tight text-ink sm:text-4xl">
-        {kategori && kategori in kategoriJudul
-          ? kategoriJudul[kategori as Kategori]
-          : "Semua produk"}
+        {kategori ? kategoriJudul[kategori] : "Semua produk"}
       </h1>
 
       <div className="mt-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -141,7 +149,7 @@ export default function ProductCatalog({ produk, kategori, urut }: Props) {
 
       <p className="mt-8 font-mono text-[11px] tracking-[0.18em] text-stone-500 uppercase">
         <span className="text-brand-600">{hasil.length}</span> produk
-        {kategori ? ` · ${kategoriLabel[kategori as Kategori]}` : ""}
+        {kategori ? ` · ${kategoriLabel[kategori]}` : ""}
       </p>
 
       {hasil.length > 0 ? (

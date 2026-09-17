@@ -32,6 +32,17 @@ describe("database tes", () => {
     ]);
   });
 
+  it("tidak menyisakan em dash di nama maupun deskripsi produk", async () => {
+    const pola = `%${String.fromCharCode(0x2014)}%`;
+
+    const baris = await sql<{ slug: string }[]>`
+      select slug from products
+      where name like ${pola} or description like ${pola}
+    `;
+
+    expect(baris.map((b) => b.slug)).toEqual([]);
+  });
+
   it("menyalakan row level security di semua tabel", async () => {
     const baris = await sql<{ tablename: string; rowsecurity: boolean }[]>`
       select tablename, rowsecurity from pg_tables

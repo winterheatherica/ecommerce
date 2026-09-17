@@ -2,8 +2,14 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { useEffect } from "react";
 
-import { hapusDariKeranjang, ubahQty, useKeranjang } from "@/app/lib/keranjang";
+import {
+  buangYangTidakDijual,
+  hapusDariKeranjang,
+  ubahQty,
+  useKeranjang,
+} from "@/app/lib/keranjang";
 import { rupiah, type Produk } from "@/app/data/produk";
 
 type Baris = { produk: Produk; qty: number };
@@ -17,6 +23,12 @@ export default function CartView({ produk }: { produk: Produk[] }) {
       return cocok ? { produk: cocok, qty: i.qty } : null;
     })
     .filter((x): x is Baris => x !== null);
+
+  const adaHantu = produk.length > 0 && baris.length !== items.length;
+
+  useEffect(() => {
+    if (adaHantu) buangYangTidakDijual(produk.map((p) => p.slug));
+  }, [adaHantu, produk]);
 
   const subtotal = baris.reduce((s, b) => s + b.produk.harga * b.qty, 0);
   const totalItem = baris.reduce((s, b) => s + b.qty, 0);
@@ -94,7 +106,9 @@ export default function CartView({ produk }: { produk: Produk[] }) {
 
                   {lebih && (
                     <p className="mt-2 text-xs text-red-600">
-                      Sisa stok tinggal {produk.stok}. Kurangi jumlahnya dulu.
+                      {produk.stok === 0
+                        ? "Stok habis. Hapus dulu dari keranjang untuk bisa lanjut checkout."
+                        : `Sisa stok tinggal ${produk.stok}. Kurangi jumlahnya dulu.`}
                     </p>
                   )}
 

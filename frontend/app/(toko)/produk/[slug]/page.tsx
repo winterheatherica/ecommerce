@@ -3,10 +3,17 @@ import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 
+import JsonLd from "@/app/components/json-ld";
 import ProductBuyBox from "@/app/components/product-buy-box";
 import ProductCard from "@/app/components/product-card";
 import { ambilProduk, ambilSatuProduk } from "@/app/lib/api";
-import { kategoriJudul, kategoriLabel, rupiah } from "@/app/data/produk";
+import {
+  kategoriJudul,
+  kategoriLabel,
+  kategoriRingkasan,
+  rupiah,
+} from "@/app/data/produk";
+import { metaHalaman, skemaProduk, skemaRemah } from "@/app/lib/seo";
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -16,12 +23,22 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const produk = await ambilSatuProduk(slug);
 
-  if (!produk) return { title: "Produk tidak ditemukan — Menik Store" };
+  if (!produk) {
+    return {
+      title: "Produk tidak ditemukan",
+      robots: { index: false, follow: true },
+    };
+  }
 
-  return {
-    title: `${produk.nama} — Menik Store`,
-    description: produk.deskripsi.slice(0, 155),
-  };
+  const harga = rupiah(produk.harga);
+  const ringkasan =
+    produk.deskripsi.trim() || kategoriRingkasan[produk.kategori];
+
+  return metaHalaman({
+    judul: produk.nama,
+    ringkasan: `${harga}. ${ringkasan}`,
+    path: `/produk/${produk.slug}`,
+  });
 }
 
 export default async function DetailProdukPage({ params }: Props) {
@@ -37,6 +54,19 @@ export default async function DetailProdukPage({ params }: Props) {
 
   return (
     <div className="mx-auto w-full max-w-6xl px-6 pt-32 pb-24">
+      <JsonLd data={skemaProduk(produk)} />
+      <JsonLd
+        data={skemaRemah([
+          { nama: "Beranda", path: "/" },
+          { nama: "Produk", path: "/produk" },
+          {
+            nama: kategoriJudul[produk.kategori],
+            path: `/produk?kategori=${produk.kategori}`,
+          },
+          { nama: produk.nama, path: `/produk/${produk.slug}` },
+        ])}
+      />
+
       <nav
         aria-label="Breadcrumb"
         className="font-mono text-[11px] tracking-[0.18em] text-stone-500 uppercase"

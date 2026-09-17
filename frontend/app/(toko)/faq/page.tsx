@@ -1,11 +1,15 @@
 import type { Metadata } from "next";
-import { WA_URL } from "@/app/data/kontak";
+import { KONTAK, WA_URL } from "@/app/data/kontak";
 
-export const metadata: Metadata = {
-  title: "Pertanyaan Umum — Menik Store",
-  description:
-    "Jawaban seputar produk pengusir hama alami, pemesanan, pengiriman, dan pengembalian barang.",
-};
+import JsonLd from "@/app/components/json-ld";
+import { metaHalaman, skemaFaq } from "@/app/lib/seo";
+
+export const metadata: Metadata = metaHalaman({
+  judul: "Pertanyaan Umum",
+  ringkasan:
+    "Jawaban seputar produk pengusir hama alami, cara pakai, pemesanan, ongkos kirim, dan pengembalian barang di Menik Store.",
+  path: "/faq",
+});
 
 const kelompok = [
   {
@@ -19,12 +23,12 @@ const kelompok = [
       {
         tanya: "Berapa lama efeknya bertahan?",
         jawab:
-          "Rata-rata 3–5 hari sekali pakai. Di area terbuka, kena hujan, atau kena matahari langsung, aromanya menguap lebih cepat sehingga perlu diganti lebih sering.",
+          "Rata-rata 3 sampai 5 hari sekali pakai. Di area terbuka, kena hujan, atau kena matahari langsung, aromanya menguap lebih cepat sehingga perlu diganti lebih sering.",
       },
       {
         tanya: "Cara pakainya bagaimana?",
         jawab:
-          "Letakkan di jalur yang biasa dilewati hama — pintu, sudut teras, celah dapur, atau dekat tempat sampah. Jangan disemprotkan langsung ke hewannya.",
+          "Letakkan di jalur yang biasa dilewati hama: pintu, sudut teras, celah dapur, atau dekat tempat sampah. Jangan disemprotkan langsung ke hewannya.",
       },
       {
         tanya: "Kalau hamanya tetap datang bagaimana?",
@@ -49,7 +53,7 @@ const kelompok = [
       {
         tanya: "Metode pembayaran apa saja yang diterima?",
         jawab:
-          "Transfer bank (BCA, Mandiri, BNI), QRIS, dan dompet digital seperti GoPay, OVO, serta DANA.",
+          "Virtual account BCA dan BNI, QRIS, serta dompet digital OVO, DANA, dan ShopeePay. Semua pilihan itu muncul di halaman pembayaran setelah checkout.",
       },
       {
         tanya: "Bisa bayar di tempat (COD)?",
@@ -64,7 +68,7 @@ const kelompok = [
       {
         tanya: "Dikirim dari mana dan berapa lama sampai?",
         jawab:
-          "Dikirim dari Bandung. Estimasi 1–3 hari kerja untuk Pulau Jawa, dan 3–7 hari kerja untuk luar Jawa, tergantung kurir dan alamat tujuan.",
+          `Dikirim dari ${KONTAK.kotaAsalKirim}. Estimasi 1 sampai 3 hari kerja untuk Pulau Jawa, dan 3 sampai 7 hari kerja untuk luar Jawa, tergantung kurir dan alamat tujuan.`,
       },
       {
         tanya: "Ongkos kirimnya berapa?",
@@ -84,7 +88,7 @@ const kelompok = [
       {
         tanya: "Barang rusak atau salah kirim, bagaimana?",
         jawab:
-          "Rekam video saat membuka paket, lalu kirimkan ke WhatsApp kami dalam 2×24 jam sejak paket diterima. Barang akan kami ganti tanpa biaya tambahan.",
+          "Rekam video saat membuka paket, lalu kirimkan ke WhatsApp kami dalam 2x24 jam sejak paket diterima. Barang akan kami ganti tanpa biaya tambahan.",
       },
       {
         tanya: "Bisa retur kalau berubah pikiran?",
@@ -98,6 +102,8 @@ const kelompok = [
 export default function FaqPage() {
   return (
     <section className="mx-auto w-full max-w-3xl px-6 pt-32 pb-24">
+      <JsonLd data={skemaFaq(kelompok.flatMap((k) => k.isi))} />
+
       <p className="font-mono text-[11px] tracking-[0.28em] text-accent-600 uppercase">
         Bantuan
       </p>

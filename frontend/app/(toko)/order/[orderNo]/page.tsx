@@ -41,7 +41,7 @@ const LANGKAH: {
 ];
 
 export const metadata: Metadata = {
-  title: "Status Pesanan — Menik Store",
+  title: "Status Pesanan",
   robots: { index: false, follow: false },
 };
 

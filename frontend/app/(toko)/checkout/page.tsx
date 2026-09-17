@@ -1,15 +1,15 @@
 import type { Metadata } from "next";
 
 import CheckoutForm from "@/app/components/checkout-form";
-import { ambilProduk } from "@/app/lib/api";
+import { ambilSemuaProduk } from "@/app/lib/api";
 
 export const metadata: Metadata = {
-  title: "Checkout — Menik Store",
+  title: "Checkout",
   robots: { index: false, follow: false },
 };
 
 export default async function CheckoutPage() {
-  const produk = await ambilProduk({ limit: 100 });
+  const produk = await ambilSemuaProduk();
 
   return <CheckoutForm produk={produk} />;
 }

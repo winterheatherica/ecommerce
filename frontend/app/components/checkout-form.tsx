@@ -414,7 +414,7 @@ export default function CheckoutForm({ produk }: { produk: Produk[] }) {
               <div className="flex justify-between">
                 <dt className="text-stone-600">Ongkir</dt>
                 <dd className="font-mono text-ink">
-                  {ongkirDipilih ? rupiah(ongkirDipilih.cost) : "—"}
+                  {ongkirDipilih ? rupiah(ongkirDipilih.cost) : "-"}
                 </dd>
               </div>
               <div className="flex justify-between border-t border-ink/10 pt-3 text-base font-semibold">

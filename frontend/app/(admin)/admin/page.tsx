@@ -113,8 +113,8 @@ export default async function AdminRingkasanPage() {
 
       {menungguBayar.length > 0 && (
         <p className="mt-6 text-sm text-stone-500">
-          {menungguBayar.length} pesanan masih menunggu pembayaran. Biarkan saja —
-          akan kedaluwarsa sendiri.
+          {menungguBayar.length} pesanan masih menunggu pembayaran. Biarkan
+          saja, nanti kedaluwarsa sendiri.
         </p>
       )}
     </div>

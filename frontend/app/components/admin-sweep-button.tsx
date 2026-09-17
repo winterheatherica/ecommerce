@@ -34,8 +34,8 @@ export default function AdminSweepButton() {
       <h2 className="text-sm font-medium text-ink">Pesanan kedaluwarsa</h2>
       <p className="mt-2 max-w-lg text-sm leading-relaxed text-stone-500">
         Pesanan yang tidak dibayar sampai batas waktunya dibatalkan otomatis dan
-        stoknya dikembalikan. Ini berjalan sendiri saat daftar pesanan dibuka —
-        tombol ini hanya untuk menjalankannya sekarang juga.
+        stoknya dikembalikan. Ini berjalan sendiri saat daftar pesanan dibuka.
+        Tombol ini hanya untuk menjalankannya sekarang juga.
       </p>
 
       <button

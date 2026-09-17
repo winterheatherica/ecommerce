@@ -62,6 +62,30 @@ async function baca<T>(res: Response): Promise<HasilRO<T>> {
   return { ok: true, data: isi.data };
 }
 
+const BATAS_MS = 8000;
+
+async function panggil<T>(
+  url: string,
+  init: RequestInit,
+): Promise<HasilRO<T>> {
+  try {
+    const res = await fetch(url, {
+      ...init,
+      signal: AbortSignal.timeout(BATAS_MS),
+    });
+
+    return baca<T>(res);
+  } catch (e) {
+    console.error("[rajaongkir] tidak merespons", url, e);
+
+    return {
+      ok: false,
+      status: 504,
+      pesan: "RajaOngkir tidak merespons tepat waktu",
+    };
+  }
+}
+
 export async function cariTujuan(
   konfig: KonfigOngkir,
   kata: string,
@@ -73,11 +97,10 @@ export async function cariTujuan(
     offset: "0",
   });
 
-  const res = await fetch(`${DASAR}/destination/domestic-destination?${q}`, {
-    headers: { key: konfig.apiKey },
-  });
-
-  return baca<TujuanRO[]>(res);
+  return panggil<TujuanRO[]>(
+    `${DASAR}/destination/domestic-destination?${q}`,
+    { headers: { key: konfig.apiKey } },
+  );
 }
 
 export async function hitungOngkir(
@@ -93,7 +116,7 @@ export async function hitungOngkir(
     courier,
   });
 
-  const res = await fetch(`${DASAR}/calculate/domestic-cost`, {
+  return panggil<OpsiRO[]>(`${DASAR}/calculate/domestic-cost`, {
     method: "POST",
     headers: {
       key: konfig.apiKey,
@@ -101,6 +124,4 @@ export async function hitungOngkir(
     },
     body: form,
   });
-
-  return baca<OpsiRO[]>(res);
 }

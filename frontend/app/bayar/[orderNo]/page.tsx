@@ -10,7 +10,7 @@ type Props = {
 };
 
 export const metadata: Metadata = {
-  title: "Pembayaran — Menik Store",
+  title: "Pembayaran",
   robots: { index: false, follow: false },
 };
 

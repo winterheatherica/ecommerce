@@ -1,3 +1,5 @@
+import { cache } from "react";
+
 import type { Kategori, Produk } from "@/app/data/produk";
 import type { StatusPesanan } from "@/app/data/status-pesanan";
 
@@ -75,7 +77,40 @@ export async function ambilProduk(opsi: OpsiDaftar = {}): Promise<Produk[]> {
   return isi.data.map(petakan);
 }
 
-export async function ambilSatuProduk(slug: string): Promise<Produk | null> {
+const BATAS_HALAMAN = 100;
+
+export async function ambilSemuaProduk(): Promise<Produk[]> {
+  const kumpulan: Produk[] = [];
+  let offset = 0;
+
+  for (;;) {
+    const q = new URLSearchParams({
+      limit: String(BATAS_HALAMAN),
+      offset: String(offset),
+    });
+    const alamat = `${basis()}/api/products?${q}`;
+    const res = await fetch(alamat, { cache: "no-store" });
+
+    if (!res.ok) {
+      throw new Error(
+        `Gagal mengambil daftar produk (${res.status}) dari ${alamat}`,
+      );
+    }
+
+    const isi = (await res.json()) as DaftarAPI;
+    kumpulan.push(...isi.data.map(petakan));
+
+    if (isi.data.length === 0 || kumpulan.length >= isi.total) break;
+
+    offset += BATAS_HALAMAN;
+  }
+
+  return kumpulan;
+}
+
+export const ambilSatuProduk = cache(async function ambilSatuProduk(
+  slug: string,
+): Promise<Produk | null> {
   const alamat = `${basis()}/api/products/${encodeURIComponent(slug)}`;
   const res = await fetch(alamat, { cache: "no-store" });
 
@@ -88,7 +123,7 @@ export async function ambilSatuProduk(slug: string): Promise<Produk | null> {
   }
 
   return petakan((await res.json()) as ProdukAPI);
-}
+});
 
 export type ItemPesanan = {
   product_id: number;

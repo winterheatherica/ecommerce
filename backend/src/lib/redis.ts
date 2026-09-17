@@ -25,6 +25,8 @@ export function kunciWilayah(kata: string, batas: number): string {
   return `wilayah:${kata.trim().toLowerCase()}:${batas}`;
 }
 
+const BATAS_MS = 2000;
+
 async function perintah(
   konfig: KonfigRedis,
   cmd: (string | number)[],
@@ -36,6 +38,7 @@ async function perintah(
       "content-type": "application/json",
     },
     body: JSON.stringify(cmd),
+    signal: AbortSignal.timeout(BATAS_MS),
   });
 
   if (!res.ok) {

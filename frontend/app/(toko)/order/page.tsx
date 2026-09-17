@@ -2,11 +2,14 @@ import type { Metadata } from "next";
 import { WA_URL } from "@/app/data/kontak";
 
 import OrderLookup from "@/app/components/order-lookup";
+import { metaHalaman } from "@/app/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Lacak Pesanan — Menik Store",
-  description: "Cek status pesanan dengan nomor pesanan.",
-};
+export const metadata: Metadata = metaHalaman({
+  judul: "Lacak Pesanan",
+  ringkasan:
+    "Cek status pesanan Menik Store dengan nomor pesanan, mulai dari menunggu pembayaran sampai paket diterima.",
+  path: "/order",
+});
 
 export default function LacakPesananPage() {
   return (

@@ -1,15 +1,15 @@
 import type { Metadata } from "next";
 
 import CartView from "@/app/components/cart-view";
-import { ambilProduk } from "@/app/lib/api";
+import { ambilSemuaProduk } from "@/app/lib/api";
 
 export const metadata: Metadata = {
-  title: "Keranjang — Menik Store",
+  title: "Keranjang",
   robots: { index: false, follow: false },
 };
 
 export default async function KeranjangPage() {
-  const produk = await ambilProduk({ limit: 100 });
+  const produk = await ambilSemuaProduk();
 
   return <CartView produk={produk} />;
 }

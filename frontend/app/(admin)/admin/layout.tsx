@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import AdminNav from "@/app/components/admin-nav";
 
 export const metadata: Metadata = {
-  title: "Admin — Menik Store",
+  title: "Admin",
   robots: { index: false, follow: false },
 };
 

@@ -97,6 +97,14 @@ export function hapusDariKeranjang(slug: string) {
   simpan(ambilSnapshot().filter((i) => i.slug !== slug));
 }
 
+export function buangYangTidakDijual(slugDijual: string[]) {
+  const dijual = new Set(slugDijual);
+  const sekarang = ambilSnapshot();
+  const sisa = sekarang.filter((i) => dijual.has(i.slug));
+
+  if (sisa.length !== sekarang.length) simpan(sisa);
+}
+
 export function kosongkanKeranjang() {
   simpan(KOSONG);
 }

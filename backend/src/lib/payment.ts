@@ -58,14 +58,36 @@ async function baca<T>(res: Response): Promise<HasilTripay<T>> {
   return { ok: true, data: isi.data };
 }
 
+const BATAS_MS = 10000;
+
+async function panggil<T>(
+  url: string,
+  init: RequestInit,
+): Promise<HasilTripay<T>> {
+  try {
+    const res = await fetch(url, {
+      ...init,
+      signal: AbortSignal.timeout(BATAS_MS),
+    });
+
+    return baca<T>(res);
+  } catch (e) {
+    console.error("[tripay] tidak merespons", url, e);
+
+    return {
+      ok: false,
+      status: 504,
+      pesan: "Tripay tidak merespons tepat waktu. Coba lagi sebentar.",
+    };
+  }
+}
+
 export async function daftarChannel(
   konfig: KonfigTripay,
 ): Promise<HasilTripay<Channel[]>> {
-  const res = await fetch(`${dasarTripay(konfig)}/merchant/payment-channel`, {
+  return panggil<Channel[]>(`${dasarTripay(konfig)}/merchant/payment-channel`, {
     headers: { Authorization: `Bearer ${konfig.apiKey}` },
   });
-
-  return baca<Channel[]>(res);
 }
 
 export async function buatTransaksi(
@@ -94,28 +116,24 @@ export async function buatTransaksi(
     req.items,
   );
 
-  const res = await fetch(`${dasarTripay(konfig)}/transaction/create`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${konfig.apiKey}`,
-      "content-type": "application/x-www-form-urlencoded",
+  const hasil = await panggil<Transaksi>(
+    `${dasarTripay(konfig)}/transaction/create`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${konfig.apiKey}`,
+        "content-type": "application/x-www-form-urlencoded",
+      },
+      body: form,
     },
-    body: form,
-  });
-
-  const hasil = await baca<Transaksi>(res);
+  );
 
   if (!hasil.ok) {
     console.error("[tripay] transaksi ditolak", {
+      status: hasil.status,
       pesan: hasil.pesan,
-      dasar: dasarTripay(konfig),
-      merchantCode: konfig.merchantCode,
-      panjangApiKey: konfig.apiKey.length,
-      panjangPrivateKey: konfig.privateKey.length,
-      pesanTandaTangan: `${konfig.merchantCode}${req.order_no}${req.amount}`,
-      tandaTangan: signature,
+      order_no: req.order_no,
       method: req.method,
-      expired_time: form.get("expired_time"),
     });
   }
 

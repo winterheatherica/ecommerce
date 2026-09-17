@@ -139,7 +139,7 @@ export default function AdminProductForm({ awal }: Props) {
             />
             <p className="mt-2 text-xs text-stone-500">
               {ubahMode
-                ? "Slug tidak bisa diubah — tautan yang sudah tersebar akan rusak."
+                ? "Slug tidak bisa diubah karena tautan yang sudah tersebar akan rusak."
                 : `Halaman produknya nanti: /produk/${slug || "..."}`}
             </p>
           </div>

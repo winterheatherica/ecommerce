@@ -1,15 +1,13 @@
 import Image from "next/image";
+import Link from "next/link";
 
 import { KONTAK, SOSIAL, WA_URL } from "@/app/data/kontak";
+import { kategoriJudul, type Kategori } from "@/app/data/produk";
 
-const produk = [
-  "Pengusir Kucing",
-  "Pengusir Tikus",
-  "Pengusir Kecoa",
-  "Pengusir Cicak",
-  "Pengusir Nyamuk",
-  "Perawatan Kulit",
-];
+const produk = (Object.keys(kategoriJudul) as Kategori[]).map((k) => ({
+  label: kategoriJudul[k],
+  href: `/produk?kategori=${k}`,
+}));
 
 const bantuan = [
   { label: "Cara Pemesanan", href: "/faq" },
@@ -26,10 +24,9 @@ export default function SiteFooter() {
     <footer id="kontak">
       <section className="relative isolate overflow-hidden">
         <Image
-          src="/footer-cropped.jpg"
+          src="/footer.webp"
           alt=""
           fill
-          quality={92}
           sizes="100vw"
           className="object-cover object-center"
         />
@@ -92,13 +89,13 @@ export default function SiteFooter() {
                 </p>
                 <ul className="mt-6 space-y-3">
                   {produk.map((p) => (
-                    <li key={p}>
-                      <a
-                        href="#produk"
+                    <li key={p.href}>
+                      <Link
+                        href={p.href}
                         className="text-sm text-white/70 transition-colors hover:text-white"
                       >
-                        {p}
-                      </a>
+                        {p.label}
+                      </Link>
                     </li>
                   ))}
                 </ul>
@@ -111,12 +108,12 @@ export default function SiteFooter() {
                 <ul className="mt-6 space-y-3">
                   {bantuan.map((b) => (
                     <li key={b.label}>
-                      <a
+                      <Link
                         href={b.href}
                         className="text-sm text-white/70 transition-colors hover:text-white"
                       >
                         {b.label}
-                      </a>
+                      </Link>
                     </li>
                   ))}
                 </ul>

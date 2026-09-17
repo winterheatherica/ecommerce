@@ -9,7 +9,8 @@
     "binding": "ASSETS"
   },
   "vars": {
-    "API_URL": "https://ecommerce-api.xerika.workers.dev"
+    "API_URL": "https://ecommerce-api.xerika.workers.dev",
+    "SITE_URL": "https://menik-store.xerika.workers.dev"
   },
   "observability": {
     "enabled": true
