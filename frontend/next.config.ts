@@ -1,4 +1,24 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import type { NextConfig } from "next";
+
+function alamatApi(): string {
+  const dariEnv = process.env.API_URL?.trim();
+  if (dariEnv) return dariEnv;
+
+  if (process.env.NODE_ENV !== "production") return "http://localhost:8787";
+
+  const isi = readFileSync(join(process.cwd(), "wrangler.jsonc"), "utf8");
+  const cocok = isi.match(/"API_URL"\s*:\s*"([^"]+)"/);
+
+  if (!cocok) {
+    throw new Error(
+      "API_URL tidak ditemukan di wrangler.jsonc. Rewrite /api/* dipanggang saat build, jadi build sengaja digagalkan daripada menghasilkan alamat yang salah.",
+    );
+  }
+
+  return cocok[1];
+}
 
 const CSP = [
   "default-src 'self'",
@@ -43,16 +63,10 @@ const nextConfig: NextConfig = {
     ];
   },
   async rewrites() {
-    const base =
-      process.env.API_URL ??
-      (process.env.NODE_ENV === "production"
-        ? "https://ecommerce-api.xerika.workers.dev"
-        : "http://localhost:8787");
-
     return [
       {
         source: "/api/:path*",
-        destination: `${base}/api/:path*`,
+        destination: `${alamatApi()}/api/:path*`,
       },
     ];
   },
