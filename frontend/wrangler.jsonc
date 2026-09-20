@@ -1,6 +1,6 @@
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
-  "name": "menik-store",
+  "name": "ecommerce",
   "main": ".open-next/worker.js",
   "compatibility_date": "2025-06-01",
   "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
@@ -9,8 +9,8 @@
     "binding": "ASSETS"
   },
   "vars": {
-    "API_URL": "https://ecommerce-api.xerika.workers.dev",
-    "SITE_URL": "https://menik-store.xerika.workers.dev"
+    "API_URL": "https://ecommerce-api.menik-store.workers.dev",
+    "SITE_URL": "https://ecommerce.menik-store.workers.dev"
   },
   "observability": {
     "enabled": true

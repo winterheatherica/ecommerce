@@ -16,6 +16,9 @@
       "simple": { "limit": 5, "period": 60 }
     }
   ],
+  "vars": {
+    "STOREFRONT_URL": "https://ecommerce.menik-store.workers.dev"
+  },
   "triggers": {
     "crons": ["*/15 * * * *"]
   },
