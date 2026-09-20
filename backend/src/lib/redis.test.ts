@@ -1,6 +1,14 @@
 import { describe, expect, it } from "vitest";
 
-import { ambilCache, bacaKonfigRedis, kunciWilayah, simpanCache } from "./redis";
+import {
+  UMUR_KOSONG_DETIK,
+  UMUR_WILAYAH_DETIK,
+  ambilCache,
+  bacaKonfigRedis,
+  kunciWilayah,
+  simpanCache,
+  umurHasil,
+} from "./redis";
 
 describe("bacaKonfigRedis", () => {
   const lengkap = {
@@ -46,6 +54,21 @@ describe("kunciWilayah", () => {
 
   it("memisahkan batas hasil yang berbeda", () => {
     expect(kunciWilayah("bandung", 8)).not.toBe(kunciWilayah("bandung", 20));
+  });
+});
+
+describe("umurHasil", () => {
+  it("menyimpan hasil yang ada isinya sebulan", () => {
+    expect(umurHasil(1)).toBe(UMUR_WILAYAH_DETIK);
+    expect(umurHasil(8)).toBe(UMUR_WILAYAH_DETIK);
+  });
+
+  it("menyimpan hasil kosong sebentar saja", () => {
+    expect(umurHasil(0)).toBe(UMUR_KOSONG_DETIK);
+  });
+
+  it("umur kosong jauh lebih pendek daripada umur isi", () => {
+    expect(UMUR_KOSONG_DETIK).toBeLessThan(UMUR_WILAYAH_DETIK / 100);
   });
 });
 

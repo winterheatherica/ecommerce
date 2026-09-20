@@ -12,6 +12,7 @@ import {
   bacaKonfigRedis,
   kunciWilayah,
   simpanCache,
+  umurHasil,
 } from "../lib/redis";
 import type { Wilayah } from "../db/wilayah";
 
@@ -72,7 +73,7 @@ export const shippingRoutes = new Elysia()
         }));
 
         await simpanWilayah(sql, wilayah);
-        await simpanCache(redis, kunci, wilayah, UMUR_WILAYAH_DETIK);
+        await simpanCache(redis, kunci, wilayah, umurHasil(wilayah.length));
 
         return { data: wilayah, sumber: "rajaongkir" };
       } finally {

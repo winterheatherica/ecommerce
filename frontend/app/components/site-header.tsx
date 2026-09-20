@@ -21,8 +21,12 @@ export default function SiteHeader() {
   const aktif = (href: string) =>
     href === "/" ? pathname === "/" : pathname.startsWith(href);
 
+  const sentuh = "py-3 -my-3";
+
   const kelasNav = (href: string) =>
-    aktif(href) ? "text-brand-600" : "transition-colors hover:text-brand-600";
+    `${sentuh} ${
+      aktif(href) ? "text-brand-600" : "transition-colors hover:text-brand-600"
+    }`;
 
   useEffect(() => {
     const onScroll = () => {
@@ -56,7 +60,7 @@ export default function SiteHeader() {
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
         <Link
           href="/"
-          className="shrink-0 font-mono text-xs tracking-[0.12em] whitespace-nowrap text-ink uppercase sm:text-sm sm:tracking-[0.35em]"
+          className={`${sentuh} shrink-0 font-mono text-xs tracking-[0.12em] whitespace-nowrap text-ink uppercase sm:text-sm sm:tracking-[0.35em]`}
         >
           Menik Store
         </Link>
@@ -131,7 +135,7 @@ export default function SiteHeader() {
           </Link>
           <a
             href="#kontak"
-            className="font-semibold text-ink transition-colors hover:text-brand-600"
+            className={`${sentuh} font-semibold text-ink transition-colors hover:text-brand-600`}
           >
             WhatsApp
           </a>

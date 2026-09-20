@@ -92,3 +92,9 @@ export async function simpanCache(
 }
 
 export const UMUR_WILAYAH_DETIK = 30 * 24 * 60 * 60;
+
+export const UMUR_KOSONG_DETIK = 10 * 60;
+
+export function umurHasil(jumlah: number): number {
+  return jumlah > 0 ? UMUR_WILAYAH_DETIK : UMUR_KOSONG_DETIK;
+}
