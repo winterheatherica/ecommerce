@@ -9,6 +9,7 @@ import {
   tandaiSelesai,
 } from "@/app/lib/api-client";
 import type { Pesanan } from "@/app/lib/api";
+import { tautanWa } from "@/app/lib/wa";
 import { rupiah } from "@/app/data/produk";
 import { statusLabel, statusWarna } from "@/app/data/status-pesanan";
 
@@ -59,6 +60,29 @@ export default function AdminOrders({ pesanan, status }: Props) {
 
   const selesai = (orderNo: string) =>
     jalankan(() => tandaiSelesai(orderNo), "Gagal menandai selesai");
+
+  const kirimResi = (p: Pesanan) => {
+    const pesan = [
+      `Halo ${p.customer_name}, pesanan ${p.order_no} sudah kami kirim.`,
+      "",
+      `Kurir: ${p.courier} ${p.service}`,
+      `No. resi: ${p.tracking_number}`,
+      "",
+      `Pantau posisinya di sini: ${window.location.origin}/order/${p.order_no}`,
+      "",
+      "Terima kasih sudah belanja di Menik Store.",
+    ].join("\n");
+
+    const tautan = tautanWa(p.phone, pesan);
+
+    if (!tautan) {
+      setGalat(`Nomor ${p.phone} tidak bisa dibuka di WhatsApp.`);
+      return;
+    }
+
+    setGalat(null);
+    window.open(tautan, "_blank", "noopener,noreferrer");
+  };
 
   const batal = (orderNo: string) => {
     const yakin = window.confirm(
@@ -233,18 +257,33 @@ export default function AdminOrders({ pesanan, status }: Props) {
                   )}
 
                   {p.status === "SHIPPED" && (
-                    <div className="mt-8 flex flex-wrap items-center gap-3 border-t border-ink/10 pt-6">
-                      <button
-                        type="button"
-                        onClick={() => selesai(p.order_no)}
-                        disabled={memproses}
-                        className="border border-emerald-600 bg-emerald-600 px-6 py-2.5 font-mono text-[11px] tracking-[0.18em] text-white uppercase transition-colors hover:border-emerald-700 hover:bg-emerald-700 disabled:cursor-not-allowed disabled:border-stone-300 disabled:bg-stone-300"
-                      >
-                        {memproses ? "Menyimpan..." : "Tandai selesai"}
-                      </button>
-                      <span className="text-xs text-stone-500">
-                        Tekan setelah paket diterima pembeli.
-                      </span>
+                    <div className="mt-8 border-t border-ink/10 pt-6">
+                      <div className="flex flex-wrap items-center gap-3">
+                        <button
+                          type="button"
+                          onClick={() => kirimResi(p)}
+                          className="border border-ink px-6 py-2.5 font-mono text-[11px] tracking-[0.18em] text-ink uppercase transition-colors hover:bg-ink hover:text-white"
+                        >
+                          Kirim resi via WhatsApp
+                        </button>
+                        <span className="text-xs text-stone-500">
+                          Membuka chat ke {p.phone} dengan pesan siap kirim.
+                        </span>
+                      </div>
+
+                      <div className="mt-4 flex flex-wrap items-center gap-3">
+                        <button
+                          type="button"
+                          onClick={() => selesai(p.order_no)}
+                          disabled={memproses}
+                          className="border border-emerald-600 bg-emerald-600 px-6 py-2.5 font-mono text-[11px] tracking-[0.18em] text-white uppercase transition-colors hover:border-emerald-700 hover:bg-emerald-700 disabled:cursor-not-allowed disabled:border-stone-300 disabled:bg-stone-300"
+                        >
+                          {memproses ? "Menyimpan..." : "Tandai selesai"}
+                        </button>
+                        <span className="text-xs text-stone-500">
+                          Tekan setelah paket diterima pembeli.
+                        </span>
+                      </div>
                     </div>
                   )}
 

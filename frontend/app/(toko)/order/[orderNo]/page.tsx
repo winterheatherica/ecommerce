@@ -3,7 +3,8 @@ import { WA_URL } from "@/app/data/kontak";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { ambilPesanan } from "@/app/lib/api";
+import ReorderButton from "@/app/components/reorder-button";
+import { ambilPesanan, ambilSemuaProduk } from "@/app/lib/api";
 import { rupiah } from "@/app/data/produk";
 import { statusLabel, type StatusPesanan } from "@/app/data/status-pesanan";
 
@@ -55,6 +56,15 @@ const tanggal = (iso: string) =>
     timeZone: "Asia/Jakarta",
   });
 
+async function slugYangMasihDijual(): Promise<string[] | null> {
+  try {
+    return (await ambilSemuaProduk()).map((p) => p.slug);
+  } catch (e) {
+    console.error("[order] gagal memeriksa stok untuk pesan lagi", e);
+    return null;
+  }
+}
+
 export default async function StatusPesananPage({ params }: Props) {
   const { orderNo } = await params;
   const pesanan = await ambilPesanan(orderNo);
@@ -63,6 +73,8 @@ export default async function StatusPesananPage({ params }: Props) {
 
   const batal = pesanan.status === "EXPIRED" || pesanan.status === "CANCELLED";
   const posisi = ALUR.indexOf(pesanan.status);
+  const bolehPesanLagi = batal || pesanan.status === "DELIVERED";
+  const tersedia = bolehPesanLagi ? await slugYangMasihDijual() : null;
 
   return (
     <div className="mx-auto w-full max-w-3xl px-6 pt-32 pb-24">
@@ -86,12 +98,7 @@ export default async function StatusPesananPage({ params }: Props) {
               ? "Batas waktu pembayaran sudah lewat, jadi pesanan ini otomatis dibatalkan. Kamu bisa memesan ulang kapan saja."
               : "Pesanan ini dibatalkan. Kalau ini bukan kamu yang membatalkan, hubungi kami lewat WhatsApp."}
           </p>
-          <Link
-            href="/produk"
-            className="mt-6 inline-block border border-ink px-8 py-3.5 font-mono text-[11px] tracking-[0.22em] text-ink uppercase transition-colors hover:bg-ink hover:text-white"
-          >
-            Pesan lagi
-          </Link>
+          <ReorderButton items={pesanan.items} tersedia={tersedia} />
         </div>
       ) : (
         <ol className="mt-12 border-l border-ink/15 pl-8">
@@ -204,6 +211,19 @@ export default async function StatusPesananPage({ params }: Props) {
           </dl>
         </div>
       </div>
+
+      {pesanan.status === "DELIVERED" && (
+        <div className="mt-12 border-t border-ink/10 pt-10">
+          <h2 className="font-mono text-[11px] tracking-[0.28em] text-stone-500 uppercase">
+            Butuh lagi?
+          </h2>
+          <p className="mt-3 max-w-lg text-sm leading-relaxed text-stone-600">
+            Isi yang sama bisa langsung dimasukkan ke keranjang, jadi tidak
+            perlu mencari produknya satu per satu.
+          </p>
+          <ReorderButton items={pesanan.items} tersedia={tersedia} />
+        </div>
+      )}
 
       <p className="mt-12 border-t border-ink/10 pt-8 text-sm leading-relaxed text-stone-500">
         Ada yang perlu ditanyakan soal pesanan ini?{" "}

@@ -16,6 +16,9 @@
       "simple": { "limit": 5, "period": 60 }
     }
   ],
+  "triggers": {
+    "crons": ["*/15 * * * *"]
+  },
   "observability": {
     "enabled": true
   }

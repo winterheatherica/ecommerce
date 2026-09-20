@@ -10,6 +10,9 @@ import {
   lolos,
 } from "./lib/ratelimit";
 
+import { buatKoneksi, tutup } from "./lib/db";
+import { sapuKedaluwarsa } from "./db/pesanan";
+
 import { productRoutes } from "./routes/products";
 import { shippingRoutes } from "./routes/shipping";
 import { paymentRoutes } from "./routes/payment";
@@ -18,7 +21,7 @@ import { webhookRoutes } from "./routes/webhooks";
 import { adminRoutes } from "./routes/admin";
 import { devRoutes } from "./routes/dev";
 
-export default new Elysia({ adapter: CloudflareAdapter })
+const app = new Elysia({ adapter: CloudflareAdapter })
   .onRequest(async ({ request, set }) => {
     const jalur = new URL(request.url).pathname;
 
@@ -76,3 +79,30 @@ export default new Elysia({ adapter: CloudflareAdapter })
   .use(adminRoutes)
   .use(devRoutes)
   .compile();
+
+async function sapuTerjadwal(): Promise<void> {
+  const sql = buatKoneksi(env as unknown as Record<string, unknown>);
+
+  try {
+    const disapu = await sapuKedaluwarsa(sql);
+
+    if (disapu.length > 0) {
+      console.log("[cron] pesanan kedaluwarsa disapu", disapu.length, disapu);
+    }
+  } catch (e) {
+    console.error("[cron] gagal menyapu pesanan kedaluwarsa", e);
+  } finally {
+    await tutup(sql);
+  }
+}
+
+export default {
+  fetch: (request: Request) => app.fetch(request),
+  scheduled(
+    _jadwal: ScheduledController,
+    _wadah: unknown,
+    ctx: ExecutionContext,
+  ) {
+    ctx.waitUntil(sapuTerjadwal());
+  },
+};
