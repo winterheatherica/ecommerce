@@ -5,6 +5,10 @@ export function urlGambar(slug: string): string {
   return `https://res.cloudinary.com/${CLOUD}/image/upload/${FOLDER}/${slug}`;
 }
 
+export function urlGambarBagi(slug: string): string {
+  return `https://res.cloudinary.com/${CLOUD}/image/upload/f_jpg,q_auto,c_pad,w_1200,h_630,b_auto/${FOLDER}/${slug}`;
+}
+
 export const PUNYA_GAMBAR = new Set<string>([
   "anti-jamur-lumut",
   "bye-bye-bed-bugs-spray-220ml",

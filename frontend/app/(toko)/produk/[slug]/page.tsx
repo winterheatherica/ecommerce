@@ -4,6 +4,7 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 
 import JsonLd from "@/app/components/json-ld";
+import { PUNYA_GAMBAR, urlGambarBagi } from "@/app/data/gambar";
 import ProductBuyBox from "@/app/components/product-buy-box";
 import ProductCard from "@/app/components/product-card";
 import { ambilProduk, ambilSatuProduk } from "@/app/lib/api";
@@ -38,6 +39,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     judul: produk.nama,
     ringkasan: `${harga}. ${ringkasan}`,
     path: `/produk/${produk.slug}`,
+    gambar: PUNYA_GAMBAR.has(produk.slug)
+      ? urlGambarBagi(produk.slug)
+      : undefined,
   });
 }
 

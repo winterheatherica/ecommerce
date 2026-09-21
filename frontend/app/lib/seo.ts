@@ -110,6 +110,7 @@ export function skemaProduk(produk: Produk) {
     "@id": tautan(`${path}#produk`),
     name: produk.nama,
     description: potong(produk.deskripsi, 400),
+    ...(produk.gambar ? { image: [produk.gambar] } : {}),
     sku: produk.slug,
     category: kategoriJudul[produk.kategori],
     url: tautan(path),
