@@ -159,7 +159,13 @@ export default function SiteFooter() {
         <div className="border-t border-white/10">
           <div className="mx-auto flex max-w-6xl flex-col gap-6 px-6 py-8 sm:flex-row sm:items-center sm:justify-between">
             <p className="font-mono text-[11px] tracking-[0.18em] text-white/40 uppercase">
-              &copy; 2026 Menik Store &middot; Kebijakan Privasi &middot; Syarat &amp; Ketentuan
+              &copy; 2026 Menik Store &middot;{" "}
+              <Link
+                href="/privasi"
+                className="transition-colors hover:text-white"
+              >
+                Kebijakan Privasi
+              </Link>
             </p>
             <ul className="flex flex-wrap gap-2">
               {pembayaran.map((p) => (

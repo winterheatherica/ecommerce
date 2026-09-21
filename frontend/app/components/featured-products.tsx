@@ -1,9 +1,9 @@
 import ProductCard from "./product-card";
 import Link from "next/link";
-import { ambilProduk } from "@/app/lib/api";
+import type { Produk } from "@/app/data/produk";
 
-export default async function FeaturedProducts() {
-  const unggulan = await ambilProduk({ unggulan: true, limit: 6 });
+export default function FeaturedProducts({ produk }: { produk: Produk[] }) {
+  const unggulan = produk.filter((p) => p.unggulan).slice(0, 6);
 
   if (unggulan.length === 0) return null;
 

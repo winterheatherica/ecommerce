@@ -3,6 +3,7 @@ import Image from "next/image";
 import ProblemPicker from "@/app/components/problem-picker";
 import FeaturedProducts from "@/app/components/featured-products";
 import JsonLd from "@/app/components/json-ld";
+import { ambilSemuaProduk } from "@/app/lib/api";
 import { NAMA_SITUS, RINGKASAN, metaHalaman, skemaToko } from "@/app/lib/seo";
 
 export function generateMetadata(): Metadata {
@@ -14,7 +15,9 @@ export function generateMetadata(): Metadata {
   });
 }
 
-export default function Home() {
+export default async function Home() {
+  const produk = await ambilSemuaProduk();
+
   return (
     <>
       <JsonLd data={skemaToko()} />
@@ -72,8 +75,8 @@ export default function Home() {
         <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 h-48 bg-linear-to-t from-accent-950/60 via-accent-900/20 to-transparent" />
       </section>
 
-      <ProblemPicker />
-      <FeaturedProducts />
+      <ProblemPicker produk={produk} />
+      <FeaturedProducts produk={produk} />
     </>
   );
 }

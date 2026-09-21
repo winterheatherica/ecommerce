@@ -9,6 +9,7 @@ const STATIS: { path: string; prioritas: number }[] = [
   { path: "/produk", prioritas: 0.9 },
   { path: "/faq", prioritas: 0.6 },
   { path: "/order", prioritas: 0.3 },
+  { path: "/privasi", prioritas: 0.2 },
 ];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {

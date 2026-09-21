@@ -1,18 +1,22 @@
+import Image from "next/image";
 import Link from "next/link";
-const masalah = [
-  { nomor: "01", nama: "Kucing", keluhan: "Berak di teras & motor", slug: "kucing" },
-  { nomor: "02", nama: "Tikus", keluhan: "Gerogoti kabel, bau plafon", slug: "tikus" },
-  { nomor: "03", nama: "Kecoa", keluhan: "Muncul malam di dapur", slug: "kecoa" },
-  { nomor: "04", nama: "Cicak", keluhan: "Kotoran di dinding", slug: "cicak" },
-  { nomor: "05", nama: "Nyamuk", keluhan: "Gigitan malam di kamar", slug: "nyamuk" },
-  { nomor: "06", nama: "Semut", keluhan: "Antri di lemari makanan", slug: "semut" },
-  { nomor: "07", nama: "Lalat", keluhan: "Kerumunan dekat tempat sampah", slug: "lalat" },
-  { nomor: "08", nama: "Ular", keluhan: "Masuk lewat kebun & selokan", slug: "ular" },
-  { nomor: "09", nama: "Musang", keluhan: "Berisik di plafon malam hari", slug: "musang" },
-  { nomor: "10", nama: "Laba-laba", keluhan: "Sarang di sudut plafon", slug: "laba-laba" },
-  { nomor: "11", nama: "Rayap", keluhan: "Kusen dan perabot kayu", slug: "rayap" },
-  { nomor: "12", nama: "Siput", keluhan: "Merusak tanaman di kebun", slug: "siput" },
-  { nomor: "13", nama: "Kutu kasur", keluhan: "Gatal di kasur dan sofa", slug: "kutu-kasur" },
+
+import { type Kategori, type Produk } from "../data/produk";
+
+const masalah: { nama: string; keluhan: string; slug: Kategori }[] = [
+  { nama: "Kucing", keluhan: "Berak di teras & motor", slug: "kucing" },
+  { nama: "Tikus", keluhan: "Gerogoti kabel, bau plafon", slug: "tikus" },
+  { nama: "Kecoa", keluhan: "Muncul malam di dapur", slug: "kecoa" },
+  { nama: "Cicak", keluhan: "Kotoran di dinding", slug: "cicak" },
+  { nama: "Nyamuk", keluhan: "Gigitan malam di kamar", slug: "nyamuk" },
+  { nama: "Semut", keluhan: "Antri di lemari makanan", slug: "semut" },
+  { nama: "Lalat", keluhan: "Kerumunan dekat tempat sampah", slug: "lalat" },
+  { nama: "Ular", keluhan: "Masuk lewat kebun & selokan", slug: "ular" },
+  { nama: "Musang", keluhan: "Berisik di plafon malam hari", slug: "musang" },
+  { nama: "Laba-laba", keluhan: "Sarang di sudut plafon", slug: "laba-laba" },
+  { nama: "Rayap", keluhan: "Kusen dan perabot kayu", slug: "rayap" },
+  { nama: "Siput", keluhan: "Merusak tanaman di kebun", slug: "siput" },
+  { nama: "Kutu kasur", keluhan: "Gatal di kasur dan sofa", slug: "kutu-kasur" },
 ];
 
 const lainnya = [
@@ -21,7 +25,17 @@ const lainnya = [
   { label: "Paket hemat", href: "/produk?grup=paket" },
 ];
 
-export default function ProblemPicker() {
+function wajah(produk: Produk[], kategori: Kategori): Produk | undefined {
+  const sekategori = produk.filter((p) => p.kategori === kategori);
+
+  return (
+    [...sekategori]
+      .filter((p) => p.gambar)
+      .sort((a, b) => b.terjualPerBulan - a.terjualPerBulan)[0] ?? sekategori[0]
+  );
+}
+
+export default function ProblemPicker({ produk }: { produk: Produk[] }) {
   return (
     <section id="produk" className="mx-auto w-full max-w-6xl px-6 py-24">
       <p className="font-mono text-[11px] tracking-[0.28em] text-accent-600 uppercase">
@@ -32,26 +46,63 @@ export default function ProblemPicker() {
       </h2>
 
       <div className="mt-12 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
-        {masalah.map((m) => (
-          <Link
-            key={m.slug}
-            href={`/produk?kategori=${m.slug}`}
-            className="group flex flex-col border border-ink/12 p-6 transition-colors hover:border-brand-500 hover:bg-brand-50"
-          >
-            <span className="font-mono text-[11px] tracking-[0.2em] text-accent-600">
-              {m.nomor}
-            </span>
-            <span className="mt-12 text-xl font-semibold tracking-tight text-ink">
-              {m.nama}
-            </span>
-            <span className="mt-2 text-sm leading-relaxed text-stone-500">
-              {m.keluhan}
-            </span>
-            <span className="mt-6 font-mono text-sm text-stone-400 transition-colors group-hover:text-brand-600">
-              &rarr;
-            </span>
-          </Link>
-        ))}
+        {masalah.map((m) => {
+          const contoh = wajah(produk, m.slug);
+          const jumlah = produk.filter((p) => p.kategori === m.slug).length;
+
+          return (
+            <Link
+              key={m.slug}
+              href={`/produk?kategori=${m.slug}`}
+              className="group flex flex-col border border-ink/12 transition-colors hover:border-brand-500"
+            >
+              <div className="relative aspect-square overflow-hidden bg-brand-50">
+                {contoh?.gambar ? (
+                  <Image
+                    src={contoh.gambar}
+                    alt=""
+                    fill
+                    sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 20vw"
+                    className="object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                ) : (
+                  <span className="absolute inset-0 flex items-center justify-center font-mono text-[10px] tracking-[0.2em] text-brand-300 uppercase">
+                    {m.nama}
+                  </span>
+                )}
+              </div>
+
+              <div className="flex flex-1 flex-col p-4">
+                <span className="text-base font-semibold tracking-tight text-ink transition-colors group-hover:text-brand-600">
+                  {m.nama}
+                </span>
+                <span className="mt-1 text-xs leading-relaxed text-stone-500">
+                  {m.keluhan}
+                </span>
+                {jumlah > 0 && (
+                  <span className="mt-3 font-mono text-[10px] tracking-[0.16em] text-stone-400 uppercase">
+                    {jumlah} produk
+                  </span>
+                )}
+              </div>
+            </Link>
+          );
+        })}
+
+        <Link
+          href="/produk?grup=hama"
+          className="group flex flex-col items-start justify-center border border-dashed border-ink/20 p-5 transition-colors hover:border-brand-500 hover:bg-brand-50"
+        >
+          <span className="text-base font-semibold tracking-tight text-ink transition-colors group-hover:text-brand-600">
+            Lihat semua
+          </span>
+          <span className="mt-1 text-xs leading-relaxed text-stone-500">
+            Seluruh pengusir hama dalam satu halaman
+          </span>
+          <span className="mt-3 font-mono text-sm text-stone-400 transition-colors group-hover:text-brand-600">
+            &rarr;
+          </span>
+        </Link>
       </div>
 
       <div className="mt-12 border-t border-ink/10 pt-8">
