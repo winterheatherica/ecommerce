@@ -8,6 +8,7 @@ import {
   tandaiDikirim,
   tandaiSelesai,
 } from "@/app/lib/api-client";
+import CopyButton from "./copy-button";
 import type { Pesanan } from "@/app/lib/api";
 import { tautanWa } from "@/app/lib/wa";
 import { rupiah } from "@/app/data/produk";
@@ -187,15 +188,27 @@ export default function AdminOrders({ pesanan, status }: Props) {
                       <p className="font-mono text-[10px] tracking-[0.2em] text-stone-500 uppercase">
                         Alamat kirim
                       </p>
-                      <p className="mt-2 text-sm leading-relaxed text-ink">
-                        {p.customer_name}
-                        <br />
-                        {p.phone}
-                        <br />
-                        {p.address}
-                        <br />
-                        {p.dest_label}
-                      </p>
+
+                      <dl className="mt-3 space-y-2.5">
+                        {[
+                          { k: "Nama", v: p.customer_name },
+                          { k: "No. HP", v: p.phone },
+                          { k: "Alamat", v: `${p.address}\n${p.dest_label}` },
+                        ].map((b) => (
+                          <div key={b.k} className="flex items-start gap-3">
+                            <div className="min-w-0 flex-1">
+                              <dt className="font-mono text-[10px] tracking-[0.16em] text-stone-400 uppercase">
+                                {b.k}
+                              </dt>
+                              <dd className="mt-0.5 text-sm leading-relaxed whitespace-pre-line text-ink">
+                                {b.v}
+                              </dd>
+                            </div>
+                            <CopyButton nilai={b.v} label={b.k} />
+                          </div>
+                        ))}
+                      </dl>
+
                       <p className="mt-3 font-mono text-xs text-stone-500">
                         {p.courier} {p.service} &middot; {p.weight_g} g
                       </p>
