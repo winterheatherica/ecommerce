@@ -5,6 +5,10 @@ const masalah = [
   { nomor: "03", nama: "Kecoa", keluhan: "Muncul malam di dapur", slug: "kecoa" },
   { nomor: "04", nama: "Cicak", keluhan: "Kotoran di dinding", slug: "cicak" },
   { nomor: "05", nama: "Nyamuk", keluhan: "Gigitan malam di kamar", slug: "nyamuk" },
+  { nomor: "06", nama: "Semut", keluhan: "Antri di lemari makanan", slug: "semut" },
+  { nomor: "07", nama: "Lalat", keluhan: "Kerumunan dekat tempat sampah", slug: "lalat" },
+  { nomor: "08", nama: "Ular", keluhan: "Masuk lewat kebun & selokan", slug: "ular" },
+  { nomor: "09", nama: "Musang", keluhan: "Berisik di plafon malam hari", slug: "musang" },
 ];
 
 export default function ProblemPicker() {

@@ -1,0 +1,21 @@
+INSERT INTO products (slug, name, price, weight_g, stock, category, is_featured, sort_order, sold_per_month, is_active) VALUES
+  ('bye-bye-cat-spray-80ml',       'Bye Bye Cat Spray 80ml Pengusir Kucing',            64000,  90, 0, 'kucing',          false, 101, 0, false),
+  ('gocat-gel-jumbo',              'GoCat Gel Jumbo Pengusir Kucing',                  140000, 200, 0, 'kucing',          false, 102, 0, false),
+  ('bye-bye-mouse-gel-ekonomis',   'Bye Bye Mouse Gel Ekonomis Pengusir Tikus',         49000,  50, 0, 'tikus',           false, 103, 0, false),
+  ('bye-bye-mouse-gel-non-racun',  'Bye Bye Mouse Gel Pengusir Tikus Non-Racun',        69000, 100, 0, 'tikus',           false, 104, 0, false),
+  ('gomouse-gel-70g',              'GoMouse Gel 70g Pengusir Tikus Alami',              35000,  70, 0, 'tikus',           false, 105, 0, false),
+  ('gocoro-gel-kecoa-70g',         'GoCoro Gel 70g Pengusir Kecoa Alami',               35000,  70, 0, 'kecoa',           false, 106, 0, false),
+  ('goito-spray-nyamuk-100ml',     'Goito Spray 100ml Pengusir Nyamuk Alami',           60000, 110, 0, 'nyamuk',          false, 107, 0, false),
+  ('bye-bye-snake-gel-50g',        'Bye Bye Snake Gel 50g Pengusir Ular',               54000,  50, 0, 'ular',            false, 108, 0, false),
+  ('flygo-gel-70g',                'FlyGo Gel 70g Pengusir Lalat Alami',                30000,  70, 0, 'lalat',           false, 109, 0, false),
+  ('bye-bye-lalat-gel-50g',        'Bye Bye Lalat Gel 50g Pengusir Lalat',              49000,  50, 0, 'lalat',           false, 110, 0, false),
+  ('ogoant-gel-70g',               'O''Goant Gel 70g Pengusir Semut Alami',             35000,  70, 0, 'semut',           false, 111, 0, false),
+  ('gel-pengusir-musang',          'Gel Pengusir Musang Alami',                         69000,  70, 0, 'musang',          false, 112, 0, false),
+  ('sangreat-car-seat-cleaner',    'SanGreat Leather Car Seat Cleaner and Polish',      70000, 120, 0, 'perawatan-kulit', false, 113, 0, false),
+  ('paket-goito-gel-spray',        'Paket Goito Gel dan Spray Pengusir Nyamuk',         56000, 210, 0, 'paket',           false, 114, 0, false),
+  ('paket-gocat-gel-spray',        'Paket Hemat GoCat Gel 70g dan Spray Pengusir Kucing', 59000, 180, 0, 'paket',         false, 115, 0, false),
+  ('paket-gomouse-gel-spray',      'Paket GoMouse Gel dan Spray Pengusir Tikus',        80000, 180, 0, 'paket',           false, 116, 0, false),
+  ('paket-flygo-gel-spray',        'Paket FlyGo Spray 100ml dan Gel 70g Pengusir Lalat', 70000, 180, 0, 'paket',          false, 117, 0, false),
+  ('paket-ogoant-gel-spray',       'Paket O''Goant Spray 100ml dan Gel 70g Pengusir Semut', 80000, 180, 0, 'paket',       false, 118, 0, false),
+  ('paket-bye-bye-ular-gel-spray', 'Paket Bye Bye Ular Spray 80ml dan Gel Pengusir Ular', 118000, 140, 0, 'paket',        false, 119, 0, false)
+ON CONFLICT (slug) DO NOTHING;
