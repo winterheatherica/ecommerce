@@ -23,7 +23,7 @@ const kelompok = [
       {
         tanya: "Berapa lama efeknya bertahan?",
         jawab:
-          "Rata-rata 3 sampai 5 hari sekali pakai. Di area terbuka, kena hujan, atau kena matahari langsung, aromanya menguap lebih cepat sehingga perlu diganti lebih sering.",
+          "Tergantung bentuknya. Gel gantung seperti Goito dan Flygo bertahan sekitar satu bulan. Gel yang ditebar mengering dalam 2 sampai 5 hari tergantung produknya, lalu perlu ditebar ulang. Spray disemprot lagi begitu aromanya mulai hilang. Di area terbuka, kena hujan, atau kena matahari langsung, semuanya menguap lebih cepat.",
       },
       {
         tanya: "Cara pakainya bagaimana?",
