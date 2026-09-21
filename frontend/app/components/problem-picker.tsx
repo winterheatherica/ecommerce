@@ -1,6 +1,6 @@
-import Image from "next/image";
 import Link from "next/link";
 
+import IkonHama from "./ikon-hama";
 import { type Kategori, type Produk } from "../data/produk";
 
 const masalah: { nama: string; keluhan: string; slug: Kategori }[] = [
@@ -25,16 +25,6 @@ const lainnya = [
   { label: "Paket hemat", href: "/produk?grup=paket" },
 ];
 
-function wajah(produk: Produk[], kategori: Kategori): Produk | undefined {
-  const sekategori = produk.filter((p) => p.kategori === kategori);
-
-  return (
-    [...sekategori]
-      .filter((p) => p.gambar)
-      .sort((a, b) => b.terjualPerBulan - a.terjualPerBulan)[0] ?? sekategori[0]
-  );
-}
-
 export default function ProblemPicker({ produk }: { produk: Produk[] }) {
   return (
     <section id="produk" className="mx-auto w-full max-w-6xl px-6 py-24">
@@ -47,7 +37,6 @@ export default function ProblemPicker({ produk }: { produk: Produk[] }) {
 
       <div className="mt-12 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
         {masalah.map((m) => {
-          const contoh = wajah(produk, m.slug);
           const jumlah = produk.filter((p) => p.kategori === m.slug).length;
 
           return (
@@ -56,20 +45,8 @@ export default function ProblemPicker({ produk }: { produk: Produk[] }) {
               href={`/produk?kategori=${m.slug}`}
               className="group flex flex-col border border-ink/12 transition-colors hover:border-brand-500"
             >
-              <div className="relative aspect-square overflow-hidden bg-brand-50">
-                {contoh?.gambar ? (
-                  <Image
-                    src={contoh.gambar}
-                    alt=""
-                    fill
-                    sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 20vw"
-                    className="object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
-                ) : (
-                  <span className="absolute inset-0 flex items-center justify-center font-mono text-[10px] tracking-[0.2em] text-brand-300 uppercase">
-                    {m.nama}
-                  </span>
-                )}
+              <div className="flex aspect-square items-center justify-center bg-brand-50 text-ink/70 transition-colors group-hover:bg-brand-100 group-hover:text-brand-700">
+                <IkonHama kategori={m.slug} />
               </div>
 
               <div className="flex flex-1 flex-col p-4">
@@ -80,7 +57,7 @@ export default function ProblemPicker({ produk }: { produk: Produk[] }) {
                   {m.keluhan}
                 </span>
                 {jumlah > 0 && (
-                  <span className="mt-3 font-mono text-[10px] tracking-[0.16em] text-stone-400 uppercase">
+                  <span className="mt-auto pt-3 font-mono text-[10px] tracking-[0.16em] text-stone-400 uppercase">
                     {jumlah} produk
                   </span>
                 )}
