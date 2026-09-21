@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 
-import { kategoriLabel, type Kategori } from "@/app/data/produk";
+import { SEMUA_GRUP, SEMUA_KATEGORI } from "@/app/data/produk";
 import { ambilSemuaProduk } from "@/app/lib/api";
 import { tautan } from "@/app/lib/seo";
 
@@ -18,9 +18,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: s.prioritas,
   }));
 
-  const kategori: MetadataRoute.Sitemap = (
-    Object.keys(kategoriLabel) as Kategori[]
-  ).map((k) => ({
+  const grup: MetadataRoute.Sitemap = SEMUA_GRUP.map((g) => ({
+    url: tautan(`/produk?grup=${g}`),
+    changeFrequency: "weekly",
+    priority: 0.85,
+  }));
+
+  const kategori: MetadataRoute.Sitemap = SEMUA_KATEGORI.map((k) => ({
     url: tautan(`/produk?kategori=${k}`),
     changeFrequency: "weekly",
     priority: 0.8,
@@ -39,5 +43,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     console.error("[sitemap] gagal mengambil produk", e);
   }
 
-  return [...dasar, ...kategori, ...produk];
+  return [...dasar, ...grup, ...kategori, ...produk];
 }

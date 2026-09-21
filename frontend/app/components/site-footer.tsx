@@ -2,12 +2,25 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { KONTAK, SOSIAL, WA_URL } from "@/app/data/kontak";
-import { kategoriJudul, type Kategori } from "@/app/data/produk";
+import {
+  GRUP,
+  KATEGORI,
+  SEMUA_GRUP,
+  kategoriDalamGrup,
+} from "@/app/data/produk";
 
-const produk = (Object.keys(kategoriJudul) as Kategori[]).map((k) => ({
-  label: kategoriJudul[k],
-  href: `/produk?kategori=${k}`,
-}));
+const produk = [
+  ...SEMUA_GRUP.map((g) => ({
+    label: GRUP[g].judul,
+    href: `/produk?grup=${g}`,
+  })),
+  ...kategoriDalamGrup("hama")
+    .slice(0, 3)
+    .map((k) => ({
+      label: KATEGORI[k].judul,
+      href: `/produk?kategori=${k}`,
+    })),
+];
 
 const bantuan = [
   { label: "Cara Pemesanan", href: "/faq" },

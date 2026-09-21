@@ -4,6 +4,9 @@ import JsonLd from "@/app/components/json-ld";
 import ProductCatalog from "@/app/components/product-catalog";
 import { ambilSemuaProduk } from "@/app/lib/api";
 import {
+  GRUP,
+  grupDariKategori,
+  grupSah,
   kategoriJudul,
   kategoriJudulSeo,
   kategoriRingkasan,
@@ -16,53 +19,86 @@ const RINGKASAN_SEMUA =
   "Katalog pengusir kucing, tikus, kecoa, cicak, dan nyamuk berbahan dasar tumbuhan, lengkap dengan harga dan stok terkini.";
 
 type Props = {
-  searchParams: Promise<{ kategori?: string; urut?: string }>;
+  searchParams: Promise<{ kategori?: string; grup?: string; urut?: string }>;
 };
 
-function jalanKategori(kategori: string): string {
-  return kategori ? `/produk?kategori=${kategori}` : "/produk";
+function baca(q: { kategori?: string; grup?: string }) {
+  const kategori = kategoriSah(q.kategori ?? "");
+  const grup = kategori ? grupDariKategori(kategori) : grupSah(q.grup ?? "");
+
+  return { kategori, grup };
+}
+
+function jalan(kategori: string, grup: string): string {
+  if (kategori) return `/produk?kategori=${kategori}`;
+  if (grup) return `/produk?grup=${grup}`;
+  return "/produk";
 }
 
 export async function generateMetadata({
   searchParams,
 }: Props): Promise<Metadata> {
-  const { kategori = "" } = await searchParams;
-  const sah = kategoriSah(kategori);
+  const { kategori, grup } = baca(await searchParams);
 
-  if (!sah) {
+  if (kategori) {
     return metaHalaman({
-      judul: JUDUL_SEMUA,
-      ringkasan: RINGKASAN_SEMUA,
-      path: "/produk",
+      judul: kategoriJudulSeo[kategori],
+      ringkasan: kategoriRingkasan[kategori],
+      path: jalan(kategori, ""),
+    });
+  }
+
+  if (grup) {
+    return metaHalaman({
+      judul: GRUP[grup].judul,
+      ringkasan: GRUP[grup].ringkasan,
+      path: jalan("", grup),
     });
   }
 
   return metaHalaman({
-    judul: kategoriJudulSeo[sah],
-    ringkasan: kategoriRingkasan[sah],
-    path: jalanKategori(sah),
+    judul: JUDUL_SEMUA,
+    ringkasan: RINGKASAN_SEMUA,
+    path: "/produk",
   });
 }
 
 export default async function ProdukPage({ searchParams }: Props) {
-  const { kategori = "", urut = "populer" } = await searchParams;
-  const sah = kategoriSah(kategori);
+  const q = await searchParams;
+  const { kategori, grup } = baca(q);
   const produk = await ambilSemuaProduk();
 
-  const tampil = sah ? produk.filter((p) => p.kategori === sah) : produk;
-  const judul = sah ? kategoriJudul[sah] : "Semua produk";
+  const tampil = kategori
+    ? produk.filter((p) => p.kategori === kategori)
+    : grup
+      ? produk.filter((p) => grupDariKategori(p.kategori) === grup)
+      : produk;
+
+  const judul = kategori
+    ? kategoriJudul[kategori]
+    : grup
+      ? GRUP[grup].judul
+      : "Semua produk";
+
+  const remah = [
+    { nama: "Beranda", path: "/" },
+    { nama: "Produk", path: "/produk" },
+    ...(grup ? [{ nama: GRUP[grup].judul, path: jalan("", grup) }] : []),
+    ...(kategori
+      ? [{ nama: kategoriJudul[kategori], path: jalan(kategori, "") }]
+      : []),
+  ];
 
   return (
     <>
       <JsonLd data={skemaDaftarProduk(tampil, judul)} />
-      <JsonLd
-        data={skemaRemah([
-          { nama: "Beranda", path: "/" },
-          { nama: "Produk", path: "/produk" },
-          ...(sah ? [{ nama: kategoriJudul[sah], path: jalanKategori(sah) }] : []),
-        ])}
+      <JsonLd data={skemaRemah(remah)} />
+      <ProductCatalog
+        produk={produk}
+        kategori={kategori}
+        grup={grup}
+        urut={q.urut ?? "populer"}
       />
-      <ProductCatalog produk={produk} kategori={sah} urut={urut} />
     </>
   );
 }

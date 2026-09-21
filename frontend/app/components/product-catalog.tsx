@@ -5,20 +5,24 @@ import { useRouter } from "next/navigation";
 
 import ProductCard from "./product-card";
 import {
+  GRUP,
+  SEMUA_GRUP,
+  grupDariKategori,
+  grupSah,
+  kategoriDalamGrup,
   kategoriJudul,
   kategoriLabel,
   kategoriSah,
-  type Kategori,
+  type Grup,
   type Produk,
 } from "../data/produk";
 
 type Props = {
   produk: Produk[];
   kategori: string;
+  grup: string;
   urut: string;
 };
-
-const semuaKategori = Object.keys(kategoriLabel) as Kategori[];
 
 const opsiUrut = [
   { nilai: "populer", label: "Paling dicari" },
@@ -29,26 +33,32 @@ const opsiUrut = [
 export default function ProductCatalog({
   produk,
   kategori: kategoriMentah,
+  grup: grupMentah,
   urut: urutMentah,
 }: Props) {
   const router = useRouter();
   const [cari, setCari] = useState("");
 
   const kategori = kategoriSah(kategoriMentah);
+  const grup = kategori ? grupDariKategori(kategori) : grupSah(grupMentah);
   const urut = opsiUrut.some((o) => o.nilai === urutMentah)
     ? urutMentah
     : "populer";
 
-  const perbarui = (kunci: "kategori" | "urut", nilai: string) => {
-    const berikut = { kategori, urut, [kunci]: nilai };
+  const pergi = (k: string, g: string, u: string) => {
     const next = new URLSearchParams();
 
-    if (berikut.kategori) next.set("kategori", berikut.kategori);
-    if (berikut.urut && berikut.urut !== "populer") next.set("urut", berikut.urut);
+    if (k) next.set("kategori", k);
+    else if (g) next.set("grup", g);
+    if (u && u !== "populer") next.set("urut", u);
 
     const query = next.toString();
     router.replace(query ? `/produk?${query}` : "/produk", { scroll: false });
   };
+
+  const pilihGrup = (g: Grup | "") => pergi("", g, urut);
+  const pilihKategori = (k: string) => pergi(k, grup, urut);
+  const pilihUrut = (u: string) => pergi(kategori, grup, u);
 
   const reset = () => {
     setCari("");
@@ -59,7 +69,9 @@ export default function ProductCatalog({
     const kata = cari.trim().toLowerCase();
 
     const disaring = produk.filter((p) => {
-      const cocokKategori = !kategori || p.kategori === kategori;
+      const cocokKategori = kategori
+        ? p.kategori === kategori
+        : !grup || grupDariKategori(p.kategori) === grup;
       const cocokKata = !kata || p.nama.toLowerCase().includes(kata);
       return cocokKategori && cocokKata;
     });
@@ -67,9 +79,12 @@ export default function ProductCatalog({
     if (urut === "termurah") return [...disaring].sort((a, b) => a.harga - b.harga);
     if (urut === "termahal") return [...disaring].sort((a, b) => b.harga - a.harga);
     return [...disaring].sort((a, b) => b.terjualPerBulan - a.terjualPerBulan);
-  }, [produk, cari, kategori, urut]);
+  }, [produk, cari, kategori, grup, urut]);
 
-  const adaSaringan = Boolean(kategori) || cari.trim() !== "";
+  const adaSaringan = Boolean(kategori || grup) || cari.trim() !== "";
+
+  const jumlahGrup = (g: Grup) =>
+    produk.filter((p) => grupDariKategori(p.kategori) === g).length;
 
   return (
     <section className="mx-auto w-full max-w-6xl px-6 pt-32 pb-24">
@@ -77,8 +92,18 @@ export default function ProductCatalog({
         Katalog
       </p>
       <h1 className="mt-3 text-3xl leading-tight font-semibold tracking-tight text-ink sm:text-4xl">
-        {kategori ? kategoriJudul[kategori] : "Semua produk"}
+        {kategori
+          ? kategoriJudul[kategori]
+          : grup
+            ? GRUP[grup].judul
+            : "Semua produk"}
       </h1>
+
+      {grup && !kategori && (
+        <p className="mt-4 max-w-xl leading-relaxed text-stone-600">
+          {GRUP[grup].ringkasan}
+        </p>
+      )}
 
       <div className="mt-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <input
@@ -95,7 +120,7 @@ export default function ProductCatalog({
           <span className="relative">
             <select
               value={urut}
-              onChange={(e) => perbarui("urut", e.target.value)}
+              onChange={(e) => pilihUrut(e.target.value)}
               className="appearance-none border border-ink/15 py-2.5 pr-11 pl-4 font-sans text-sm tracking-normal text-ink normal-case outline-none transition-colors hover:border-brand-400 focus:border-brand-500"
             >
               {opsiUrut.map((o) => (
@@ -121,9 +146,9 @@ export default function ProductCatalog({
       <div className="mt-6 flex flex-wrap gap-2">
         <button
           type="button"
-          onClick={() => perbarui("kategori", "")}
+          onClick={() => pilihGrup("")}
           className={`border px-4 py-2 font-mono text-[11px] tracking-[0.18em] uppercase transition-colors ${
-            kategori === ""
+            grup === ""
               ? "border-brand-500 bg-brand-500 text-white"
               : "border-ink/15 text-stone-600 hover:border-brand-400 hover:bg-brand-50 hover:text-brand-600"
           }`}
@@ -131,25 +156,64 @@ export default function ProductCatalog({
           Semua
         </button>
 
-        {semuaKategori.map((k) => (
+        {SEMUA_GRUP.filter((g) => jumlahGrup(g) > 0).map((g) => (
           <button
-            key={k}
+            key={g}
             type="button"
-            onClick={() => perbarui("kategori", k)}
+            onClick={() => pilihGrup(g)}
             className={`border px-4 py-2 font-mono text-[11px] tracking-[0.18em] uppercase transition-colors ${
-              kategori === k
-                ? "border-ink bg-ink text-white"
-                : "border-ink/15 text-stone-600 hover:border-brand-500 hover:text-brand-600"
+              grup === g
+                ? "border-brand-500 bg-brand-500 text-white"
+                : "border-ink/15 text-stone-600 hover:border-brand-400 hover:bg-brand-50 hover:text-brand-600"
             }`}
           >
-            {kategoriLabel[k]}
+            {GRUP[g].label}
           </button>
         ))}
       </div>
 
+      {grup && (
+        <div className="mt-3 flex flex-wrap gap-2 border-t border-ink/5 pt-3">
+          <button
+            type="button"
+            onClick={() => pilihKategori("")}
+            className={`border px-3 py-1.5 font-mono text-[10px] tracking-[0.16em] uppercase transition-colors ${
+              kategori === ""
+                ? "border-ink bg-ink text-white"
+                : "border-ink/15 text-stone-600 hover:border-brand-500 hover:text-brand-600"
+            }`}
+          >
+            Semua {GRUP[grup].label}
+          </button>
+
+          {kategoriDalamGrup(grup)
+            .filter(
+              (k) => produk.some((p) => p.kategori === k) || kategori === k,
+            )
+            .map((k) => (
+              <button
+                key={k}
+                type="button"
+                onClick={() => pilihKategori(k)}
+                className={`border px-3 py-1.5 font-mono text-[10px] tracking-[0.16em] uppercase transition-colors ${
+                  kategori === k
+                    ? "border-ink bg-ink text-white"
+                    : "border-ink/15 text-stone-600 hover:border-brand-500 hover:text-brand-600"
+                }`}
+              >
+                {kategoriLabel[k]}
+              </button>
+            ))}
+        </div>
+      )}
+
       <p className="mt-8 font-mono text-[11px] tracking-[0.18em] text-stone-500 uppercase">
         <span className="text-brand-600">{hasil.length}</span> produk
-        {kategori ? ` · ${kategoriLabel[kategori]}` : ""}
+        {kategori
+          ? ` · ${kategoriLabel[kategori]}`
+          : grup
+            ? ` · ${GRUP[grup].label}`
+            : ""}
       </p>
 
       {hasil.length > 0 ? (

@@ -9,6 +9,16 @@ const masalah = [
   { nomor: "07", nama: "Lalat", keluhan: "Kerumunan dekat tempat sampah", slug: "lalat" },
   { nomor: "08", nama: "Ular", keluhan: "Masuk lewat kebun & selokan", slug: "ular" },
   { nomor: "09", nama: "Musang", keluhan: "Berisik di plafon malam hari", slug: "musang" },
+  { nomor: "10", nama: "Laba-laba", keluhan: "Sarang di sudut plafon", slug: "laba-laba" },
+  { nomor: "11", nama: "Rayap", keluhan: "Kusen dan perabot kayu", slug: "rayap" },
+  { nomor: "12", nama: "Siput", keluhan: "Merusak tanaman di kebun", slug: "siput" },
+  { nomor: "13", nama: "Kutu kasur", keluhan: "Gatal di kasur dan sofa", slug: "kutu-kasur" },
+];
+
+const lainnya = [
+  { label: "Kebutuhan hewan peliharaan", href: "/produk?grup=hewan" },
+  { label: "Perawatan rumah & barang", href: "/produk?grup=rumah" },
+  { label: "Paket hemat", href: "/produk?grup=paket" },
 ];
 
 export default function ProblemPicker() {
@@ -44,15 +54,23 @@ export default function ProblemPicker() {
         ))}
       </div>
 
-      <p className="mt-10 font-mono text-[11px] tracking-[0.2em] text-stone-500 uppercase">
-        Bukan soal hama?{" "}
-        <Link
-          href="/produk?kategori=perawatan-kulit"
-          className="border-b border-stone-300 pb-0.5 text-ink transition-colors hover:border-brand-600 hover:text-brand-600"
-        >
-          Lihat perawatan kulit &rarr;
-        </Link>
-      </p>
+      <div className="mt-12 border-t border-ink/10 pt-8">
+        <p className="font-mono text-[11px] tracking-[0.2em] text-stone-500 uppercase">
+          Bukan soal hama?
+        </p>
+        <ul className="mt-4 flex flex-wrap gap-x-8 gap-y-3">
+          {lainnya.map((l) => (
+            <li key={l.href}>
+              <Link
+                href={l.href}
+                className="border-b border-stone-300 pb-0.5 text-sm text-ink transition-colors hover:border-brand-600 hover:text-brand-600"
+              >
+                {l.label} &rarr;
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </div>
     </section>
   );
 }
