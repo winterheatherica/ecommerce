@@ -17,7 +17,8 @@
     }
   ],
   "vars": {
-    "STOREFRONT_URL": "https://ecommerce.menik-store.workers.dev"
+    "STOREFRONT_URL": "https://ecommerce.menik-store.workers.dev",
+    "UMUR_PESANAN_JAM": "6"
   },
   "triggers": {
     "crons": ["*/15 * * * *"]

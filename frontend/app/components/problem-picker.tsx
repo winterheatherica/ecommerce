@@ -36,10 +36,13 @@ export default function ProblemPicker({ produk }: { produk: Produk[] }) {
       </h2>
 
       <div className="mt-12 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
-        {masalah.map((m) => {
-          const jumlah = produk.filter((p) => p.kategori === m.slug).length;
-
-          return (
+        {masalah
+          .map((m) => ({
+            ...m,
+            jumlah: produk.filter((p) => p.kategori === m.slug).length,
+          }))
+          .filter((m) => m.jumlah > 0)
+          .map((m) => (
             <Link
               key={m.slug}
               href={`/produk?kategori=${m.slug}`}
@@ -56,15 +59,12 @@ export default function ProblemPicker({ produk }: { produk: Produk[] }) {
                 <span className="mt-1 text-xs leading-relaxed text-stone-500">
                   {m.keluhan}
                 </span>
-                {jumlah > 0 && (
-                  <span className="mt-auto pt-3 font-mono text-[10px] tracking-[0.16em] text-stone-400 uppercase">
-                    {jumlah} produk
-                  </span>
-                )}
+                <span className="mt-auto pt-3 font-mono text-[10px] tracking-[0.16em] text-stone-400 uppercase">
+                  {m.jumlah} produk
+                </span>
               </div>
             </Link>
-          );
-        })}
+          ))}
 
         <Link
           href="/produk?grup=hama"
