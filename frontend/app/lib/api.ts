@@ -1,5 +1,6 @@
 import { cache } from "react";
 
+import { PUNYA_GAMBAR, urlGambar } from "@/app/data/gambar";
 import type { Kategori, Produk } from "@/app/data/produk";
 import type { StatusPesanan } from "@/app/data/status-pesanan";
 
@@ -48,6 +49,7 @@ function petakan(p: ProdukAPI): Produk {
     stok: p.stock,
     terjualPerBulan: p.sold_per_month,
     unggulan: p.is_featured,
+    gambar: PUNYA_GAMBAR.has(p.slug) ? urlGambar(p.slug) : undefined,
   };
 }
 
