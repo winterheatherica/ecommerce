@@ -2,13 +2,14 @@ import AdminSweepButton from "@/app/components/admin-sweep-button";
 import Link from "next/link";
 import { rupiah } from "@/app/data/produk";
 import { statusLabel, statusWarna } from "@/app/data/status-pesanan";
-import { ambilDaftarPesanan, ambilProduk } from "@/app/lib/api";
+import { ambilDaftarPesanan, ambilProdukAdmin } from "@/app/lib/api";
 
 const AMBANG_STOK_MENIPIS = 10;
+const TAMPIL_STOK = 12;
 
 export default async function AdminRingkasanPage() {
   const [daftarProduk, daftarPesanan] = await Promise.all([
-    ambilProduk({ limit: 100 }),
+    ambilProdukAdmin(),
     ambilDaftarPesanan(),
   ]);
 
@@ -67,7 +68,7 @@ export default async function AdminRingkasanPage() {
             <h2 className="text-sm font-medium text-ink">Stok yang perlu diisi</h2>
           </div>
           <ul className="divide-y divide-ink/5">
-            {stokMenipis.map((p) => (
+            {stokMenipis.slice(0, TAMPIL_STOK).map((p) => (
               <li key={p.slug} className="flex items-center justify-between gap-4 px-6 py-3">
                 <span className="text-sm text-stone-700">{p.nama}</span>
                 <span
@@ -80,6 +81,16 @@ export default async function AdminRingkasanPage() {
               </li>
             ))}
           </ul>
+          {stokMenipis.length > TAMPIL_STOK && (
+            <div className="border-t border-ink/10 px-6 py-3">
+              <Link
+                href="/admin/produk"
+                className="font-mono text-[11px] tracking-[0.18em] text-stone-500 uppercase transition-colors hover:text-brand-600"
+              >
+                {stokMenipis.length - TAMPIL_STOK} produk lainnya &rarr;
+              </Link>
+            </div>
+          )}
         </div>
       )}
 

@@ -38,6 +38,8 @@ const nextConfig: NextConfig = {
   images: {
     loader: "custom",
     loaderFile: "./app/lib/image-loader.ts",
+    deviceSizes: [384, 640, 828, 1200],
+    imageSizes: [96, 128, 256],
     qualities: [75, 92],
     remotePatterns: [
       { protocol: "https", hostname: "assets.tripay.co.id", pathname: "/**" },
