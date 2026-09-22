@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
 
 import JsonLd from "@/app/components/json-ld";
 import { PUNYA_GAMBAR, urlGambarBagi } from "@/app/data/gambar";
@@ -13,6 +14,7 @@ import {
   kategoriLabel,
   kategoriRingkasan,
   rupiah,
+  type Produk,
 } from "@/app/data/produk";
 import { metaHalaman, skemaProduk, skemaRemah } from "@/app/lib/seo";
 
@@ -50,9 +52,6 @@ export default async function DetailProdukPage({ params }: Props) {
   const produk = await ambilSatuProduk(slug);
 
   if (!produk) notFound();
-
-  const sekategori = await ambilProduk({ kategori: produk.kategori, limit: 4 });
-  const serupa = sekategori.filter((p) => p.slug !== produk.slug).slice(0, 3);
 
   const habis = produk.stok === 0;
 
@@ -165,22 +164,57 @@ export default async function DetailProdukPage({ params }: Props) {
         </div>
       </div>
 
-      {serupa.length > 0 && (
-        <section className="mt-24 border-t border-ink/10 pt-16">
-          <p className="font-mono text-[11px] tracking-[0.28em] text-accent-600 uppercase">
-            Masalah yang sama
-          </p>
-          <h2 className="mt-3 text-2xl font-semibold tracking-tight text-ink">
-            Pilihan lain untuk {kategoriLabel[produk.kategori].toLowerCase()}
-          </h2>
-
-          <div className="mt-10 grid grid-cols-2 gap-6 lg:grid-cols-3">
-            {serupa.map((p) => (
-              <ProductCard key={p.slug} produk={p} />
-            ))}
-          </div>
-        </section>
-      )}
+      <Suspense fallback={<KerangkaSerupa />}>
+        <ProdukSerupa kategori={produk.kategori} slug={produk.slug} />
+      </Suspense>
     </div>
+  );
+}
+
+function KerangkaSerupa() {
+  return (
+    <section className="mt-24 border-t border-ink/10 pt-16">
+      <div className="h-3 w-32 animate-pulse bg-stone-200" />
+      <div className="mt-4 h-7 w-64 animate-pulse bg-stone-200" />
+      <div className="mt-10 grid grid-cols-2 gap-6 lg:grid-cols-3">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <div key={i}>
+            <div className="aspect-square animate-pulse bg-stone-200" />
+            <div className="mt-4 h-3 w-full animate-pulse bg-stone-200" />
+            <div className="mt-2 h-3 w-2/3 animate-pulse bg-stone-200" />
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+async function ProdukSerupa({
+  kategori,
+  slug,
+}: {
+  kategori: Produk["kategori"];
+  slug: string;
+}) {
+  const sekategori = await ambilProduk({ kategori, limit: 4 });
+  const serupa = sekategori.filter((p) => p.slug !== slug).slice(0, 3);
+
+  if (serupa.length === 0) return null;
+
+  return (
+    <section className="mt-24 border-t border-ink/10 pt-16">
+      <p className="font-mono text-[11px] tracking-[0.28em] text-accent-600 uppercase">
+        Masalah yang sama
+      </p>
+      <h2 className="mt-3 text-2xl font-semibold tracking-tight text-ink">
+        Pilihan lain untuk {kategoriLabel[kategori].toLowerCase()}
+      </h2>
+
+      <div className="mt-10 grid grid-cols-2 gap-6 lg:grid-cols-3">
+        {serupa.map((p) => (
+          <ProductCard key={p.slug} produk={p} />
+        ))}
+      </div>
+    </section>
   );
 }
