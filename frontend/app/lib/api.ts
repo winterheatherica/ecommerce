@@ -200,18 +200,35 @@ export async function ambilDaftarPesanan(
   return isi.data;
 }
 
-export async function ambilProdukAdmin(): Promise<Produk[]> {
-  const res = await fetch(`${basis()}/api/admin/products`, {
-    cache: "no-store",
-    headers: kepalaAdmin(),
-  });
+const BATAS_ADMIN = 200;
 
-  if (!res.ok) {
-    throw new Error(`Gagal mengambil produk admin (${res.status})`);
+export async function ambilProdukAdmin(): Promise<Produk[]> {
+  const kumpulan: Produk[] = [];
+  let offset = 0;
+
+  for (;;) {
+    const q = new URLSearchParams({
+      limit: String(BATAS_ADMIN),
+      offset: String(offset),
+    });
+    const res = await fetch(`${basis()}/api/admin/products?${q}`, {
+      cache: "no-store",
+      headers: kepalaAdmin(),
+    });
+
+    if (!res.ok) {
+      throw new Error(`Gagal mengambil produk admin (${res.status})`);
+    }
+
+    const isi = (await res.json()) as { data: ProdukAPI[]; total: number };
+    kumpulan.push(...isi.data.map(petakan));
+
+    if (isi.data.length === 0 || kumpulan.length >= isi.total) break;
+
+    offset += BATAS_ADMIN;
   }
 
-  const isi = (await res.json()) as { data: ProdukAPI[] };
-  return isi.data.map(petakan);
+  return kumpulan;
 }
 
 export async function ambilSatuProdukAdmin(
