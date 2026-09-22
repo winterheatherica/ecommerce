@@ -10,7 +10,7 @@ export const RINGKASAN =
 
 export const GAMBAR_BAGI = "/og.jpg";
 
-const CADANGAN_URL = "https://ecommerce.menik-store.workers.dev";
+const CADANGAN_URL = "https://menikstore.my.id";
 
 export function situsUrl(): string {
   const dari = process.env.SITE_URL?.trim();

@@ -67,6 +67,22 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  async redirects() {
+    return [
+      {
+        source: "/",
+        has: [{ type: "host", value: "www.menikstore.my.id" }],
+        destination: "https://menikstore.my.id/",
+        permanent: true,
+      },
+      {
+        source: "/:path+",
+        has: [{ type: "host", value: "www.menikstore.my.id" }],
+        destination: "https://menikstore.my.id/:path+",
+        permanent: true,
+      },
+    ];
+  },
   async rewrites() {
     return [
       {

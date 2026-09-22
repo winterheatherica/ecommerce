@@ -16,8 +16,12 @@
       "simple": { "limit": 5, "period": 60 }
     }
   ],
+  "workers_dev": false,
+  "routes": [
+    { "pattern": "api.menikstore.my.id", "custom_domain": true }
+  ],
   "vars": {
-    "STOREFRONT_URL": "https://ecommerce.menik-store.workers.dev",
+    "STOREFRONT_URL": "https://menikstore.my.id",
     "UMUR_PESANAN_JAM": "6"
   },
   "triggers": {
