@@ -10,6 +10,7 @@ import {
   type ChannelBayar,
 } from "@/app/lib/api-client";
 import { rupiah } from "@/app/data/produk";
+import { WA_URL } from "@/app/data/kontak";
 
 type Props = {
   orderNo: string;
@@ -93,6 +94,39 @@ export default function PaymentPicker({ orderNo, total }: Props) {
     );
   }
 
+  if (muatan.sandbox) {
+    const pesan = `Halo Menik Store, saya mau menyelesaikan pembayaran pesanan ${orderNo} senilai ${rupiah(total)}.`;
+
+    return (
+      <div className="mt-10">
+        <div className="border border-brand-200 bg-brand-50 px-6 py-7">
+          <p className="font-mono text-[10px] tracking-[0.2em] text-brand-700 uppercase">
+            Pembayaran otomatis belum aktif
+          </p>
+          <p className="mt-4 text-sm leading-relaxed text-ink">
+            Pesanan kamu sudah tercatat dengan nomor{" "}
+            <span className="font-mono">{orderNo}</span> dan barangnya sudah
+            kami sisihkan. Pembayaran untuk sementara diselesaikan lewat
+            WhatsApp, dan nomor rekening akan kami kirimkan di sana.
+          </p>
+          <a
+            href={`${WA_URL}?text=${encodeURIComponent(pesan)}`}
+            className="mt-7 inline-block border border-brand-500 bg-brand-500 px-8 py-4 font-mono text-[11px] tracking-[0.22em] text-white uppercase transition-colors hover:border-brand-600 hover:bg-brand-600"
+          >
+            Lanjutkan di WhatsApp
+          </a>
+        </div>
+
+        <Link
+          href={`/order/${orderNo}`}
+          className="mt-6 inline-block font-mono text-[10px] tracking-[0.18em] text-stone-500 uppercase transition-colors hover:text-brand-600"
+        >
+          Lihat status dan batas waktu pesanan
+        </Link>
+      </div>
+    );
+  }
+
   const kelompok = [...new Set(muatan.channel.map((c) => c.group))];
   const cocok = muatan.channel.filter(
     (c) => total >= c.minimum_amount && (c.maximum_amount === 0 || total <= c.maximum_amount),
@@ -100,12 +134,6 @@ export default function PaymentPicker({ orderNo, total }: Props) {
 
   return (
     <div className="mt-10">
-      {muatan.sandbox && (
-        <p className="mb-8 border border-amber-300 bg-amber-50 px-4 py-3 text-sm leading-relaxed text-amber-800">
-          Mode uji coba. Tidak ada uang yang berpindah.
-        </p>
-      )}
-
       <fieldset disabled={memproses}>
         <legend className="font-mono text-[10px] tracking-[0.2em] text-stone-500 uppercase">
           Pilih metode

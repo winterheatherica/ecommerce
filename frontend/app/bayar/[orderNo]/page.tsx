@@ -40,8 +40,8 @@ export default async function BayarPage({ params }: Props) {
           Pembayaran
         </p>
         <p className="mt-3 text-sm leading-relaxed text-stone-600">
-          Pilih metode pembayaran, lalu kamu akan diarahkan ke halaman
-          pembayaran yang aman.
+          Selesaikan pembayaran sebelum batas waktu di bawah, supaya barangnya
+          tetap kami sisihkan untuk kamu.
         </p>
 
         <div className="mt-8 border-t border-ink/10 pt-8">

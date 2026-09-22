@@ -159,6 +159,25 @@ export async function tandaiSelesai(orderNo: string): Promise<void> {
   }
 }
 
+export async function tandaiLunas(
+  orderNo: string,
+  method: string,
+): Promise<void> {
+  const res = await fetch(
+    `/api/admin/orders/${encodeURIComponent(orderNo)}/pay`,
+    {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ method }),
+    },
+  );
+
+  if (!res.ok) {
+    const galat = (await res.json().catch(() => ({}))) as { message?: string };
+    throw new Error(galat.message ?? `Gagal menandai lunas (${res.status})`);
+  }
+}
+
 export async function batalkanPesanan(orderNo: string): Promise<void> {
   const res = await fetch(
     `/api/admin/orders/${encodeURIComponent(orderNo)}/cancel`,

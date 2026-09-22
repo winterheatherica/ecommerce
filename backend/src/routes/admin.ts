@@ -16,6 +16,7 @@ import {
   sapuKedaluwarsa,
   tandaiDikirim,
   tandaiSelesai,
+  tandaiTerbayar,
   type HasilUbahStatus,
 } from "../db/pesanan";
 import type { StatusPesanan } from "../lib/orders";
@@ -165,6 +166,35 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
       }
     },
     { params: t.Object({ orderNo: t.String({ maxLength: 40 }) }) },
+  )
+  .patch(
+    "/orders/:orderNo/pay",
+    async ({ params, body, set }) => {
+      const sql = koneksi();
+
+      try {
+        const hasil = await tandaiTerbayar(sql, params.orderNo, body.method);
+
+        if (!hasil.ok) {
+          set.status = hasil.alasan === "not_found" ? 404 : 409;
+          return {
+            error: hasil.alasan,
+            message:
+              hasil.alasan === "not_found"
+                ? "Pesanan tidak ditemukan"
+                : "Hanya pesanan yang belum dibayar yang bisa ditandai lunas",
+          };
+        }
+
+        return hasil.pesanan;
+      } finally {
+        await tutup(sql);
+      }
+    },
+    {
+      params: t.Object({ orderNo: t.String({ maxLength: 40 }) }),
+      body: t.Object({ method: t.String({ minLength: 2, maxLength: 40 }) }),
+    },
   )
   .post("/orders/sweep", async () => {
     const sql = koneksi();

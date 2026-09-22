@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import {
   batalkanPesanan,
   tandaiDikirim,
+  tandaiLunas,
   tandaiSelesai,
 } from "@/app/lib/api-client";
 import CopyButton from "./copy-button";
@@ -93,6 +94,19 @@ export default function AdminOrders({ pesanan, status }: Props) {
     if (!yakin) return;
 
     return jalankan(() => batalkanPesanan(orderNo), "Gagal membatalkan");
+  };
+
+  const lunas = (orderNo: string) => {
+    const yakin = window.confirm(
+      `Tandai pesanan ${orderNo} sudah lunas? Pakai ini hanya kalau uangnya benar-benar sudah masuk ke rekening.`,
+    );
+
+    if (!yakin) return;
+
+    return jalankan(
+      () => tandaiLunas(orderNo, "TRANSFER MANUAL"),
+      "Gagal menandai lunas",
+    );
   };
 
   const kirim = async (orderNo: string) => {
@@ -304,6 +318,14 @@ export default function AdminOrders({ pesanan, status }: Props) {
                     <div className="mt-8 flex flex-wrap items-center gap-3 border-t border-ink/10 pt-6">
                       <button
                         type="button"
+                        onClick={() => lunas(p.order_no)}
+                        disabled={memproses}
+                        className="border border-brand-500 bg-brand-500 px-6 py-2.5 font-mono text-[11px] tracking-[0.18em] text-white uppercase transition-colors hover:border-brand-600 hover:bg-brand-600 disabled:cursor-not-allowed disabled:border-stone-300 disabled:bg-stone-300"
+                      >
+                        {memproses ? "Menyimpan..." : "Tandai lunas"}
+                      </button>
+                      <button
+                        type="button"
                         onClick={() => batal(p.order_no)}
                         disabled={memproses}
                         className="border border-ink/20 px-6 py-2.5 font-mono text-[11px] tracking-[0.18em] text-stone-600 uppercase transition-colors hover:border-red-400 hover:text-red-600 disabled:cursor-not-allowed disabled:border-stone-200 disabled:text-stone-300"
@@ -311,7 +333,8 @@ export default function AdminOrders({ pesanan, status }: Props) {
                         {memproses ? "Membatalkan..." : "Batalkan pesanan"}
                       </button>
                       <span className="text-xs text-stone-500">
-                        Stok kembali ke katalog.
+                        Tandai lunas untuk transfer manual. Batalkan mengembalikan
+                        stok ke katalog.
                       </span>
                     </div>
                   )}
