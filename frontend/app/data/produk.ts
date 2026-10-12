@@ -44,6 +44,29 @@ export type Produk = {
   varian: Varian[];
 };
 
+export type PasanganVarian = { produk: Produk; varian: Varian };
+
+export function cariVarian(
+  daftar: Produk[],
+  slug: string,
+): PasanganVarian | null {
+  for (const p of daftar) {
+    const v = p.varian.find((x) => x.slug === slug);
+    if (v) return { produk: p, varian: v };
+  }
+  return null;
+}
+
+export function semuaSlugVarian(daftar: Produk[]): string[] {
+  return daftar.flatMap((p) => p.varian.map((v) => v.slug));
+}
+
+export function namaDenganUkuran(p: PasanganVarian): string {
+  return p.produk.varian.length > 1
+    ? `${p.produk.nama} (${p.varian.label})`
+    : p.produk.nama;
+}
+
 type InfoKategori = {
   grup: Grup;
   label: string;

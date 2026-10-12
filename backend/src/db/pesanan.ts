@@ -150,16 +150,16 @@ export async function sapuKedaluwarsa(
       returning o.id, o.order_no
     ),
     pulih as (
-      update products p
-      set stock = p.stock + x.qty
+      update product_variants v
+      set stock = v.stock + x.qty
       from (
-        select i.product_id, sum(i.qty)::int as qty
+        select i.variant_id, sum(i.qty)::int as qty
         from order_items i
         join kadaluarsa k on k.id = i.order_id
-        group by i.product_id
+        group by i.variant_id
       ) x
-      where p.id = x.product_id
-      returning p.id
+      where v.id = x.variant_id
+      returning v.id
     )
     select order_no from kadaluarsa order by order_no
   `;
@@ -255,6 +255,7 @@ function bentrokUnik(e: unknown): boolean {
 
 type ProdukTerkunci = {
   id: number;
+  variant_id: number;
   slug: string;
   name: string;
   price: number;
@@ -266,18 +267,33 @@ async function kurangiStok(
   item: ItemDiminta,
 ): Promise<ProdukTerkunci> {
   const [produk] = await tx<ProdukTerkunci[]>`
-    update products
-    set stock = stock - ${item.qty}
-    where slug = ${item.slug}
-      and is_active
-      and stock >= ${item.qty}
-    returning id::int as id, slug, name, price, weight_g
+    update product_variants v
+    set stock = v.stock - ${item.qty}
+    from products p
+    where p.id = v.product_id
+      and v.slug = ${item.slug}
+      and v.is_active
+      and p.is_active
+      and v.stock >= ${item.qty}
+    returning
+      p.id::int as id,
+      v.id::int as variant_id,
+      v.slug,
+      p.name || ' (' || v.label || ')' as name,
+      v.price,
+      v.weight_g
   `;
 
   if (produk) return produk;
 
   const [ada] = await tx<{ name: string; stock: number; is_active: boolean }[]>`
-    select name, stock, is_active from products where slug = ${item.slug} limit 1
+    select p.name || ' (' || v.label || ')' as name,
+           v.stock,
+           (v.is_active and p.is_active) as is_active
+    from product_variants v
+    join products p on p.id = v.product_id
+    where v.slug = ${item.slug}
+    limit 1
   `;
 
   if (!ada || !ada.is_active) {
@@ -352,9 +368,11 @@ export async function buatPesanan(
   const diminta = gabungkanItem(req.items);
 
   const praProduk = await sql<{ slug: string; weight_g: number }[]>`
-    select slug, weight_g
-    from products
-    where is_active and slug in ${sql(diminta.map((i) => i.slug))}
+    select v.slug, v.weight_g
+    from product_variants v
+    join products p on p.id = v.product_id
+    where v.is_active and p.is_active
+      and v.slug in ${sql(diminta.map((i) => i.slug))}
   `;
 
   const beratPra = diminta.reduce((s, item) => {
@@ -449,6 +467,7 @@ export async function buatPesanan(
             baris.map((b) => ({
               order_id: pesanan.id,
               product_id: b.produk.id,
+              variant_id: b.produk.variant_id,
               qty: b.qty,
               price_snapshot: b.produk.price,
               name_snapshot: b.produk.name,
@@ -578,16 +597,16 @@ export async function batalkanPesanan(
       returning o.id, o.order_no
     ),
     pulih as (
-      update products p
-      set stock = p.stock + x.qty
+      update product_variants v
+      set stock = v.stock + x.qty
       from (
-        select i.product_id, sum(i.qty)::int as qty
+        select i.variant_id, sum(i.qty)::int as qty
         from order_items i
         join dibatalkan d on d.id = i.order_id
-        group by i.product_id
+        group by i.variant_id
       ) x
-      where p.id = x.product_id
-      returning p.id
+      where v.id = x.variant_id
+      returning v.id
     )
     select order_no from dibatalkan
   `;
@@ -635,16 +654,16 @@ export async function gagalkanPembayaran(
       returning o.id, o.order_no
     ),
     pulih as (
-      update products p
-      set stock = p.stock + x.qty
+      update product_variants v
+      set stock = v.stock + x.qty
       from (
-        select i.product_id, sum(i.qty)::int as qty
+        select i.variant_id, sum(i.qty)::int as qty
         from order_items i
         join digagalkan d on d.id = i.order_id
-        group by i.product_id
+        group by i.variant_id
       ) x
-      where p.id = x.product_id
-      returning p.id
+      where v.id = x.variant_id
+      returning v.id
     )
     select order_no from digagalkan
   `;

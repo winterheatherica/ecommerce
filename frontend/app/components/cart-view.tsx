@@ -10,30 +10,37 @@ import {
   ubahQty,
   useKeranjang,
 } from "@/app/lib/keranjang";
-import { rupiah, type Produk } from "@/app/data/produk";
+import {
+  cariVarian,
+  namaDenganUkuran,
+  rupiah,
+  semuaSlugVarian,
+  type Produk,
+  type Varian,
+} from "@/app/data/produk";
 
-type Baris = { produk: Produk; qty: number };
+type Baris = { produk: Produk; varian: Varian; qty: number };
 
 export default function CartView({ produk }: { produk: Produk[] }) {
   const items = useKeranjang();
 
   const baris: Baris[] = items
     .map((i) => {
-      const cocok = produk.find((p) => p.slug === i.slug);
-      return cocok ? { produk: cocok, qty: i.qty } : null;
+      const cocok = cariVarian(produk, i.slug);
+      return cocok ? { ...cocok, qty: i.qty } : null;
     })
     .filter((x): x is Baris => x !== null);
 
   const adaHantu = produk.length > 0 && baris.length !== items.length;
 
   useEffect(() => {
-    if (adaHantu) buangYangTidakDijual(produk.map((p) => p.slug));
+    if (adaHantu) buangYangTidakDijual(semuaSlugVarian(produk));
   }, [adaHantu, produk]);
 
-  const subtotal = baris.reduce((s, b) => s + b.produk.harga * b.qty, 0);
+  const subtotal = baris.reduce((s, b) => s + b.varian.harga * b.qty, 0);
   const totalItem = baris.reduce((s, b) => s + b.qty, 0);
-  const beratTotal = baris.reduce((s, b) => s + b.produk.beratG * b.qty, 0);
-  const adaMelebihiStok = baris.some((b) => b.qty > b.produk.stok);
+  const beratTotal = baris.reduce((s, b) => s + b.varian.beratG * b.qty, 0);
+  const adaMelebihiStok = baris.some((b) => b.qty > b.varian.stok);
 
   if (baris.length === 0) {
     return (
@@ -69,18 +76,18 @@ export default function CartView({ produk }: { produk: Produk[] }) {
 
       <div className="mt-12 grid gap-12 lg:grid-cols-[1fr_20rem] lg:gap-16">
         <ul className="divide-y divide-ink/10 border-y border-ink/10">
-          {baris.map(({ produk, qty }) => {
-            const lebih = qty > produk.stok;
+          {baris.map(({ produk, varian, qty }) => {
+            const lebih = qty > varian.stok;
 
             return (
-              <li key={produk.slug} className="flex gap-5 py-6">
+              <li key={varian.slug} className="flex gap-5 py-6">
                 <Link
                   href={`/produk/${produk.slug}`}
                   className="relative aspect-square w-24 shrink-0 overflow-hidden border border-brand-100 bg-brand-50 sm:w-28"
                 >
-                  {produk.gambar ? (
+                  {(varian.gambar ?? produk.gambar) ? (
                     <Image
-                      src={produk.gambar}
+                      src={(varian.gambar ?? produk.gambar)!}
                       alt={produk.nama}
                       fill
                       sizes="112px"
@@ -98,17 +105,17 @@ export default function CartView({ produk }: { produk: Produk[] }) {
                     href={`/produk/${produk.slug}`}
                     className="text-sm leading-relaxed text-ink transition-colors hover:text-brand-600"
                   >
-                    {produk.nama}
+                    {namaDenganUkuran({ produk, varian })}
                   </Link>
                   <p className="mt-1 font-mono text-sm text-brand-600">
-                    {rupiah(produk.harga)}
+                    {rupiah(varian.harga)}
                   </p>
 
                   {lebih && (
                     <p className="mt-2 text-xs text-red-600">
-                      {produk.stok === 0
+                      {varian.stok === 0
                         ? "Stok habis. Hapus dulu dari keranjang untuk bisa lanjut checkout."
-                        : `Sisa stok tinggal ${produk.stok}. Kurangi jumlahnya dulu.`}
+                        : `Sisa stok tinggal ${varian.stok}. Kurangi jumlahnya dulu.`}
                     </p>
                   )}
 
@@ -116,7 +123,7 @@ export default function CartView({ produk }: { produk: Produk[] }) {
                     <div className="flex items-center border border-ink/15">
                       <button
                         type="button"
-                        onClick={() => ubahQty(produk.slug, qty - 1, produk.stok)}
+                        onClick={() => ubahQty(varian.slug, qty - 1, varian.stok)}
                         disabled={qty <= 1}
                         aria-label={`Kurangi ${produk.nama}`}
                         className="px-3 py-2 leading-none text-stone-600 transition-colors hover:text-brand-600 disabled:cursor-not-allowed disabled:text-stone-300"
@@ -128,8 +135,8 @@ export default function CartView({ produk }: { produk: Produk[] }) {
                       </span>
                       <button
                         type="button"
-                        onClick={() => ubahQty(produk.slug, qty + 1, produk.stok)}
-                        disabled={qty >= produk.stok}
+                        onClick={() => ubahQty(varian.slug, qty + 1, varian.stok)}
+                        disabled={qty >= varian.stok}
                         aria-label={`Tambah ${produk.nama}`}
                         className="px-3 py-2 leading-none text-stone-600 transition-colors hover:text-brand-600 disabled:cursor-not-allowed disabled:text-stone-300"
                       >
@@ -139,14 +146,14 @@ export default function CartView({ produk }: { produk: Produk[] }) {
 
                     <button
                       type="button"
-                      onClick={() => hapusDariKeranjang(produk.slug)}
+                      onClick={() => hapusDariKeranjang(varian.slug)}
                       className="font-mono text-[12px] tracking-[0.18em] text-stone-400 uppercase transition-colors hover:text-red-600"
                     >
                       Hapus
                     </button>
 
                     <span className="ml-auto font-mono text-sm font-semibold text-ink">
-                      {rupiah(produk.harga * qty)}
+                      {rupiah(varian.harga * qty)}
                     </span>
                   </div>
                 </div>

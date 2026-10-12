@@ -12,9 +12,15 @@ import {
   type OpsiOngkir,
   type Wilayah,
 } from "@/app/lib/api-client";
-import { rupiah, type Produk } from "@/app/data/produk";
+import {
+  cariVarian,
+  namaDenganUkuran,
+  rupiah,
+  type Produk,
+  type Varian,
+} from "@/app/data/produk";
 
-type Baris = { produk: Produk; qty: number };
+type Baris = { produk: Produk; varian: Varian; qty: number };
 
 const labelInput =
   "block font-mono text-[12px] tracking-[0.2em] text-stone-500 uppercase";
@@ -47,13 +53,13 @@ export default function CheckoutForm({ produk }: { produk: Produk[] }) {
 
   const baris: Baris[] = items
     .map((i) => {
-      const cocok = produk.find((p) => p.slug === i.slug);
-      return cocok ? { produk: cocok, qty: i.qty } : null;
+      const cocok = cariVarian(produk, i.slug);
+      return cocok ? { ...cocok, qty: i.qty } : null;
     })
     .filter((x): x is Baris => x !== null);
 
-  const subtotal = baris.reduce((s, b) => s + b.produk.harga * b.qty, 0);
-  const beratTotal = baris.reduce((s, b) => s + b.produk.beratG * b.qty, 0);
+  const subtotal = baris.reduce((s, b) => s + b.varian.harga * b.qty, 0);
+  const beratTotal = baris.reduce((s, b) => s + b.varian.beratG * b.qty, 0);
 
   const kataBersih = kataWilayah.trim();
   const saran = tujuan || kataBersih.length < 2 ? [] : saranMentah;
@@ -144,7 +150,7 @@ export default function CheckoutForm({ produk }: { produk: Produk[] }) {
         dest_id: tujuan.id,
         courier: ongkirDipilih.courier,
         service: ongkirDipilih.service,
-        items: baris.map((b) => ({ slug: b.produk.slug, qty: b.qty })),
+        items: baris.map((b) => ({ slug: b.varian.slug, qty: b.qty })),
       });
 
       kosongkanKeranjang();
@@ -394,13 +400,13 @@ export default function CheckoutForm({ produk }: { produk: Produk[] }) {
             <h2 className={labelInput}>Ringkasan</h2>
 
             <ul className="mt-5 space-y-2">
-              {baris.map(({ produk: p, qty }) => (
-                <li key={p.slug} className="flex justify-between gap-3 text-sm">
+              {baris.map(({ produk: p, varian, qty }) => (
+                <li key={varian.slug} className="flex justify-between gap-3 text-sm">
                   <span className="text-stone-700">
-                    {qty}&times; {p.nama}
+                    {qty}&times; {namaDenganUkuran({ produk: p, varian })}
                   </span>
                   <span className="font-mono whitespace-nowrap text-stone-500">
-                    {rupiah(p.harga * qty)}
+                    {rupiah(varian.harga * qty)}
                   </span>
                 </li>
               ))}
