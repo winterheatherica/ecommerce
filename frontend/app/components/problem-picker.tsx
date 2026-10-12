@@ -28,7 +28,7 @@ const lainnya = [
 export default function ProblemPicker({ produk }: { produk: Produk[] }) {
   return (
     <section id="produk" className="mx-auto w-full max-w-6xl px-6 py-24">
-      <p className="font-mono text-[11px] tracking-[0.28em] text-accent-600 uppercase">
+      <p className="font-mono text-[13px] tracking-[0.28em] text-accent-600 uppercase">
         Cari berdasarkan masalah
       </p>
       <h2 className="mt-3 max-w-xl text-3xl leading-tight font-semibold tracking-tight text-ink sm:text-4xl">
@@ -59,7 +59,7 @@ export default function ProblemPicker({ produk }: { produk: Produk[] }) {
                 <span className="mt-1 text-xs leading-relaxed text-stone-500">
                   {m.keluhan}
                 </span>
-                <span className="mt-auto pt-3 font-mono text-[10px] tracking-[0.16em] text-stone-400 uppercase">
+                <span className="mt-auto pt-3 font-mono text-[12px] tracking-[0.16em] text-stone-400 uppercase">
                   {m.jumlah} produk
                 </span>
               </div>
@@ -83,7 +83,7 @@ export default function ProblemPicker({ produk }: { produk: Produk[] }) {
       </div>
 
       <div className="mt-12 border-t border-ink/10 pt-8">
-        <p className="font-mono text-[11px] tracking-[0.2em] text-stone-500 uppercase">
+        <p className="font-mono text-[13px] tracking-[0.2em] text-stone-500 uppercase">
           Bukan soal hama?
         </p>
         <ul className="mt-4 flex flex-wrap gap-x-8 gap-y-3">

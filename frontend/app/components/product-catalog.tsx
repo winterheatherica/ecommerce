@@ -88,7 +88,7 @@ export default function ProductCatalog({
 
   return (
     <section className="mx-auto w-full max-w-6xl px-6 pt-32 pb-24">
-      <p className="font-mono text-[11px] tracking-[0.28em] text-accent-600 uppercase">
+      <p className="font-mono text-[13px] tracking-[0.28em] text-accent-600 uppercase">
         Katalog
       </p>
       <h1 className="mt-3 text-3xl leading-tight font-semibold tracking-tight text-ink sm:text-4xl">
@@ -115,7 +115,7 @@ export default function ProductCatalog({
           className="w-full border border-ink/15 px-4 py-3 text-sm text-ink outline-none transition-colors placeholder:text-stone-400 focus:border-brand-500 sm:max-w-xs"
         />
 
-        <label className="flex items-center gap-3 font-mono text-[11px] tracking-[0.2em] text-stone-500 uppercase">
+        <label className="flex items-center gap-3 font-mono text-[13px] tracking-[0.2em] text-stone-500 uppercase">
           Urutkan
           <span className="relative">
             <select
@@ -147,7 +147,7 @@ export default function ProductCatalog({
         <button
           type="button"
           onClick={() => pilihGrup("")}
-          className={`border px-4 py-2 font-mono text-[11px] tracking-[0.18em] uppercase transition-colors ${
+          className={`border px-4 py-2 font-mono text-[13px] tracking-[0.18em] uppercase transition-colors ${
             grup === ""
               ? "border-brand-500 bg-brand-500 text-white"
               : "border-ink/15 text-stone-600 hover:border-brand-400 hover:bg-brand-50 hover:text-brand-600"
@@ -161,7 +161,7 @@ export default function ProductCatalog({
             key={g}
             type="button"
             onClick={() => pilihGrup(g)}
-            className={`border px-4 py-2 font-mono text-[11px] tracking-[0.18em] uppercase transition-colors ${
+            className={`border px-4 py-2 font-mono text-[13px] tracking-[0.18em] uppercase transition-colors ${
               grup === g
                 ? "border-brand-500 bg-brand-500 text-white"
                 : "border-ink/15 text-stone-600 hover:border-brand-400 hover:bg-brand-50 hover:text-brand-600"
@@ -177,7 +177,7 @@ export default function ProductCatalog({
           <button
             type="button"
             onClick={() => pilihKategori("")}
-            className={`border px-3 py-1.5 font-mono text-[10px] tracking-[0.16em] uppercase transition-colors ${
+            className={`border px-3 py-1.5 font-mono text-[12px] tracking-[0.16em] uppercase transition-colors ${
               kategori === ""
                 ? "border-ink bg-ink text-white"
                 : "border-ink/15 text-stone-600 hover:border-brand-500 hover:text-brand-600"
@@ -195,7 +195,7 @@ export default function ProductCatalog({
                 key={k}
                 type="button"
                 onClick={() => pilihKategori(k)}
-                className={`border px-3 py-1.5 font-mono text-[10px] tracking-[0.16em] uppercase transition-colors ${
+                className={`border px-3 py-1.5 font-mono text-[12px] tracking-[0.16em] uppercase transition-colors ${
                   kategori === k
                     ? "border-ink bg-ink text-white"
                     : "border-ink/15 text-stone-600 hover:border-brand-500 hover:text-brand-600"
@@ -207,7 +207,7 @@ export default function ProductCatalog({
         </div>
       )}
 
-      <p className="mt-8 font-mono text-[11px] tracking-[0.18em] text-stone-500 uppercase">
+      <p className="mt-8 font-mono text-[13px] tracking-[0.18em] text-stone-500 uppercase">
         <span className="text-brand-600">{hasil.length}</span> produk
         {kategori
           ? ` · ${kategoriLabel[kategori]}`
@@ -232,7 +232,7 @@ export default function ProductCatalog({
             <button
               type="button"
               onClick={reset}
-              className="mt-8 border border-ink px-8 py-3 font-mono text-[11px] tracking-[0.22em] text-ink uppercase transition-colors hover:bg-ink hover:text-white"
+              className="mt-8 border border-ink px-8 py-3 font-mono text-[13px] tracking-[0.22em] text-ink uppercase transition-colors hover:bg-ink hover:text-white"
             >
               Hapus saringan
             </button>

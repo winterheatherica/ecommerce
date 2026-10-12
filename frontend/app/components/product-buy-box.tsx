@@ -28,7 +28,7 @@ export default function ProductBuyBox({ produk }: { produk: Produk }) {
   if (habis) {
     return (
       <div className="mt-10 border border-ink/12 bg-stone-50 px-6 py-8">
-        <p className="font-mono text-[11px] tracking-[0.2em] text-stone-500 uppercase">
+        <p className="font-mono text-[13px] tracking-[0.2em] text-stone-500 uppercase">
           Stok habis
         </p>
         <p className="mt-3 text-sm leading-relaxed text-stone-600">
@@ -37,7 +37,7 @@ export default function ProductBuyBox({ produk }: { produk: Produk }) {
         </p>
         <a
           href={WA_URL}
-          className="mt-6 inline-block border border-ink px-8 py-3.5 font-mono text-[11px] tracking-[0.22em] text-ink uppercase transition-colors hover:bg-ink hover:text-white"
+          className="mt-6 inline-block border border-ink px-8 py-3.5 font-mono text-[13px] tracking-[0.22em] text-ink uppercase transition-colors hover:bg-ink hover:text-white"
         >
           Tanya stok
         </a>
@@ -75,13 +75,13 @@ export default function ProductBuyBox({ produk }: { produk: Produk }) {
         <button
           type="button"
           onClick={tambah}
-          className="flex-1 border border-brand-500 bg-brand-500 px-8 py-3.5 font-mono text-[11px] tracking-[0.22em] text-white uppercase transition-colors hover:border-brand-600 hover:bg-brand-600 sm:flex-none"
+          className="flex-1 border border-brand-500 bg-brand-500 px-8 py-3.5 font-mono text-[13px] tracking-[0.22em] text-white uppercase transition-colors hover:border-brand-600 hover:bg-brand-600 sm:flex-none"
         >
           Tambah ke keranjang
         </button>
       </div>
 
-      <p className="mt-4 font-mono text-[11px] tracking-[0.16em] text-stone-500 uppercase">
+      <p className="mt-4 font-mono text-[13px] tracking-[0.16em] text-stone-500 uppercase">
         Subtotal {rupiah(produk.harga * qty)}
       </p>
 

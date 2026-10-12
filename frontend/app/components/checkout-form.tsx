@@ -17,7 +17,7 @@ import { rupiah, type Produk } from "@/app/data/produk";
 type Baris = { produk: Produk; qty: number };
 
 const labelInput =
-  "block font-mono text-[10px] tracking-[0.2em] text-stone-500 uppercase";
+  "block font-mono text-[12px] tracking-[0.2em] text-stone-500 uppercase";
 const kotakInput =
   "mt-2 w-full border border-ink/15 px-4 py-3 text-sm text-ink outline-none transition-colors placeholder:text-stone-400 focus:border-brand-500 disabled:bg-stone-100";
 
@@ -158,7 +158,7 @@ export default function CheckoutForm({ produk }: { produk: Produk[] }) {
   if (baris.length === 0) {
     return (
       <div className="mx-auto w-full max-w-3xl px-6 pt-32 pb-24">
-        <p className="font-mono text-[11px] tracking-[0.28em] text-accent-600 uppercase">
+        <p className="font-mono text-[13px] tracking-[0.28em] text-accent-600 uppercase">
           Checkout
         </p>
         <h1 className="mt-3 text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
@@ -169,7 +169,7 @@ export default function CheckoutForm({ produk }: { produk: Produk[] }) {
         </p>
         <Link
           href="/produk"
-          className="mt-8 inline-block border border-ink px-8 py-3.5 font-mono text-[11px] tracking-[0.22em] text-ink uppercase transition-colors hover:bg-ink hover:text-white"
+          className="mt-8 inline-block border border-ink px-8 py-3.5 font-mono text-[13px] tracking-[0.22em] text-ink uppercase transition-colors hover:bg-ink hover:text-white"
         >
           Lihat produk
         </Link>
@@ -179,7 +179,7 @@ export default function CheckoutForm({ produk }: { produk: Produk[] }) {
 
   return (
     <div className="mx-auto w-full max-w-5xl px-6 pt-32 pb-24">
-      <p className="font-mono text-[11px] tracking-[0.28em] text-accent-600 uppercase">
+      <p className="font-mono text-[13px] tracking-[0.28em] text-accent-600 uppercase">
         Checkout
       </p>
       <h1 className="mt-3 text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
@@ -256,13 +256,13 @@ export default function CheckoutForm({ produk }: { produk: Produk[] }) {
             />
 
             {mencariWilayah && (
-              <p className="mt-2 font-mono text-[10px] tracking-[0.18em] text-stone-400 uppercase">
+              <p className="mt-2 font-mono text-[12px] tracking-[0.18em] text-stone-400 uppercase">
                 Mencari...
               </p>
             )}
 
             {tujuan && (
-              <p className="mt-2 font-mono text-[10px] tracking-[0.18em] text-emerald-700 uppercase">
+              <p className="mt-2 font-mono text-[12px] tracking-[0.18em] text-emerald-700 uppercase">
                 Terpilih &middot; {tujuan.label}
               </p>
             )}
@@ -335,7 +335,7 @@ export default function CheckoutForm({ produk }: { produk: Produk[] }) {
             )}
 
             {tujuan && memuatOngkir && (
-              <p className="mt-4 font-mono text-[10px] tracking-[0.18em] text-stone-400 uppercase">
+              <p className="mt-4 font-mono text-[12px] tracking-[0.18em] text-stone-400 uppercase">
                 Menghitung ongkir...
               </p>
             )}
@@ -372,7 +372,7 @@ export default function CheckoutForm({ produk }: { produk: Produk[] }) {
                             {o.courier} {o.service}
                           </span>
                           {o.etd !== "-" && (
-                            <span className="mt-0.5 block font-mono text-[11px] text-stone-500">
+                            <span className="mt-0.5 block font-mono text-[13px] text-stone-500">
                               estimasi {o.etd}
                             </span>
                           )}
@@ -426,14 +426,14 @@ export default function CheckoutForm({ produk }: { produk: Produk[] }) {
             <button
               type="submit"
               disabled={mengirim}
-              className="mt-8 w-full border border-brand-500 bg-brand-500 px-8 py-3.5 font-mono text-[11px] tracking-[0.22em] text-white uppercase transition-colors hover:border-brand-600 hover:bg-brand-600 disabled:cursor-not-allowed disabled:border-stone-300 disabled:bg-stone-300"
+              className="mt-8 w-full border border-brand-500 bg-brand-500 px-8 py-3.5 font-mono text-[13px] tracking-[0.22em] text-white uppercase transition-colors hover:border-brand-600 hover:bg-brand-600 disabled:cursor-not-allowed disabled:border-stone-300 disabled:bg-stone-300"
             >
               {mengirim ? "Memproses..." : "Lanjut ke pembayaran"}
             </button>
 
             <Link
               href="/keranjang"
-              className="mt-4 block text-center font-mono text-[10px] tracking-[0.18em] text-stone-500 uppercase transition-colors hover:text-brand-600"
+              className="mt-4 block text-center font-mono text-[12px] tracking-[0.18em] text-stone-500 uppercase transition-colors hover:text-brand-600"
             >
               Kembali ke keranjang
             </Link>
@@ -441,7 +441,7 @@ export default function CheckoutForm({ produk }: { produk: Produk[] }) {
 
           {galat.length > 0 && (
             <div role="alert" className="mt-6 border border-red-300 bg-red-50 p-5">
-              <p className="font-mono text-[10px] tracking-[0.2em] text-red-700 uppercase">
+              <p className="font-mono text-[12px] tracking-[0.2em] text-red-700 uppercase">
                 Belum bisa diproses
               </p>
               <ul className="mt-3 space-y-1.5 text-sm text-red-700">

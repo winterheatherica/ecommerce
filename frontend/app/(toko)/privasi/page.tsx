@@ -75,7 +75,7 @@ const bagian = [
 export default function PrivasiPage() {
   return (
     <section className="mx-auto w-full max-w-3xl px-6 pt-32 pb-24">
-      <p className="font-mono text-[11px] tracking-[0.28em] text-accent-600 uppercase">
+      <p className="font-mono text-[13px] tracking-[0.28em] text-accent-600 uppercase">
         Kebijakan
       </p>
       <h1 className="mt-3 text-3xl leading-tight font-semibold tracking-tight text-ink sm:text-4xl">

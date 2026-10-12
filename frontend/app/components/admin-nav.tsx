@@ -22,7 +22,7 @@ export default function AdminNav() {
           <p className="font-mono text-xs tracking-[0.28em] text-ink uppercase">
             Menik Store
           </p>
-          <p className="mt-1 font-mono text-[10px] tracking-[0.2em] text-brand-600 uppercase">
+          <p className="mt-1 font-mono text-[12px] tracking-[0.2em] text-brand-600 uppercase">
             Admin
           </p>
         </div>
@@ -48,7 +48,7 @@ export default function AdminNav() {
       <div className="hidden px-6 pb-6 lg:block">
         <Link
           href="/"
-          className="font-mono text-[10px] tracking-[0.2em] text-stone-400 uppercase transition-colors hover:text-brand-600"
+          className="font-mono text-[12px] tracking-[0.2em] text-stone-400 uppercase transition-colors hover:text-brand-600"
         >
           &larr; Lihat toko
         </Link>

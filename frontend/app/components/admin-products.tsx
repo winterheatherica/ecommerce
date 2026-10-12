@@ -57,7 +57,7 @@ export default function AdminProducts({ awal }: { awal: Produk[] }) {
         <h1 className="text-2xl font-semibold tracking-tight text-ink">Produk</h1>
         <Link
           href="/admin/produk/baru"
-          className="border border-brand-500 bg-brand-500 px-5 py-2.5 font-mono text-[11px] tracking-[0.18em] text-white uppercase transition-colors hover:border-brand-600 hover:bg-brand-600"
+          className="border border-brand-500 bg-brand-500 px-5 py-2.5 font-mono text-[13px] tracking-[0.18em] text-white uppercase transition-colors hover:border-brand-600 hover:bg-brand-600"
         >
           + Tambah produk
         </Link>
@@ -77,22 +77,22 @@ export default function AdminProducts({ awal }: { awal: Produk[] }) {
         <table className="w-full min-w-160 text-sm">
           <thead>
             <tr className="border-b border-ink/10 text-left">
-              <th className="px-6 py-3 font-mono text-[10px] tracking-[0.18em] font-normal text-stone-500 uppercase">
+              <th className="px-6 py-3 font-mono text-[12px] tracking-[0.18em] font-normal text-stone-500 uppercase">
                 Produk
               </th>
-              <th className="px-4 py-3 font-mono text-[10px] tracking-[0.18em] font-normal text-stone-500 uppercase">
+              <th className="px-4 py-3 font-mono text-[12px] tracking-[0.18em] font-normal text-stone-500 uppercase">
                 Kategori
               </th>
-              <th className="px-4 py-3 text-right font-mono text-[10px] tracking-[0.18em] font-normal text-stone-500 uppercase">
+              <th className="px-4 py-3 text-right font-mono text-[12px] tracking-[0.18em] font-normal text-stone-500 uppercase">
                 Harga
               </th>
-              <th className="px-4 py-3 text-right font-mono text-[10px] tracking-[0.18em] font-normal text-stone-500 uppercase">
+              <th className="px-4 py-3 text-right font-mono text-[12px] tracking-[0.18em] font-normal text-stone-500 uppercase">
                 Stok
               </th>
-              <th className="px-4 py-3 text-right font-mono text-[10px] tracking-[0.18em] font-normal text-stone-500 uppercase">
+              <th className="px-4 py-3 text-right font-mono text-[12px] tracking-[0.18em] font-normal text-stone-500 uppercase">
                 Unggulan
               </th>
-              <th className="px-6 py-3 text-right font-mono text-[10px] tracking-[0.18em] font-normal text-stone-500 uppercase">
+              <th className="px-6 py-3 text-right font-mono text-[12px] tracking-[0.18em] font-normal text-stone-500 uppercase">
                 Aksi
               </th>
             </tr>
@@ -102,7 +102,7 @@ export default function AdminProducts({ awal }: { awal: Produk[] }) {
               <tr key={p.slug} className="transition-colors hover:bg-stone-50">
                 <td className="px-6 py-3">
                   <span className="text-ink">{p.nama}</span>
-                  <span className="mt-0.5 block font-mono text-[11px] text-stone-400">
+                  <span className="mt-0.5 block font-mono text-[13px] text-stone-400">
                     {p.slug}
                   </span>
                 </td>
@@ -133,7 +133,7 @@ export default function AdminProducts({ awal }: { awal: Produk[] }) {
                     onClick={() => toggleUnggulan(p.slug)}
                     aria-pressed={p.unggulan}
                     disabled={menyimpan === p.slug}
-                    className={`border px-3 py-1.5 font-mono text-[10px] tracking-[0.16em] uppercase transition-colors ${
+                    className={`border px-3 py-1.5 font-mono text-[12px] tracking-[0.16em] uppercase transition-colors ${
                       p.unggulan
                         ? "border-brand-500 bg-brand-500 text-white"
                         : "border-ink/15 text-stone-500 hover:border-brand-400 hover:text-brand-600"
@@ -145,7 +145,7 @@ export default function AdminProducts({ awal }: { awal: Produk[] }) {
                 <td className="px-6 py-3 text-right">
                   <Link
                     href={`/admin/produk/${p.slug}/ubah`}
-                    className="font-mono text-[10px] tracking-[0.16em] text-stone-500 uppercase transition-colors hover:text-brand-600"
+                    className="font-mono text-[12px] tracking-[0.16em] text-stone-500 uppercase transition-colors hover:text-brand-600"
                   >
                     Ubah
                   </Link>

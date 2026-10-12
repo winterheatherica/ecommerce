@@ -18,13 +18,13 @@ export default function ProductCard({ produk }: { produk: Produk }) {
             className="object-cover transition-transform duration-500 group-hover:scale-105"
           />
         ) : (
-          <span className="absolute inset-0 flex items-center justify-center font-mono text-[10px] tracking-[0.2em] text-brand-300 uppercase">
+          <span className="absolute inset-0 flex items-center justify-center font-mono text-[12px] tracking-[0.2em] text-brand-300 uppercase">
             Foto produk
           </span>
         )}
 
         {habis && (
-          <span className="absolute inset-0 flex items-center justify-center bg-white/70 font-mono text-[11px] tracking-[0.2em] text-ink uppercase">
+          <span className="absolute inset-0 flex items-center justify-center bg-white/70 font-mono text-[13px] tracking-[0.2em] text-ink uppercase">
             Stok habis
           </span>
         )}
@@ -38,7 +38,7 @@ export default function ProductCard({ produk }: { produk: Produk }) {
         <span className="text-lg font-semibold tracking-tight text-brand-600">
           {rupiah(produk.harga)}
         </span>
-        <span className="font-mono text-[10px] tracking-[0.14em] text-stone-400 uppercase">
+        <span className="font-mono text-[12px] tracking-[0.14em] text-stone-400 uppercase">
           {produk.terjualPerBulan} terjual/bln
         </span>
       </div>

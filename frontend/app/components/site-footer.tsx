@@ -50,7 +50,7 @@ export default function SiteFooter() {
 
         <div className="relative mx-auto max-w-6xl px-6 pt-28 pb-56">
           <div className="max-w-lg">
-            <p className="font-mono text-[11px] tracking-[0.28em] text-brand-700 uppercase">
+            <p className="font-mono text-[13px] tracking-[0.28em] text-brand-700 uppercase">
               Butuh bantuan?
             </p>
             <h2 className="mt-5 text-3xl leading-tight font-semibold tracking-tight text-ink sm:text-4xl">
@@ -62,7 +62,7 @@ export default function SiteFooter() {
             </p>
             <a
               href={WA_URL}
-              className="mt-8 inline-block border border-ink px-8 py-3.5 font-mono text-[11px] tracking-[0.22em] text-ink uppercase transition-colors hover:bg-ink hover:text-white"
+              className="mt-8 inline-block border border-ink px-8 py-3.5 font-mono text-[13px] tracking-[0.22em] text-ink uppercase transition-colors hover:bg-ink hover:text-white"
             >
               Chat WhatsApp
             </a>
@@ -86,7 +86,7 @@ export default function SiteFooter() {
                   <li key={s.label}>
                     <a
                       href={s.href}
-                      className="font-mono text-[11px] tracking-[0.18em] text-white/60 uppercase transition-colors hover:text-brand-400"
+                      className="font-mono text-[13px] tracking-[0.18em] text-white/60 uppercase transition-colors hover:text-brand-400"
                     >
                       {s.label}
                     </a>
@@ -97,7 +97,7 @@ export default function SiteFooter() {
 
             <div className="grid flex-1 gap-x-8 gap-y-12 sm:grid-cols-3">
               <div>
-                <p className="font-mono text-[11px] tracking-[0.28em] text-white/40 uppercase">
+                <p className="font-mono text-[13px] tracking-[0.28em] text-white/40 uppercase">
                   Produk
                 </p>
                 <ul className="mt-6 space-y-3">
@@ -115,7 +115,7 @@ export default function SiteFooter() {
               </div>
 
               <div>
-                <p className="font-mono text-[11px] tracking-[0.28em] text-white/40 uppercase">
+                <p className="font-mono text-[13px] tracking-[0.28em] text-white/40 uppercase">
                   Bantuan
                 </p>
                 <ul className="mt-6 space-y-3">
@@ -133,7 +133,7 @@ export default function SiteFooter() {
               </div>
 
               <div>
-                <p className="font-mono text-[11px] tracking-[0.28em] text-white/40 uppercase">
+                <p className="font-mono text-[13px] tracking-[0.28em] text-white/40 uppercase">
                   Kontak
                 </p>
                 <ul className="mt-6 space-y-4 text-sm text-white/70">
@@ -162,7 +162,7 @@ export default function SiteFooter() {
 
         <div className="border-t border-white/10">
           <div className="mx-auto flex max-w-6xl flex-col gap-6 px-6 py-8 sm:flex-row sm:items-center sm:justify-between">
-            <p className="font-mono text-[11px] tracking-[0.18em] text-white/40 uppercase">
+            <p className="font-mono text-[13px] tracking-[0.18em] text-white/40 uppercase">
               &copy; 2026 Menik Store &middot;{" "}
               <Link
                 href="/privasi"
@@ -175,7 +175,7 @@ export default function SiteFooter() {
               {pembayaran.map((p) => (
                 <li
                   key={p}
-                  className="border border-white/15 px-2.5 py-1 font-mono text-[10px] tracking-[0.12em] text-white/50 uppercase"
+                  className="border border-white/15 px-2.5 py-1 font-mono text-[12px] tracking-[0.12em] text-white/50 uppercase"
                 >
                   {p}
                 </li>

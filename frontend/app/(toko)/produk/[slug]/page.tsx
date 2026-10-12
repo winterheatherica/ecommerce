@@ -72,7 +72,7 @@ export default async function DetailProdukPage({ params }: Props) {
 
       <nav
         aria-label="Breadcrumb"
-        className="font-mono text-[11px] tracking-[0.18em] text-stone-500 uppercase"
+        className="font-mono text-[13px] tracking-[0.18em] text-stone-500 uppercase"
       >
         <Link href="/produk" className="transition-colors hover:text-brand-600">
           Produk
@@ -98,7 +98,7 @@ export default async function DetailProdukPage({ params }: Props) {
               className="object-cover"
             />
           ) : (
-            <span className="absolute inset-0 flex items-center justify-center font-mono text-[11px] tracking-[0.2em] text-brand-300 uppercase">
+            <span className="absolute inset-0 flex items-center justify-center font-mono text-[13px] tracking-[0.2em] text-brand-300 uppercase">
               Foto produk
             </span>
           )}
@@ -111,7 +111,7 @@ export default async function DetailProdukPage({ params }: Props) {
         </div>
 
         <div>
-          <p className="font-mono text-[11px] tracking-[0.28em] text-accent-600 uppercase">
+          <p className="font-mono text-[13px] tracking-[0.28em] text-accent-600 uppercase">
             {kategoriJudul[produk.kategori]}
           </p>
 
@@ -123,7 +123,7 @@ export default async function DetailProdukPage({ params }: Props) {
             {rupiah(produk.harga)}
           </p>
 
-          <p className="mt-3 font-mono text-[11px] tracking-[0.16em] text-stone-500 uppercase">
+          <p className="mt-3 font-mono text-[13px] tracking-[0.16em] text-stone-500 uppercase">
             {habis ? "Stok kosong" : `${produk.stok} tersedia`}
             <span className="mx-2 text-stone-300">&middot;</span>
             {produk.terjualPerBulan} terjual/bln
@@ -132,7 +132,7 @@ export default async function DetailProdukPage({ params }: Props) {
           <ProductBuyBox produk={produk} />
 
           <div className="mt-12 border-t border-ink/10 pt-8">
-            <h2 className="font-mono text-[11px] tracking-[0.28em] text-stone-500 uppercase">
+            <h2 className="font-mono text-[13px] tracking-[0.28em] text-stone-500 uppercase">
               Deskripsi
             </h2>
             <p className="mt-4 leading-relaxed text-stone-600">{produk.deskripsi}</p>
@@ -140,19 +140,19 @@ export default async function DetailProdukPage({ params }: Props) {
 
           <dl className="mt-10 grid grid-cols-2 gap-x-8 gap-y-4 border-t border-ink/10 pt-8 text-sm">
             <div>
-              <dt className="font-mono text-[10px] tracking-[0.2em] text-stone-500 uppercase">
+              <dt className="font-mono text-[12px] tracking-[0.2em] text-stone-500 uppercase">
                 Berat
               </dt>
               <dd className="mt-1 text-ink">{produk.beratG} g</dd>
             </div>
             <div>
-              <dt className="font-mono text-[10px] tracking-[0.2em] text-stone-500 uppercase">
+              <dt className="font-mono text-[12px] tracking-[0.2em] text-stone-500 uppercase">
                 Kategori
               </dt>
               <dd className="mt-1 text-ink">{kategoriLabel[produk.kategori]}</dd>
             </div>
             <div className="col-span-2">
-              <dt className="font-mono text-[10px] tracking-[0.2em] text-stone-500 uppercase">
+              <dt className="font-mono text-[12px] tracking-[0.2em] text-stone-500 uppercase">
                 Keamanan
               </dt>
               <dd className="mt-1 leading-relaxed text-ink">
@@ -203,7 +203,7 @@ async function ProdukSerupa({
 
   return (
     <section className="mt-24 border-t border-ink/10 pt-16">
-      <p className="font-mono text-[11px] tracking-[0.28em] text-accent-600 uppercase">
+      <p className="font-mono text-[13px] tracking-[0.28em] text-accent-600 uppercase">
         Masalah yang sama
       </p>
       <h2 className="mt-3 text-2xl font-semibold tracking-tight text-ink">

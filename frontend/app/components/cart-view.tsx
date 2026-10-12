@@ -38,7 +38,7 @@ export default function CartView({ produk }: { produk: Produk[] }) {
   if (baris.length === 0) {
     return (
       <div className="mx-auto w-full max-w-3xl px-6 pt-32 pb-24">
-        <p className="font-mono text-[11px] tracking-[0.28em] text-accent-600 uppercase">
+        <p className="font-mono text-[13px] tracking-[0.28em] text-accent-600 uppercase">
           Keranjang
         </p>
         <h1 className="mt-3 text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
@@ -50,7 +50,7 @@ export default function CartView({ produk }: { produk: Produk[] }) {
         </p>
         <Link
           href="/produk"
-          className="mt-8 inline-block border border-ink px-8 py-3.5 font-mono text-[11px] tracking-[0.22em] text-ink uppercase transition-colors hover:bg-ink hover:text-white"
+          className="mt-8 inline-block border border-ink px-8 py-3.5 font-mono text-[13px] tracking-[0.22em] text-ink uppercase transition-colors hover:bg-ink hover:text-white"
         >
           Lihat produk
         </Link>
@@ -60,7 +60,7 @@ export default function CartView({ produk }: { produk: Produk[] }) {
 
   return (
     <div className="mx-auto w-full max-w-5xl px-6 pt-32 pb-24">
-      <p className="font-mono text-[11px] tracking-[0.28em] text-accent-600 uppercase">
+      <p className="font-mono text-[13px] tracking-[0.28em] text-accent-600 uppercase">
         Keranjang
       </p>
       <h1 className="mt-3 text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
@@ -87,7 +87,7 @@ export default function CartView({ produk }: { produk: Produk[] }) {
                       className="object-cover"
                     />
                   ) : (
-                    <span className="absolute inset-0 flex items-center justify-center font-mono text-[9px] tracking-[0.16em] text-brand-300 uppercase">
+                    <span className="absolute inset-0 flex items-center justify-center font-mono text-[11px] tracking-[0.16em] text-brand-300 uppercase">
                       Foto
                     </span>
                   )}
@@ -140,7 +140,7 @@ export default function CartView({ produk }: { produk: Produk[] }) {
                     <button
                       type="button"
                       onClick={() => hapusDariKeranjang(produk.slug)}
-                      className="font-mono text-[10px] tracking-[0.18em] text-stone-400 uppercase transition-colors hover:text-red-600"
+                      className="font-mono text-[12px] tracking-[0.18em] text-stone-400 uppercase transition-colors hover:text-red-600"
                     >
                       Hapus
                     </button>
@@ -157,7 +157,7 @@ export default function CartView({ produk }: { produk: Produk[] }) {
 
         <aside className="lg:sticky lg:top-28 lg:self-start">
           <div className="border border-ink/10 bg-stone-50 p-6">
-            <h2 className="font-mono text-[11px] tracking-[0.28em] text-stone-500 uppercase">
+            <h2 className="font-mono text-[13px] tracking-[0.28em] text-stone-500 uppercase">
               Ringkasan
             </h2>
 
@@ -179,7 +179,7 @@ export default function CartView({ produk }: { produk: Produk[] }) {
             <Link
               href="/checkout"
               aria-disabled={adaMelebihiStok}
-              className={`mt-8 block border px-8 py-3.5 text-center font-mono text-[11px] tracking-[0.22em] uppercase transition-colors ${
+              className={`mt-8 block border px-8 py-3.5 text-center font-mono text-[13px] tracking-[0.22em] uppercase transition-colors ${
                 adaMelebihiStok
                   ? "pointer-events-none border-stone-300 bg-stone-300 text-white"
                   : "border-brand-500 bg-brand-500 text-white hover:border-brand-600 hover:bg-brand-600"
@@ -190,7 +190,7 @@ export default function CartView({ produk }: { produk: Produk[] }) {
 
             <Link
               href="/produk"
-              className="mt-4 block text-center font-mono text-[10px] tracking-[0.18em] text-stone-500 uppercase transition-colors hover:text-brand-600"
+              className="mt-4 block text-center font-mono text-[12px] tracking-[0.18em] text-stone-500 uppercase transition-colors hover:text-brand-600"
             >
               Lanjut belanja
             </Link>

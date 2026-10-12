@@ -109,7 +109,7 @@ export default function FaqPage() {
     <section className="mx-auto w-full max-w-3xl px-6 pt-32 pb-24">
       <JsonLd data={skemaFaq(kelompok.flatMap((k) => k.isi))} />
 
-      <p className="font-mono text-[11px] tracking-[0.28em] text-accent-600 uppercase">
+      <p className="font-mono text-[13px] tracking-[0.28em] text-accent-600 uppercase">
         Bantuan
       </p>
       <h1 className="mt-3 text-3xl leading-tight font-semibold tracking-tight text-ink sm:text-4xl">
@@ -122,7 +122,7 @@ export default function FaqPage() {
 
       {kelompok.map((k) => (
         <div key={k.judul} className="mt-16">
-          <h2 className="font-mono text-[11px] tracking-[0.28em] text-brand-600 uppercase">
+          <h2 className="font-mono text-[13px] tracking-[0.28em] text-brand-600 uppercase">
             {k.judul}
           </h2>
 
@@ -152,7 +152,7 @@ export default function FaqPage() {
       ))}
 
       <div className="mt-16 border border-brand-200 bg-brand-50 px-8 py-10">
-        <p className="font-mono text-[11px] tracking-[0.28em] text-brand-700 uppercase">
+        <p className="font-mono text-[13px] tracking-[0.28em] text-brand-700 uppercase">
           Masih bingung?
         </p>
         <p className="mt-4 max-w-md leading-relaxed text-ink">
@@ -160,7 +160,7 @@ export default function FaqPage() {
         </p>
         <a
           href={WA_URL}
-          className="mt-8 inline-block border border-ink px-8 py-3.5 font-mono text-[11px] tracking-[0.22em] text-ink uppercase transition-colors hover:bg-ink hover:text-white"
+          className="mt-8 inline-block border border-ink px-8 py-3.5 font-mono text-[13px] tracking-[0.22em] text-ink uppercase transition-colors hover:bg-ink hover:text-white"
         >
           Chat WhatsApp
         </a>

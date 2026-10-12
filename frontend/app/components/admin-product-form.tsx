@@ -9,7 +9,7 @@ import { kategoriLabel, type Kategori, type Produk } from "@/app/data/produk";
 
 const KATEGORI = Object.keys(kategoriLabel) as Kategori[];
 
-const label = "block font-mono text-[10px] tracking-[0.2em] text-stone-500 uppercase";
+const label = "block font-mono text-[12px] tracking-[0.2em] text-stone-500 uppercase";
 const kotak =
   "mt-2 w-full border border-ink/15 bg-white px-4 py-2.5 text-sm text-ink outline-none transition-colors placeholder:text-stone-400 focus:border-brand-500 disabled:bg-stone-100";
 
@@ -98,7 +98,7 @@ export default function AdminProductForm({ awal }: Props) {
     <div className="mx-auto max-w-2xl">
       <Link
         href="/admin/produk"
-        className="font-mono text-[10px] tracking-[0.2em] text-stone-500 uppercase transition-colors hover:text-brand-600"
+        className="font-mono text-[12px] tracking-[0.2em] text-stone-500 uppercase transition-colors hover:text-brand-600"
       >
         &larr; Kembali ke daftar
       </Link>
@@ -257,14 +257,14 @@ export default function AdminProductForm({ awal }: Props) {
           <button
             type="submit"
             disabled={menyimpan}
-            className="border border-brand-500 bg-brand-500 px-8 py-3 font-mono text-[11px] tracking-[0.2em] text-white uppercase transition-colors hover:border-brand-600 hover:bg-brand-600 disabled:cursor-not-allowed disabled:border-stone-300 disabled:bg-stone-300"
+            className="border border-brand-500 bg-brand-500 px-8 py-3 font-mono text-[13px] tracking-[0.2em] text-white uppercase transition-colors hover:border-brand-600 hover:bg-brand-600 disabled:cursor-not-allowed disabled:border-stone-300 disabled:bg-stone-300"
           >
             {menyimpan ? "Menyimpan..." : ubahMode ? "Simpan perubahan" : "Tambah produk"}
           </button>
 
           <Link
             href="/admin/produk"
-            className="border border-ink/15 px-8 py-3 font-mono text-[11px] tracking-[0.2em] text-stone-600 uppercase transition-colors hover:border-ink hover:text-ink"
+            className="border border-ink/15 px-8 py-3 font-mono text-[13px] tracking-[0.2em] text-stone-600 uppercase transition-colors hover:border-ink hover:text-ink"
           >
             Batal
           </Link>

@@ -137,7 +137,7 @@ export default function AdminOrders({ pesanan, status }: Props) {
           <a
             key={s.nilai}
             href={s.nilai ? `/admin/pesanan?status=${s.nilai}` : "/admin/pesanan"}
-            className={`border px-3 py-1.5 font-mono text-[11px] tracking-[0.16em] uppercase transition-colors ${
+            className={`border px-3 py-1.5 font-mono text-[13px] tracking-[0.16em] uppercase transition-colors ${
               status === s.nilai
                 ? "border-brand-500 bg-brand-500 text-white"
                 : "border-ink/15 bg-white text-stone-600 hover:border-brand-400 hover:text-brand-600"
@@ -148,7 +148,7 @@ export default function AdminOrders({ pesanan, status }: Props) {
         ))}
       </div>
 
-      <p className="mt-6 font-mono text-[11px] tracking-[0.16em] text-stone-500 uppercase">
+      <p className="mt-6 font-mono text-[13px] tracking-[0.16em] text-stone-500 uppercase">
         {pesanan.length} pesanan
       </p>
 
@@ -189,7 +189,7 @@ export default function AdminOrders({ pesanan, status }: Props) {
                 </span>
                 <span className="font-mono text-sm text-ink">{rupiah(p.total)}</span>
                 <span
-                  className={`border px-2 py-0.5 font-mono text-[10px] tracking-[0.14em] uppercase ${statusWarna[p.status]}`}
+                  className={`border px-2 py-0.5 font-mono text-[12px] tracking-[0.14em] uppercase ${statusWarna[p.status]}`}
                 >
                   {statusLabel[p.status]}
                 </span>
@@ -199,7 +199,7 @@ export default function AdminOrders({ pesanan, status }: Props) {
                 <div className="border-t border-ink/5 bg-stone-50 px-6 py-6">
                   <div className="grid gap-8 sm:grid-cols-2">
                     <div>
-                      <p className="font-mono text-[10px] tracking-[0.2em] text-stone-500 uppercase">
+                      <p className="font-mono text-[12px] tracking-[0.2em] text-stone-500 uppercase">
                         Alamat kirim
                       </p>
 
@@ -211,7 +211,7 @@ export default function AdminOrders({ pesanan, status }: Props) {
                         ].map((b) => (
                           <div key={b.k} className="flex items-start gap-3">
                             <div className="min-w-0 flex-1">
-                              <dt className="font-mono text-[10px] tracking-[0.16em] text-stone-400 uppercase">
+                              <dt className="font-mono text-[12px] tracking-[0.16em] text-stone-400 uppercase">
                                 {b.k}
                               </dt>
                               <dd className="mt-0.5 text-sm leading-relaxed whitespace-pre-line text-ink">
@@ -234,7 +234,7 @@ export default function AdminOrders({ pesanan, status }: Props) {
                     </div>
 
                     <div>
-                      <p className="font-mono text-[10px] tracking-[0.2em] text-stone-500 uppercase">
+                      <p className="font-mono text-[12px] tracking-[0.2em] text-stone-500 uppercase">
                         Isi pesanan
                       </p>
                       <ul className="mt-2 space-y-1.5">
@@ -276,7 +276,7 @@ export default function AdminOrders({ pesanan, status }: Props) {
                         type="button"
                         onClick={() => kirim(p.order_no)}
                         disabled={!resi.trim() || memproses}
-                        className="border border-ink bg-ink px-6 py-2.5 font-mono text-[11px] tracking-[0.18em] text-white uppercase transition-colors hover:border-brand-600 hover:bg-brand-600 disabled:cursor-not-allowed disabled:border-stone-300 disabled:bg-stone-300"
+                        className="border border-ink bg-ink px-6 py-2.5 font-mono text-[13px] tracking-[0.18em] text-white uppercase transition-colors hover:border-brand-600 hover:bg-brand-600 disabled:cursor-not-allowed disabled:border-stone-300 disabled:bg-stone-300"
                       >
                         {memproses ? "Menyimpan..." : "Tandai dikirim"}
                       </button>
@@ -289,7 +289,7 @@ export default function AdminOrders({ pesanan, status }: Props) {
                         <button
                           type="button"
                           onClick={() => kirimResi(p)}
-                          className="border border-ink px-6 py-2.5 font-mono text-[11px] tracking-[0.18em] text-ink uppercase transition-colors hover:bg-ink hover:text-white"
+                          className="border border-ink px-6 py-2.5 font-mono text-[13px] tracking-[0.18em] text-ink uppercase transition-colors hover:bg-ink hover:text-white"
                         >
                           Kirim resi via WhatsApp
                         </button>
@@ -303,7 +303,7 @@ export default function AdminOrders({ pesanan, status }: Props) {
                           type="button"
                           onClick={() => selesai(p.order_no)}
                           disabled={memproses}
-                          className="border border-emerald-600 bg-emerald-600 px-6 py-2.5 font-mono text-[11px] tracking-[0.18em] text-white uppercase transition-colors hover:border-emerald-700 hover:bg-emerald-700 disabled:cursor-not-allowed disabled:border-stone-300 disabled:bg-stone-300"
+                          className="border border-emerald-600 bg-emerald-600 px-6 py-2.5 font-mono text-[13px] tracking-[0.18em] text-white uppercase transition-colors hover:border-emerald-700 hover:bg-emerald-700 disabled:cursor-not-allowed disabled:border-stone-300 disabled:bg-stone-300"
                         >
                           {memproses ? "Menyimpan..." : "Tandai selesai"}
                         </button>
@@ -320,7 +320,7 @@ export default function AdminOrders({ pesanan, status }: Props) {
                         type="button"
                         onClick={() => lunas(p.order_no)}
                         disabled={memproses}
-                        className="border border-brand-500 bg-brand-500 px-6 py-2.5 font-mono text-[11px] tracking-[0.18em] text-white uppercase transition-colors hover:border-brand-600 hover:bg-brand-600 disabled:cursor-not-allowed disabled:border-stone-300 disabled:bg-stone-300"
+                        className="border border-brand-500 bg-brand-500 px-6 py-2.5 font-mono text-[13px] tracking-[0.18em] text-white uppercase transition-colors hover:border-brand-600 hover:bg-brand-600 disabled:cursor-not-allowed disabled:border-stone-300 disabled:bg-stone-300"
                       >
                         {memproses ? "Menyimpan..." : "Tandai lunas"}
                       </button>
@@ -328,7 +328,7 @@ export default function AdminOrders({ pesanan, status }: Props) {
                         type="button"
                         onClick={() => batal(p.order_no)}
                         disabled={memproses}
-                        className="border border-ink/20 px-6 py-2.5 font-mono text-[11px] tracking-[0.18em] text-stone-600 uppercase transition-colors hover:border-red-400 hover:text-red-600 disabled:cursor-not-allowed disabled:border-stone-200 disabled:text-stone-300"
+                        className="border border-ink/20 px-6 py-2.5 font-mono text-[13px] tracking-[0.18em] text-stone-600 uppercase transition-colors hover:border-red-400 hover:text-red-600 disabled:cursor-not-allowed disabled:border-stone-200 disabled:text-stone-300"
                       >
                         {memproses ? "Membatalkan..." : "Batalkan pesanan"}
                       </button>

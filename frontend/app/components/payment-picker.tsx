@@ -69,7 +69,7 @@ export default function PaymentPicker({ orderNo, total }: Props) {
 
   if (muatan.keadaan === "memuat") {
     return (
-      <p className="mt-10 font-mono text-[10px] tracking-[0.18em] text-stone-400 uppercase">
+      <p className="mt-10 font-mono text-[12px] tracking-[0.18em] text-stone-400 uppercase">
         Memuat metode pembayaran...
       </p>
     );
@@ -86,7 +86,7 @@ export default function PaymentPicker({ orderNo, total }: Props) {
         </p>
         <Link
           href={`/order/${orderNo}`}
-          className="mt-6 inline-block font-mono text-[10px] tracking-[0.18em] text-stone-500 uppercase transition-colors hover:text-brand-600"
+          className="mt-6 inline-block font-mono text-[12px] tracking-[0.18em] text-stone-500 uppercase transition-colors hover:text-brand-600"
         >
           Lihat status pesanan
         </Link>
@@ -100,7 +100,7 @@ export default function PaymentPicker({ orderNo, total }: Props) {
     return (
       <div className="mt-10">
         <div className="border border-brand-200 bg-brand-50 px-6 py-7">
-          <p className="font-mono text-[10px] tracking-[0.2em] text-brand-700 uppercase">
+          <p className="font-mono text-[12px] tracking-[0.2em] text-brand-700 uppercase">
             Pembayaran otomatis belum aktif
           </p>
           <p className="mt-4 text-sm leading-relaxed text-ink">
@@ -111,7 +111,7 @@ export default function PaymentPicker({ orderNo, total }: Props) {
           </p>
           <a
             href={waPesan(pesan)}
-            className="mt-7 inline-block border border-brand-500 bg-brand-500 px-8 py-4 font-mono text-[11px] tracking-[0.22em] text-white uppercase transition-colors hover:border-brand-600 hover:bg-brand-600"
+            className="mt-7 inline-block border border-brand-500 bg-brand-500 px-8 py-4 font-mono text-[13px] tracking-[0.22em] text-white uppercase transition-colors hover:border-brand-600 hover:bg-brand-600"
           >
             Lanjutkan di WhatsApp
           </a>
@@ -119,7 +119,7 @@ export default function PaymentPicker({ orderNo, total }: Props) {
 
         <Link
           href={`/order/${orderNo}`}
-          className="mt-6 inline-block font-mono text-[10px] tracking-[0.18em] text-stone-500 uppercase transition-colors hover:text-brand-600"
+          className="mt-6 inline-block font-mono text-[12px] tracking-[0.18em] text-stone-500 uppercase transition-colors hover:text-brand-600"
         >
           Lihat status dan batas waktu pesanan
         </Link>
@@ -135,7 +135,7 @@ export default function PaymentPicker({ orderNo, total }: Props) {
   return (
     <div className="mt-10">
       <fieldset disabled={memproses}>
-        <legend className="font-mono text-[10px] tracking-[0.2em] text-stone-500 uppercase">
+        <legend className="font-mono text-[12px] tracking-[0.2em] text-stone-500 uppercase">
           Pilih metode
         </legend>
 
@@ -145,7 +145,7 @@ export default function PaymentPicker({ orderNo, total }: Props) {
 
           return (
             <div key={g} className="mt-6">
-              <p className="font-mono text-[10px] tracking-[0.18em] text-stone-400 uppercase">
+              <p className="font-mono text-[12px] tracking-[0.18em] text-stone-400 uppercase">
                 {g}
               </p>
               <div className="mt-3 flex flex-wrap gap-2">
@@ -189,14 +189,14 @@ export default function PaymentPicker({ orderNo, total }: Props) {
         type="button"
         onClick={bayar}
         disabled={memproses || !dipilih}
-        className="mt-10 w-full border border-brand-500 bg-brand-500 px-8 py-4 font-mono text-[11px] tracking-[0.22em] text-white uppercase transition-colors hover:border-brand-600 hover:bg-brand-600 disabled:cursor-not-allowed disabled:border-stone-300 disabled:bg-stone-300 sm:w-auto"
+        className="mt-10 w-full border border-brand-500 bg-brand-500 px-8 py-4 font-mono text-[13px] tracking-[0.22em] text-white uppercase transition-colors hover:border-brand-600 hover:bg-brand-600 disabled:cursor-not-allowed disabled:border-stone-300 disabled:bg-stone-300 sm:w-auto"
       >
         {memproses ? "Menyiapkan..." : `Bayar ${rupiah(total)}`}
       </button>
 
       <Link
         href={`/order/${orderNo}`}
-        className="mt-4 block font-mono text-[10px] tracking-[0.18em] text-stone-500 uppercase transition-colors hover:text-brand-600 sm:mt-6"
+        className="mt-4 block font-mono text-[12px] tracking-[0.18em] text-stone-500 uppercase transition-colors hover:text-brand-600 sm:mt-6"
       >
         Bayar nanti
       </Link>

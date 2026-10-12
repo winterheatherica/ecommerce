@@ -78,7 +78,7 @@ export default async function StatusPesananPage({ params }: Props) {
 
   return (
     <div className="mx-auto w-full max-w-3xl px-6 pt-32 pb-24">
-      <p className="font-mono text-[11px] tracking-[0.28em] text-accent-600 uppercase">
+      <p className="font-mono text-[13px] tracking-[0.28em] text-accent-600 uppercase">
         Status pesanan
       </p>
       <h1 className="mt-3 font-mono text-2xl tracking-[0.1em] text-ink sm:text-3xl">
@@ -90,7 +90,7 @@ export default async function StatusPesananPage({ params }: Props) {
 
       {batal ? (
         <div className="mt-10 border border-stone-300 bg-stone-100 px-6 py-8">
-          <p className="font-mono text-[11px] tracking-[0.2em] text-stone-600 uppercase">
+          <p className="font-mono text-[13px] tracking-[0.2em] text-stone-600 uppercase">
             {statusLabel[pesanan.status]}
           </p>
           <p className="mt-3 text-sm leading-relaxed text-stone-600">
@@ -118,7 +118,7 @@ export default async function StatusPesananPage({ params }: Props) {
                 </span>
 
                 <p
-                  className={`font-mono text-[11px] tracking-[0.2em] uppercase ${
+                  className={`font-mono text-[13px] tracking-[0.2em] uppercase ${
                     sekarang ? "text-brand-600" : lewat ? "text-ink" : "text-stone-400"
                   }`}
                 >
@@ -139,7 +139,7 @@ export default async function StatusPesananPage({ params }: Props) {
                 {sekarang && l.status === "PENDING" && (
                   <Link
                     href={`/bayar/${pesanan.order_no}`}
-                    className="mt-4 inline-block border border-brand-500 bg-brand-500 px-8 py-3 font-mono text-[11px] tracking-[0.22em] text-white uppercase transition-colors hover:border-brand-600 hover:bg-brand-600"
+                    className="mt-4 inline-block border border-brand-500 bg-brand-500 px-8 py-3 font-mono text-[13px] tracking-[0.22em] text-white uppercase transition-colors hover:border-brand-600 hover:bg-brand-600"
                   >
                     Bayar sekarang
                   </Link>
@@ -152,7 +152,7 @@ export default async function StatusPesananPage({ params }: Props) {
 
       <div className="mt-16 grid gap-10 border-t border-ink/10 pt-10 sm:grid-cols-2">
         <div>
-          <h2 className="font-mono text-[11px] tracking-[0.28em] text-stone-500 uppercase">
+          <h2 className="font-mono text-[13px] tracking-[0.28em] text-stone-500 uppercase">
             Dikirim ke
           </h2>
           <p className="mt-4 text-sm leading-relaxed text-ink">
@@ -179,7 +179,7 @@ export default async function StatusPesananPage({ params }: Props) {
         </div>
 
         <div>
-          <h2 className="font-mono text-[11px] tracking-[0.28em] text-stone-500 uppercase">
+          <h2 className="font-mono text-[13px] tracking-[0.28em] text-stone-500 uppercase">
             Rincian
           </h2>
           <ul className="mt-4 space-y-2">
@@ -214,7 +214,7 @@ export default async function StatusPesananPage({ params }: Props) {
 
       {pesanan.status === "DELIVERED" && (
         <div className="mt-12 border-t border-ink/10 pt-10">
-          <h2 className="font-mono text-[11px] tracking-[0.28em] text-stone-500 uppercase">
+          <h2 className="font-mono text-[13px] tracking-[0.28em] text-stone-500 uppercase">
             Butuh lagi?
           </h2>
           <p className="mt-3 max-w-lg text-sm leading-relaxed text-stone-600">

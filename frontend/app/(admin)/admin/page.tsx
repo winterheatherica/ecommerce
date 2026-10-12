@@ -35,7 +35,7 @@ export default async function AdminRingkasanPage() {
           href="/admin/pesanan?status=PAID"
           className="border border-ink/10 bg-white p-6 transition-colors hover:border-brand-400"
         >
-          <p className="font-mono text-[11px] tracking-[0.2em] text-stone-500 uppercase">
+          <p className="font-mono text-[13px] tracking-[0.2em] text-stone-500 uppercase">
             Perlu dikirim
           </p>
           <p className="mt-3 text-4xl font-semibold tracking-tight text-brand-600">
@@ -50,7 +50,7 @@ export default async function AdminRingkasanPage() {
           href="/admin/produk"
           className="border border-ink/10 bg-white p-6 transition-colors hover:border-brand-400"
         >
-          <p className="font-mono text-[11px] tracking-[0.2em] text-stone-500 uppercase">
+          <p className="font-mono text-[13px] tracking-[0.2em] text-stone-500 uppercase">
             Stok menipis
           </p>
           <p className="mt-3 text-4xl font-semibold tracking-tight text-ink">
@@ -85,7 +85,7 @@ export default async function AdminRingkasanPage() {
             <div className="border-t border-ink/10 px-6 py-3">
               <Link
                 href="/admin/produk"
-                className="font-mono text-[11px] tracking-[0.18em] text-stone-500 uppercase transition-colors hover:text-brand-600"
+                className="font-mono text-[13px] tracking-[0.18em] text-stone-500 uppercase transition-colors hover:text-brand-600"
               >
                 {stokMenipis.length - TAMPIL_STOK} produk lainnya &rarr;
               </Link>
@@ -99,7 +99,7 @@ export default async function AdminRingkasanPage() {
           <h2 className="text-sm font-medium text-ink">Pesanan terbaru</h2>
           <Link
             href="/admin/pesanan"
-            className="font-mono text-[11px] tracking-[0.2em] text-brand-600 uppercase"
+            className="font-mono text-[13px] tracking-[0.2em] text-brand-600 uppercase"
           >
             Semua &rarr;
           </Link>
@@ -111,7 +111,7 @@ export default async function AdminRingkasanPage() {
               <span className="flex-1 text-sm text-ink">{p.customer_name}</span>
               <span className="font-mono text-sm text-ink">{rupiah(p.total)}</span>
               <span
-                className={`border px-2 py-0.5 font-mono text-[10px] tracking-[0.14em] uppercase ${statusWarna[p.status]}`}
+                className={`border px-2 py-0.5 font-mono text-[12px] tracking-[0.14em] uppercase ${statusWarna[p.status]}`}
               >
                 {statusLabel[p.status]}
               </span>

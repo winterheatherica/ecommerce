@@ -52,9 +52,10 @@ export default function SiteHeader() {
         "fixed inset-x-0 top-0 z-50 border-b",
         "transition-[translate,background-color,border-color,box-shadow] duration-300 ease-out",
         hidden ? "-translate-y-full" : "translate-y-0",
+        "lg:border-ink/10 lg:bg-white/90 lg:backdrop-blur-md",
         atTop
-          ? "border-transparent hover:border-ink/10 hover:bg-white/80 hover:shadow-sm hover:backdrop-blur-md"
-          : "border-ink/10 bg-white/85 shadow-sm backdrop-blur-md",
+          ? "border-transparent shadow-none"
+          : "border-ink/10 bg-white/90 shadow-sm backdrop-blur-md",
       ].join(" ")}
     >
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
@@ -65,7 +66,7 @@ export default function SiteHeader() {
           Menik Store
         </Link>
 
-        <nav className="flex shrink-0 items-center gap-4 font-mono text-[11px] tracking-[0.16em] text-ink/70 uppercase sm:gap-8 sm:tracking-[0.22em]">
+        <nav className="flex shrink-0 items-center gap-4 font-mono text-[13px] tracking-[0.16em] text-ink/70 uppercase sm:gap-8 sm:tracking-[0.22em]">
           <Link
             href="/"
             aria-label="Beranda"
@@ -128,7 +129,7 @@ export default function SiteHeader() {
               <circle cx="16.5" cy="19.5" r="1.25" />
             </svg>
             {jumlahItem > 0 && (
-              <span className="absolute -top-2 -right-2.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-brand-500 px-1 font-mono text-[9px] leading-none text-white">
+              <span className="absolute -top-2 -right-2.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-brand-500 px-1 font-mono text-[11px] leading-none text-white">
                 {jumlahItem}
               </span>
             )}

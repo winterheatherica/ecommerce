@@ -36,7 +36,7 @@ export default async function BayarPage({ params }: Props) {
   return (
     <main className="mx-auto flex min-h-svh w-full max-w-xl flex-col justify-center px-6 py-16">
       <div className="border border-ink/10 bg-white p-8 shadow-sm sm:p-10">
-        <p className="font-mono text-[10px] tracking-[0.28em] text-accent-600 uppercase">
+        <p className="font-mono text-[12px] tracking-[0.28em] text-accent-600 uppercase">
           Pembayaran
         </p>
         <p className="mt-3 text-sm leading-relaxed text-stone-600">
@@ -45,7 +45,7 @@ export default async function BayarPage({ params }: Props) {
         </p>
 
         <div className="mt-8 border-t border-ink/10 pt-8">
-          <p className="font-mono text-[10px] tracking-[0.2em] text-stone-500 uppercase">
+          <p className="font-mono text-[12px] tracking-[0.2em] text-stone-500 uppercase">
             Tagihan untuk
           </p>
           <p className="mt-2 font-mono text-lg tracking-[0.1em] text-ink">
@@ -58,7 +58,7 @@ export default async function BayarPage({ params }: Props) {
           </p>
 
           {pesanan.expires_at && (
-            <p className="mt-3 font-mono text-[11px] tracking-[0.16em] text-stone-500 uppercase">
+            <p className="mt-3 font-mono text-[13px] tracking-[0.16em] text-stone-500 uppercase">
               Berlaku sampai {jam(pesanan.expires_at)} WIB
             </p>
           )}

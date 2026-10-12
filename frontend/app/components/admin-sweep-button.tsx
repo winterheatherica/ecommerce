@@ -42,7 +42,7 @@ export default function AdminSweepButton() {
         type="button"
         onClick={sapu}
         disabled={memproses}
-        className="mt-5 border border-ink/15 px-6 py-2.5 font-mono text-[11px] tracking-[0.18em] text-stone-600 uppercase transition-colors hover:border-brand-500 hover:text-brand-600 disabled:cursor-not-allowed disabled:text-stone-300"
+        className="mt-5 border border-ink/15 px-6 py-2.5 font-mono text-[13px] tracking-[0.18em] text-stone-600 uppercase transition-colors hover:border-brand-500 hover:text-brand-600 disabled:cursor-not-allowed disabled:text-stone-300"
       >
         {memproses ? "Menyapu..." : "Sapu sekarang"}
       </button>
