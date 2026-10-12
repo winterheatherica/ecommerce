@@ -17,6 +17,14 @@ function kepalaAdmin(): HeadersInit {
   return { Authorization: `Basic ${btoa(`${pengguna}:${sandi}`)}` };
 }
 
+type VarianAPI = {
+  slug: string;
+  label: string;
+  price: number;
+  weight_g: number;
+  stock: number;
+};
+
 type ProdukAPI = {
   id: number;
   slug: string;
@@ -29,6 +37,7 @@ type ProdukAPI = {
   is_featured: boolean;
   sold_per_month: number;
   sort_order: number;
+  variants?: VarianAPI[];
 };
 
 type DaftarAPI = {
@@ -39,6 +48,19 @@ type DaftarAPI = {
 };
 
 function petakan(p: ProdukAPI): Produk {
+  const varian = (p.variants ?? []).map((v) => ({
+    slug: v.slug,
+    label: v.label,
+    harga: v.price,
+    beratG: v.weight_g,
+    stok: v.stock,
+    gambar: PUNYA_GAMBAR.has(v.slug) ? urlGambar(v.slug) : undefined,
+  }));
+
+  const berfoto = PUNYA_GAMBAR.has(p.slug)
+    ? urlGambar(p.slug)
+    : varian.find((v) => v.gambar)?.gambar;
+
   return {
     slug: p.slug,
     nama: p.name,
@@ -49,7 +71,8 @@ function petakan(p: ProdukAPI): Produk {
     stok: p.stock,
     terjualPerBulan: p.sold_per_month,
     unggulan: p.is_featured,
-    gambar: PUNYA_GAMBAR.has(p.slug) ? urlGambar(p.slug) : undefined,
+    gambar: berfoto,
+    varian,
   };
 }
 

@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 
 import IkonHama from "./ikon-hama";
@@ -37,10 +38,14 @@ export default function ProblemPicker({ produk }: { produk: Produk[] }) {
 
       <div className="mt-12 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
         {masalah
-          .map((m) => ({
-            ...m,
-            jumlah: produk.filter((p) => p.kategori === m.slug).length,
-          }))
+          .map((m) => {
+            const isi = produk.filter((p) => p.kategori === m.slug);
+            const wakil = isi
+              .filter((p) => p.gambar)
+              .sort((a, b) => b.terjualPerBulan - a.terjualPerBulan)[0];
+
+            return { ...m, jumlah: isi.length, wakil };
+          })
           .filter((m) => m.jumlah > 0)
           .map((m) => (
             <Link
@@ -48,8 +53,20 @@ export default function ProblemPicker({ produk }: { produk: Produk[] }) {
               href={`/produk?kategori=${m.slug}`}
               className="group flex flex-col border border-ink/12 transition-colors hover:border-brand-500"
             >
-              <div className="flex aspect-square items-center justify-center bg-brand-50 text-ink/70 transition-colors group-hover:bg-brand-100 group-hover:text-brand-700">
-                <IkonHama kategori={m.slug} />
+              <div className="relative aspect-square overflow-hidden bg-brand-50">
+                {m.wakil?.gambar ? (
+                  <Image
+                    src={m.wakil.gambar}
+                    alt={m.wakil.nama}
+                    fill
+                    sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 20vw"
+                    className="object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                ) : (
+                  <span className="absolute inset-0 flex items-center justify-center text-ink/70 transition-colors group-hover:text-brand-700">
+                    <IkonHama kategori={m.slug} />
+                  </span>
+                )}
               </div>
 
               <div className="flex flex-1 flex-col p-4">

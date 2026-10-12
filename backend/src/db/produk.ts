@@ -1,6 +1,14 @@
 import type { Sql } from "../lib/db";
 import type { PerubahanBersih, ProdukBersih } from "../lib/products";
 
+export type BarisVarian = {
+  slug: string;
+  label: string;
+  price: number;
+  weight_g: number;
+  stock: number;
+};
+
 export type BarisProduk = {
   id: number;
   slug: string;
@@ -14,6 +22,7 @@ export type BarisProduk = {
   is_featured: boolean;
   sort_order: number;
   is_active: boolean;
+  variants: BarisVarian[];
 };
 
 export type FilterProduk = {
@@ -36,7 +45,20 @@ const kolom = (sql: Sql) => sql`
   sold_per_month,
   is_featured,
   sort_order,
-  is_active
+  is_active,
+  coalesce((
+    select jsonb_agg(
+      jsonb_build_object(
+        'slug', v.slug,
+        'label', v.label,
+        'price', v.price,
+        'weight_g', v.weight_g,
+        'stock', v.stock
+      ) order by v.sort_order, v.price
+    )
+    from product_variants v
+    where v.product_id = products.id and v.is_active
+  ), '[]'::jsonb) as variants
 `;
 
 function bersihkan(f: FilterProduk) {

@@ -21,6 +21,15 @@ export type Kategori =
   | "aroma-rumah"
   | "paket";
 
+export type Varian = {
+  slug: string;
+  label: string;
+  harga: number;
+  beratG: number;
+  stok: number;
+  gambar?: string;
+};
+
 export type Produk = {
   slug: string;
   nama: string;
@@ -32,6 +41,7 @@ export type Produk = {
   terjualPerBulan: number;
   unggulan: boolean;
   gambar?: string;
+  varian: Varian[];
 };
 
 type InfoKategori = {
@@ -49,7 +59,7 @@ export const KATEGORI: Record<Kategori, InfoKategori> = {
     judul: "Pengusir Kucing",
     judulSeo: "Pengusir Kucing Alami",
     ringkasan:
-      "Pengusir kucing berbahan dasar tumbuhan untuk teras, motor, dan taman. Bekerja lewat aroma yang dihindari kucing, tanpa racun dan tanpa melukai.",
+      "Pengusir kucing berbahan dasar alami untuk teras, motor, dan taman. Bekerja lewat aroma yang dihindari kucing, tanpa racun dan tanpa melukai.",
   },
   tikus: {
     grup: "hama",
@@ -65,7 +75,7 @@ export const KATEGORI: Record<Kategori, InfoKategori> = {
     judul: "Pengusir Kecoa",
     judulSeo: "Pengusir Kecoa Alami",
     ringkasan:
-      "Pengusir kecoa berbahan tumbuhan untuk dapur, saluran air, dan sudut lembap. Ditaruh di jalur yang biasa dilewati, bukan disemprot ke kecoanya.",
+      "Pengusir kecoa berbahan alami untuk dapur, saluran air, dan sudut lembap. Ditaruh di jalur yang biasa dilewati, bukan disemprot ke kecoanya.",
   },
   cicak: {
     grup: "hama",
@@ -81,7 +91,7 @@ export const KATEGORI: Record<Kategori, InfoKategori> = {
     judul: "Pengusir Nyamuk",
     judulSeo: "Pengusir Nyamuk Alami",
     ringkasan:
-      "Pengusir nyamuk alami untuk kamar dan ruang keluarga. Berbahan dasar tumbuhan, cocok dipakai di ruangan yang ditempati sehari-hari.",
+      "Pengusir nyamuk untuk kamar dan ruang keluarga. Berbahan dasar alami, cocok dipakai di ruangan yang ditempati sehari-hari.",
   },
   ular: {
     grup: "hama",
@@ -89,7 +99,7 @@ export const KATEGORI: Record<Kategori, InfoKategori> = {
     judul: "Pengusir Ular",
     judulSeo: "Pengusir Ular Alami",
     ringkasan:
-      "Pengusir ular berbahan tumbuhan untuk halaman, kebun, saluran air, dan celah bawah rumah. Ditaruh di jalur masuk, bukan untuk melukai ularnya.",
+      "Pengusir ular berbahan alami untuk halaman, kebun, saluran air, dan celah bawah rumah. Ditaruh di jalur masuk, bukan untuk melukai ularnya.",
   },
   lalat: {
     grup: "hama",
@@ -203,7 +213,7 @@ export const GRUP: Record<Grup, { label: string; judul: string; ringkasan: strin
       label: "Pengusir hama",
       judul: "Pengusir Hama Alami",
       ringkasan:
-        "Pengusir kucing, tikus, kecoa, cicak, nyamuk, dan hama rumah lainnya, semuanya berbahan dasar tumbuhan dan bekerja dengan aroma.",
+        "Pengusir kucing, tikus, kecoa, cicak, nyamuk, dan hama rumah lainnya, semuanya berbahan dasar alami dan bekerja dengan aroma.",
     },
     hewan: {
       label: "Hewan peliharaan",

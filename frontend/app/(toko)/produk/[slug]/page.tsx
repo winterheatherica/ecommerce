@@ -156,7 +156,7 @@ export default async function DetailProdukPage({ params }: Props) {
                 Keamanan
               </dt>
               <dd className="mt-1 leading-relaxed text-ink">
-                Berbahan dasar tumbuhan. Simpan di luar jangkauan anak dan
+                Berbahan dasar alami. Simpan di luar jangkauan anak dan
                 jangan sampai termakan.
               </dd>
             </div>
