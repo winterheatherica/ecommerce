@@ -9,7 +9,7 @@ import { NAMA_SITUS, RINGKASAN, metaHalaman, skemaToko } from "@/app/lib/seo";
 export function generateMetadata(): Metadata {
   return metaHalaman({
     judul: "Beranda",
-    judulUtuh: `${NAMA_SITUS} | Pengusir Hama Alami Berbahan Tumbuhan`,
+    judulUtuh: `${NAMA_SITUS} | Pengusir Hama Berbahan Dasar Alami`,
     ringkasan: RINGKASAN,
     path: "/",
   });
@@ -46,8 +46,8 @@ export default async function Home() {
             </h1>
 
             <p className="mt-6 max-w-md leading-relaxed text-stone-600 sm:text-lg">
-              Pengusir kucing, tikus, kecoa, dan cicak berbahan dasar tumbuhan.
-              Bekerja dengan aroma yang dihindari hama, bukan dengan racun.
+              Pengusir hama berbahan dasar alami. Bekerja dengan aroma yang
+              dihindari hama, bukan dengan racun.
             </p>
 
             <div className="mt-10 flex flex-wrap items-center gap-x-8 gap-y-4">

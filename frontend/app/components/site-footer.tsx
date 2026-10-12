@@ -30,7 +30,7 @@ const bantuan = [
   { label: "Pertanyaan Umum", href: "/faq" },
 ];
 
-const pembayaran = ["QRIS", "BCA", "BNI", "OVO", "DANA", "ShopeePay"];
+const pembayaran = ["QRIS", "BCA", "BNI", "Mandiri", "OVO", "DANA"];
 
 export default function SiteFooter() {
   return (
@@ -46,7 +46,7 @@ export default function SiteFooter() {
 
         <div className="absolute inset-0 bg-linear-to-r from-white/90 via-white/55 to-transparent" />
         <div className="absolute inset-x-0 top-0 h-40 bg-linear-to-b from-white/45 to-transparent" />
-        <div className="absolute inset-x-0 bottom-0 h-40 bg-[linear-gradient(to_top,#0b1531_0%,#0b1531db_7%,#0b1531ba_13%,#0b15319c_20%,#0b153181_27%,#0b153169_33%,#0b153154_40%,#0b153141_47%,#0b153130_53%,#0b153123_60%,#0b153117_67%,#0b15310e_73%,#0b153108_80%,#0b153103_87%,#0b153101_93%,#0b153100_100%)]" />
+        <div className="absolute inset-x-0 bottom-0 h-40 bg-[linear-gradient(to_top,#012241_0%,#012241db_7%,#012241ba_13%,#0122419c_20%,#01224181_27%,#01224169_33%,#01224154_40%,#01224141_47%,#01224130_53%,#01224123_60%,#01224117_67%,#0122410e_73%,#01224108_80%,#01224103_87%,#01224101_93%,#01224100_100%)]" />
 
         <div className="relative mx-auto max-w-6xl px-6 pt-28 pb-56">
           <div className="max-w-lg">
@@ -78,8 +78,8 @@ export default function SiteFooter() {
                 Menik Store
               </p>
               <p className="mt-5 max-w-xs text-sm leading-relaxed text-white/55">
-                Pengusir hama berbahan dasar tumbuhan. Bekerja dengan aroma
-                yang dihindari hama, bukan dengan racun.
+                Pengusir hama berbahan dasar alami. Bekerja dengan aroma yang
+                dihindari hama, bukan dengan racun.
               </p>
               <ul className="mt-7 flex flex-wrap gap-x-5 gap-y-2">
                 {SOSIAL.map((s) => (
@@ -149,7 +149,11 @@ export default function SiteFooter() {
                       </span>
                     ))}
                   </li>
-                  <li className="leading-relaxed text-white/55">{KONTAK.jam}</li>
+                  <li className="leading-relaxed text-white/55">
+                    <span className="block">{KONTAK.hari}</span>
+                    <span className="block">{KONTAK.jam}</span>
+                    <span className="block">Libur {KONTAK.libur}</span>
+                  </li>
                 </ul>
               </div>
             </div>

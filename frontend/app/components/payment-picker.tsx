@@ -10,7 +10,7 @@ import {
   type ChannelBayar,
 } from "@/app/lib/api-client";
 import { rupiah } from "@/app/data/produk";
-import { WA_URL } from "@/app/data/kontak";
+import { waPesan } from "@/app/data/kontak";
 
 type Props = {
   orderNo: string;
@@ -110,7 +110,7 @@ export default function PaymentPicker({ orderNo, total }: Props) {
             WhatsApp, dan nomor rekening akan kami kirimkan di sana.
           </p>
           <a
-            href={`${WA_URL}?text=${encodeURIComponent(pesan)}`}
+            href={waPesan(pesan)}
             className="mt-7 inline-block border border-brand-500 bg-brand-500 px-8 py-4 font-mono text-[11px] tracking-[0.22em] text-white uppercase transition-colors hover:border-brand-600 hover:bg-brand-600"
           >
             Lanjutkan di WhatsApp

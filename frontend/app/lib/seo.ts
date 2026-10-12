@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 
-import { KONTAK, WA_URL } from "@/app/data/kontak";
+import { INSTAGRAM_URL, KONTAK, WA_URL } from "@/app/data/kontak";
 import { kategoriJudul, type Produk } from "@/app/data/produk";
 
 export const NAMA_SITUS = "Menik Store";
 
 export const RINGKASAN =
-  "Pengusir kucing, tikus, kecoa, cicak, dan nyamuk berbahan dasar tumbuhan. Bekerja dengan aroma yang dihindari hama, bukan dengan racun.";
+  "Pengusir hama berbahan dasar alami. Bekerja dengan aroma yang dihindari hama, bukan dengan racun.";
 
 export const GAMBAR_BAGI = "/og.jpg";
 
@@ -97,7 +97,22 @@ export function skemaToko() {
       addressCountry: "ID",
     },
     hasMap: KONTAK.maps,
-    sameAs: [WA_URL],
+    openingHoursSpecification: [
+      {
+        "@type": "OpeningHoursSpecification",
+        dayOfWeek: [
+          "Monday",
+          "Tuesday",
+          "Wednesday",
+          "Thursday",
+          "Friday",
+          "Saturday",
+        ],
+        opens: "09:00",
+        closes: "17:00",
+      },
+    ],
+    sameAs: [WA_URL, INSTAGRAM_URL],
   };
 }
 

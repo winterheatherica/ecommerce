@@ -20,7 +20,7 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const JUDUL_BAWAAN = `${NAMA_SITUS} | Pengusir Hama Alami Berbahan Tumbuhan`;
+const JUDUL_BAWAAN = `${NAMA_SITUS} | Pengusir Hama Berbahan Dasar Alami`;
 
 export async function generateMetadata(): Promise<Metadata> {
   const terbuka = bolehDiindeks();

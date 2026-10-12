@@ -22,7 +22,8 @@
   ],
   "vars": {
     "STOREFRONT_URL": "https://menikstore.my.id",
-    "UMUR_PESANAN_JAM": "6"
+    "UMUR_PESANAN_JAM": "6",
+    "RAJAONGKIR_KURIR": "jne:jnt"
   },
   "triggers": {
     "crons": ["*/15 * * * *"]

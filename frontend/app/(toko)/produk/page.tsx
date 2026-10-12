@@ -17,7 +17,7 @@ import { metaHalaman, skemaDaftarProduk, skemaRemah } from "@/app/lib/seo";
 
 const JUDUL_SEMUA = "Semua Produk Pengusir Hama Alami";
 const RINGKASAN_SEMUA =
-  "Katalog pengusir kucing, tikus, kecoa, cicak, dan nyamuk berbahan dasar tumbuhan, lengkap dengan harga dan stok terkini.";
+  "Katalog pengusir kucing, tikus, kecoa, cicak, dan nyamuk berbahan dasar alami, lengkap dengan harga dan stok terkini.";
 
 type Props = {
   searchParams: Promise<{ kategori?: string; grup?: string; urut?: string }>;

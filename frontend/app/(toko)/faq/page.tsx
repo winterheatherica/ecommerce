@@ -58,13 +58,18 @@ const kelompok = [
       {
         tanya: "Bisa bayar di tempat (COD)?",
         jawab:
-          "Untuk saat ini belum. Semua pesanan dibayar di muka agar paket bisa langsung diproses hari itu juga.",
+          "Untuk saat ini belum. Semua pesanan dibayar di muka supaya paket bisa langsung masuk antrian kirim.",
       },
     ],
   },
   {
     judul: "Pengiriman",
     isi: [
+      {
+        tanya: "Kapan pesanan saya dikirim?",
+        jawab:
+          `Pesanan yang dibayar sebelum pukul 12.00 dikirim hari itu juga. Setelah pukul 12.00 dikirim hari berikutnya. ${KONTAK.libur.charAt(0).toUpperCase()}${KONTAK.libur.slice(1)} tidak ada pengiriman.`,
+      },
       {
         tanya: "Dikirim dari mana dan berapa lama sampai?",
         jawab:
@@ -93,7 +98,7 @@ const kelompok = [
       {
         tanya: "Bisa retur kalau berubah pikiran?",
         jawab:
-          "Selama segelnya belum dibuka dan belum lewat 3 hari sejak diterima, bisa. Ongkos kirim baliknya ditanggung pembeli.",
+          "Setelah barang dikirim, pengembalian karena berubah pikiran tidak bisa kami terima. Kalau ragu soal ukuran atau kecocokan produk, tanyakan dulu lewat WhatsApp sebelum memesan.",
       },
     ],
   },
