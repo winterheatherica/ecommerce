@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  KATEGORI,
+  TURUNAN_VARIAN,
   periksaPerubahan,
   periksaProdukBaru,
   type ProdukBaru,
@@ -89,11 +91,11 @@ describe("periksaProdukBaru", () => {
 
 describe("periksaPerubahan", () => {
   it("hanya memuat field yang dikirim", () => {
-    const hasil = periksaPerubahan({ price: 55000 });
+    const hasil = periksaPerubahan({ name: "Nama Baru" });
 
     expect(hasil.ok).toBe(true);
     if (!hasil.ok) return;
-    expect(Object.keys(hasil.bersih)).toEqual(["price"]);
+    expect(Object.keys(hasil.bersih)).toEqual(["name"]);
   });
 
   it("tidak memuat apa pun kalau tidak ada yang dikirim", () => {
@@ -105,11 +107,38 @@ describe("periksaPerubahan", () => {
   });
 
   it("menolak kategori tidak sah", () => {
-    const hasil = periksaPerubahan({ category: "ngawur", price: 1 });
+    const hasil = periksaPerubahan({ category: "ngawur" });
 
     expect(hasil.ok).toBe(false);
     if (hasil.ok) return;
     expect(hasil.badan.error).toBe("invalid_category");
+  });
+
+  it("menerima semua kategori yang dipakai storefront", () => {
+    for (const kategori of KATEGORI) {
+      const hasil = periksaPerubahan({ category: kategori });
+      expect(hasil.ok, kategori).toBe(true);
+    }
+  });
+
+  it("menolak harga, berat, dan stok karena itu turunan varian", () => {
+    for (const field of TURUNAN_VARIAN) {
+      const hasil = periksaPerubahan({ [field]: 1 });
+
+      expect(hasil.ok, field).toBe(false);
+      if (hasil.ok) return;
+      expect(hasil.status).toBe(422);
+      expect(hasil.badan.error).toBe("derived_field");
+      expect(hasil.badan.field).toBe(field);
+    }
+  });
+
+  it("menolak stok nol juga, bukan cuma angka yang terisi", () => {
+    const hasil = periksaPerubahan({ stock: 0 });
+
+    expect(hasil.ok).toBe(false);
+    if (hasil.ok) return;
+    expect(hasil.badan.error).toBe("derived_field");
   });
 
   it("membersihkan spasi di nama dan deskripsi", () => {
@@ -128,14 +157,5 @@ describe("periksaPerubahan", () => {
     if (!hasil.ok) return;
     expect(hasil.bersih.is_active).toBe(false);
     expect("is_featured" in hasil.bersih).toBe(false);
-  });
-
-  it("membedakan nol dari tidak dikirim", () => {
-    const hasil = periksaPerubahan({ stock: 0 });
-
-    expect(hasil.ok).toBe(true);
-    if (!hasil.ok) return;
-    expect(hasil.bersih.stock).toBe(0);
-    expect("price" in hasil.bersih).toBe(false);
   });
 });

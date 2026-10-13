@@ -4,12 +4,27 @@ export const KATEGORI = [
   "kecoa",
   "cicak",
   "nyamuk",
+  "ular",
+  "lalat",
+  "semut",
+  "musang",
+  "laba-laba",
+  "rayap",
+  "siput",
+  "kutu-kasur",
+  "perilaku-anjing",
+  "perawatan-hewan",
   "perawatan-kulit",
+  "pembersih-rumah",
+  "aroma-rumah",
+  "paket",
 ] as const;
 
 export type Kategori = (typeof KATEGORI)[number];
 
 const POLA_SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
+export const TURUNAN_VARIAN = ["price", "weight_g", "stock"] as const;
 
 export type Gagal = {
   status: number;
@@ -46,7 +61,9 @@ export type ProdukBersih = {
   is_active: boolean;
 };
 
-export type PerubahanBersih = Partial<Omit<ProdukBersih, "slug" | "sort_order">> & {
+export type PerubahanBersih = Partial<
+  Omit<ProdukBersih, "slug" | "sort_order" | "price" | "weight_g" | "stock">
+> & {
   sort_order?: number;
 };
 
@@ -63,6 +80,22 @@ function periksaKategori(kategori: string): Gagal | null {
   }
 
   return null;
+}
+
+function periksaTurunan(p: PerubahanProduk): Gagal | null {
+  const dikirim = TURUNAN_VARIAN.filter((k) => p[k] !== undefined);
+
+  if (dikirim.length === 0) return null;
+
+  return {
+    status: 422,
+    badan: {
+      error: "derived_field",
+      message:
+        "Harga, berat, dan stok dihitung dari varian. Ubah lewat endpoint varian, bukan produk",
+      field: dikirim[0],
+    },
+  };
 }
 
 export function periksaProdukBaru(
@@ -106,6 +139,9 @@ export function periksaProdukBaru(
 export function periksaPerubahan(
   p: PerubahanProduk,
 ): { ok: true; bersih: PerubahanBersih } | ({ ok: false } & Gagal) {
+  const galatTurunan = periksaTurunan(p);
+  if (galatTurunan) return { ok: false, ...galatTurunan };
+
   if (p.category !== undefined) {
     const galat = periksaKategori(p.category);
     if (galat) return { ok: false, ...galat };
@@ -115,9 +151,6 @@ export function periksaPerubahan(
 
   if (p.name !== undefined) bersih.name = p.name.trim();
   if (p.description !== undefined) bersih.description = p.description.trim();
-  if (p.price !== undefined) bersih.price = p.price;
-  if (p.weight_g !== undefined) bersih.weight_g = p.weight_g;
-  if (p.stock !== undefined) bersih.stock = p.stock;
   if (p.category !== undefined) bersih.category = p.category;
   if (p.is_featured !== undefined) bersih.is_featured = p.is_featured;
   if (p.sold_per_month !== undefined) bersih.sold_per_month = p.sold_per_month;

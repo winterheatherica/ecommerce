@@ -25,3 +25,12 @@ export async function tutup(sql: Sql): Promise<void> {
     console.error("[db] gagal menutup koneksi", e);
   }
 }
+
+export function bentrokUnik(e: unknown): boolean {
+  return (
+    typeof e === "object" &&
+    e !== null &&
+    "code" in e &&
+    (e as { code: unknown }).code === "23505"
+  );
+}

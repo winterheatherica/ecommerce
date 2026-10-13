@@ -191,8 +191,6 @@ export async function batalkanPesanan(orderNo: string): Promise<void> {
 }
 
 export type PerubahanProduk = {
-  stock?: number;
-  price?: number;
   is_featured?: boolean;
   is_active?: boolean;
 };
@@ -213,12 +211,37 @@ export async function ubahProduk(
   }
 }
 
-export type IsiProduk = {
+export type PerubahanVarian = {
+  label?: string;
+  price?: number;
+  weight_g?: number;
+  stock?: number;
+  is_active?: boolean;
+};
+
+export type VarianBaru = {
+  slug: string;
+  label: string;
+  price: number;
+  weight_g: number;
+  stock: number;
+};
+
+export type IsiProdukBaru = {
+  slug: string;
   name: string;
   description: string;
   price: number;
   weight_g: number;
   stock: number;
+  category: string;
+  sold_per_month: number;
+  is_featured: boolean;
+};
+
+export type IsiProdukUbah = {
+  name: string;
+  description: string;
   category: string;
   sold_per_month: number;
   is_featured: boolean;
@@ -231,9 +254,36 @@ async function pastikanOk(res: Response) {
   throw new Error(galat.message ?? `Gagal menyimpan (${res.status})`);
 }
 
-export async function buatProdukBaru(
-  isi: IsiProduk & { slug: string },
+export async function ubahVarian(
+  slug: string,
+  perubahan: PerubahanVarian,
 ): Promise<void> {
+  const res = await fetch(`/api/admin/variants/${encodeURIComponent(slug)}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(perubahan),
+  });
+
+  await pastikanOk(res);
+}
+
+export async function tambahVarian(
+  produkSlug: string,
+  isi: VarianBaru,
+): Promise<void> {
+  const res = await fetch(
+    `/api/admin/products/${encodeURIComponent(produkSlug)}/variants`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(isi),
+    },
+  );
+
+  await pastikanOk(res);
+}
+
+export async function buatProdukBaru(isi: IsiProdukBaru): Promise<void> {
   const res = await fetch("/api/admin/products", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -245,7 +295,7 @@ export async function buatProdukBaru(
 
 export async function simpanProduk(
   slug: string,
-  isi: Partial<IsiProduk>,
+  isi: Partial<IsiProdukUbah>,
 ): Promise<void> {
   const res = await fetch(`/api/admin/products/${encodeURIComponent(slug)}`, {
     method: "PATCH",

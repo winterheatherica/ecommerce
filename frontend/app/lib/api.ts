@@ -23,6 +23,7 @@ type VarianAPI = {
   price: number;
   weight_g: number;
   stock: number;
+  is_active?: boolean;
 };
 
 type ProdukAPI = {
@@ -55,6 +56,7 @@ function petakan(p: ProdukAPI): Produk {
     beratG: v.weight_g,
     stok: v.stock,
     gambar: PUNYA_GAMBAR.has(v.slug) ? urlGambar(v.slug) : undefined,
+    aktif: v.is_active,
   }));
 
   const berfoto = PUNYA_GAMBAR.has(p.slug)

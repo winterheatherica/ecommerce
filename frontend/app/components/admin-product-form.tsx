@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
+import AdminVariantEditor from "@/app/components/admin-variant-editor";
 import { buatProdukBaru, simpanProduk } from "@/app/lib/api-client";
 import { kategoriLabel, type Kategori, type Produk } from "@/app/data/produk";
 
@@ -49,7 +50,8 @@ export default function AdminProductForm({ awal }: Props) {
 
   const periksa = () => {
     if (nama.trim().length < 3) return "Nama produk minimal 3 huruf.";
-    if (!ubahMode && !slug.trim()) return "Slug belum diisi.";
+    if (ubahMode) return null;
+    if (!slug.trim()) return "Slug belum diisi.";
     if (!(Number(harga) > 0)) return "Harga harus lebih dari 0.";
     if (!(Number(berat) > 0)) return "Berat harus lebih dari 0 gram.";
     if (Number(stok) < 0) return "Stok tidak boleh minus.";
@@ -71,9 +73,6 @@ export default function AdminProductForm({ awal }: Props) {
     const isi = {
       name: nama.trim(),
       description: deskripsi.trim(),
-      price: Number(harga),
-      weight_g: Number(berat),
-      stock: Number(stok),
       category: kategori,
       sold_per_month: Number(terjual),
       is_featured: unggulan,
@@ -83,7 +82,13 @@ export default function AdminProductForm({ awal }: Props) {
       if (ubahMode && awal) {
         await simpanProduk(awal.slug, isi);
       } else {
-        await buatProdukBaru({ slug: slug.trim(), ...isi });
+        await buatProdukBaru({
+          slug: slug.trim(),
+          ...isi,
+          price: Number(harga),
+          weight_g: Number(berat),
+          stock: Number(stok),
+        });
       }
 
       router.push("/admin/produk");
@@ -95,7 +100,7 @@ export default function AdminProductForm({ awal }: Props) {
   };
 
   return (
-    <div className="mx-auto max-w-2xl">
+    <div className="mx-auto max-w-3xl">
       <Link
         href="/admin/produk"
         className="font-mono text-[12px] tracking-[0.2em] text-stone-500 uppercase transition-colors hover:text-brand-600"
@@ -158,47 +163,55 @@ export default function AdminProductForm({ awal }: Props) {
             />
           </div>
 
-          <div className="grid gap-6 sm:grid-cols-3">
+          {!ubahMode && (
             <div>
-              <label className={label} htmlFor="harga">
-                Harga (Rp)
-              </label>
-              <input
-                id="harga"
-                type="number"
-                min={1}
-                value={harga}
-                onChange={(e) => setHarga(e.target.value)}
-                className={`${kotak} font-mono`}
-              />
+              <div className="grid gap-6 sm:grid-cols-3">
+                <div>
+                  <label className={label} htmlFor="harga">
+                    Harga (Rp)
+                  </label>
+                  <input
+                    id="harga"
+                    type="number"
+                    min={1}
+                    value={harga}
+                    onChange={(e) => setHarga(e.target.value)}
+                    className={`${kotak} font-mono`}
+                  />
+                </div>
+                <div>
+                  <label className={label} htmlFor="berat">
+                    Berat (gram)
+                  </label>
+                  <input
+                    id="berat"
+                    type="number"
+                    min={1}
+                    value={berat}
+                    onChange={(e) => setBerat(e.target.value)}
+                    className={`${kotak} font-mono`}
+                  />
+                </div>
+                <div>
+                  <label className={label} htmlFor="stok">
+                    Stok
+                  </label>
+                  <input
+                    id="stok"
+                    type="number"
+                    min={0}
+                    value={stok}
+                    onChange={(e) => setStok(e.target.value)}
+                    className={`${kotak} font-mono`}
+                  />
+                </div>
+              </div>
+              <p className="mt-2 text-xs text-stone-500">
+                Jadi ukuran pertama dengan nama Standar. Ukuran lain bisa
+                ditambah setelah produknya tersimpan.
+              </p>
             </div>
-            <div>
-              <label className={label} htmlFor="berat">
-                Berat (gram)
-              </label>
-              <input
-                id="berat"
-                type="number"
-                min={1}
-                value={berat}
-                onChange={(e) => setBerat(e.target.value)}
-                className={`${kotak} font-mono`}
-              />
-            </div>
-            <div>
-              <label className={label} htmlFor="stok">
-                Stok
-              </label>
-              <input
-                id="stok"
-                type="number"
-                min={0}
-                value={stok}
-                onChange={(e) => setStok(e.target.value)}
-                className={`${kotak} font-mono`}
-              />
-            </div>
-          </div>
+          )}
 
           <div className="grid gap-6 sm:grid-cols-2">
             <div>
@@ -270,6 +283,8 @@ export default function AdminProductForm({ awal }: Props) {
           </Link>
         </div>
       </form>
+
+      {ubahMode && awal && <AdminVariantEditor produk={awal} />}
     </div>
   );
 }

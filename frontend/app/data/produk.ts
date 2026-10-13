@@ -28,6 +28,7 @@ export type Varian = {
   beratG: number;
   stok: number;
   gambar?: string;
+  aktif?: boolean;
 };
 
 export type Produk = {

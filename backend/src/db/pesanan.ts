@@ -262,6 +262,17 @@ type ProdukTerkunci = {
   weight_g: number;
 };
 
+const namaUkuran = (tx: Kueri) => tx`
+  case
+    when (
+      select count(*) from product_variants w
+      where w.product_id = p.id and w.is_active
+    ) > 1
+    then p.name || ' (' || v.label || ')'
+    else p.name
+  end
+`;
+
 async function kurangiStok(
   tx: Kueri,
   item: ItemDiminta,
@@ -279,7 +290,7 @@ async function kurangiStok(
       p.id::int as id,
       v.id::int as variant_id,
       v.slug,
-      p.name || ' (' || v.label || ')' as name,
+      ${namaUkuran(tx)} as name,
       v.price,
       v.weight_g
   `;
@@ -287,7 +298,7 @@ async function kurangiStok(
   if (produk) return produk;
 
   const [ada] = await tx<{ name: string; stock: number; is_active: boolean }[]>`
-    select p.name || ' (' || v.label || ')' as name,
+    select ${namaUkuran(tx)} as name,
            v.stock,
            (v.is_active and p.is_active) as is_active
     from product_variants v

@@ -64,10 +64,39 @@ const isiSeed = SEED.map(bacaMigrasi);
 
 export async function bersihkan(sql: Sql): Promise<void> {
   await sql
-    .unsafe("truncate order_items, orders, products restart identity cascade")
+    .unsafe(
+      "truncate order_items, orders, product_variants, products restart identity cascade",
+    )
     .simple();
 
   for (const isi of isiSeed) {
     await sql.unsafe(isi).simple();
+  }
+
+  await sql
+    .unsafe(
+      `insert into product_variants (product_id, slug, label, price, weight_g, stock)
+       select id, slug, 'Standar', price, weight_g, stock from products`,
+    )
+    .simple();
+}
+
+export async function pecahUkuran(
+  sql: Sql,
+  slug: string,
+  ukuran: { slug: string; label: string; price: number; weight_g: number; stock: number }[],
+): Promise<void> {
+  await sql`delete from product_variants where product_id = (select id from products where slug = ${slug})`;
+
+  for (const [i, u] of ukuran.entries()) {
+    await sql`
+      insert into product_variants (
+        product_id, slug, label, price, weight_g, stock, sort_order
+      )
+      values (
+        (select id from products where slug = ${slug}),
+        ${u.slug}, ${u.label}, ${u.price}, ${u.weight_g}, ${u.stock}, ${i}
+      )
+    `;
   }
 }

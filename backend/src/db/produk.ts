@@ -1,5 +1,6 @@
-import type { Sql } from "../lib/db";
+import { bentrokUnik, type Kueri, type Sql } from "../lib/db";
 import type { PerubahanBersih, ProdukBersih } from "../lib/products";
+import { LABEL_TUNGGAL } from "../lib/variants";
 
 export type BarisVarian = {
   slug: string;
@@ -7,6 +8,11 @@ export type BarisVarian = {
   price: number;
   weight_g: number;
   stock: number;
+};
+
+export type BarisVarianLengkap = BarisVarian & {
+  sort_order: number;
+  is_active: boolean;
 };
 
 export type BarisProduk = {
@@ -25,6 +31,10 @@ export type BarisProduk = {
   variants: BarisVarian[];
 };
 
+export type BarisProdukAdmin = Omit<BarisProduk, "variants"> & {
+  variants: BarisVarianLengkap[];
+};
+
 export type FilterProduk = {
   category?: string;
   featured?: boolean;
@@ -33,7 +43,7 @@ export type FilterProduk = {
   offset: number;
 };
 
-const kolom = (sql: Sql) => sql`
+const dasar = (sql: Kueri) => sql`
   id::int as id,
   slug,
   name,
@@ -45,7 +55,11 @@ const kolom = (sql: Sql) => sql`
   sold_per_month,
   is_featured,
   sort_order,
-  is_active,
+  is_active
+`;
+
+const kolom = (sql: Kueri) => sql`
+  ${dasar(sql)},
   coalesce((
     select jsonb_agg(
       jsonb_build_object(
@@ -58,6 +72,25 @@ const kolom = (sql: Sql) => sql`
     )
     from product_variants v
     where v.product_id = products.id and v.is_active
+  ), '[]'::jsonb) as variants
+`;
+
+const kolomAdmin = (sql: Kueri) => sql`
+  ${dasar(sql)},
+  coalesce((
+    select jsonb_agg(
+      jsonb_build_object(
+        'slug', v.slug,
+        'label', v.label,
+        'price', v.price,
+        'weight_g', v.weight_g,
+        'stock', v.stock,
+        'sort_order', v.sort_order,
+        'is_active', v.is_active
+      ) order by v.sort_order, v.price
+    )
+    from product_variants v
+    where v.product_id = products.id
   ), '[]'::jsonb) as variants
 `;
 
@@ -126,9 +159,9 @@ export async function satuProduk(
 }
 
 export async function daftarProdukAdmin(sql: Sql, limit = 100, offset = 0) {
-  const baris = await sql<(BarisProduk & { total: number })[]>`
+  const baris = await sql<(BarisProdukAdmin & { total: number })[]>`
     select
-      ${kolom(sql)},
+      ${kolomAdmin(sql)},
       (count(*) over ())::int as total
     from products
     order by sort_order
@@ -152,9 +185,9 @@ export async function daftarProdukAdmin(sql: Sql, limit = 100, offset = 0) {
 export async function satuProdukAdmin(
   sql: Sql,
   slug: string,
-): Promise<BarisProduk | undefined> {
-  const [produk] = await sql<BarisProduk[]>`
-    select ${kolom(sql)}
+): Promise<BarisProdukAdmin | undefined> {
+  const [produk] = await sql<BarisProdukAdmin[]>`
+    select ${kolomAdmin(sql)}
     from products
     where slug = ${slug}
     limit 1
@@ -164,50 +197,65 @@ export async function satuProdukAdmin(
 }
 
 export type HasilSimpan =
-  | { ok: true; produk: BarisProduk }
+  | { ok: true; produk: BarisProdukAdmin }
   | { ok: false; alasan: "slug_taken" };
-
-function slugBentrok(e: unknown): boolean {
-  return (
-    typeof e === "object" &&
-    e !== null &&
-    "code" in e &&
-    (e as { code: unknown }).code === "23505"
-  );
-}
 
 export async function simpanProdukBaru(
   sql: Sql,
   b: ProdukBersih,
 ): Promise<HasilSimpan> {
   try {
-    const [produk] = await sql<BarisProduk[]>`
-      insert into products (
-        slug, name, description, price, weight_g, stock,
-        category, is_featured, sold_per_month, sort_order, is_active
-      )
-      values (
-        ${b.slug},
-        ${b.name},
-        ${b.description},
-        ${b.price},
-        ${b.weight_g},
-        ${b.stock},
-        ${b.category},
-        ${b.is_featured},
-        ${b.sold_per_month},
-        coalesce(
-          ${b.sort_order}::int,
-          (select coalesce(max(sort_order), 0) + 1 from products)
-        ),
-        ${b.is_active}
-      )
-      returning ${kolom(sql)}
-    `;
+    const produk = await sql.begin(async (tx) => {
+      const [induk] = await tx<{ id: number }[]>`
+        insert into products (
+          slug, name, description, price, weight_g, stock,
+          category, is_featured, sold_per_month, sort_order, is_active
+        )
+        values (
+          ${b.slug},
+          ${b.name},
+          ${b.description},
+          ${b.price},
+          ${b.weight_g},
+          ${b.stock},
+          ${b.category},
+          ${b.is_featured},
+          ${b.sold_per_month},
+          coalesce(
+            ${b.sort_order}::int,
+            (select coalesce(max(sort_order), 0) + 1 from products)
+          ),
+          ${b.is_active}
+        )
+        returning id::int as id
+      `;
 
-    return { ok: true, produk };
+      await tx`
+        insert into product_variants (
+          product_id, slug, label, price, weight_g, stock
+        )
+        values (
+          ${induk.id},
+          ${b.slug},
+          ${LABEL_TUNGGAL},
+          ${b.price},
+          ${b.weight_g},
+          ${b.stock}
+        )
+      `;
+
+      const [lengkap] = await tx<BarisProdukAdmin[]>`
+        select ${kolomAdmin(tx)}
+        from products
+        where id = ${induk.id}
+      `;
+
+      return [lengkap];
+    });
+
+    return { ok: true, produk: produk[0] };
   } catch (e) {
-    if (slugBentrok(e)) return { ok: false, alasan: "slug_taken" };
+    if (bentrokUnik(e)) return { ok: false, alasan: "slug_taken" };
     throw e;
   }
 }
@@ -216,16 +264,16 @@ export async function perbaruiProduk(
   sql: Sql,
   slug: string,
   b: PerubahanBersih,
-): Promise<BarisProduk | undefined> {
+): Promise<BarisProdukAdmin | undefined> {
   if (Object.keys(b).length === 0) {
     return satuProdukAdmin(sql, slug);
   }
 
-  const [produk] = await sql<BarisProduk[]>`
+  const [produk] = await sql<BarisProdukAdmin[]>`
     update products
     set ${sql(b as Record<string, never>)}
     where slug = ${slug}
-    returning ${kolom(sql)}
+    returning ${kolomAdmin(sql)}
   `;
 
   return produk;

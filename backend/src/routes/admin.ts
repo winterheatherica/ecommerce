@@ -4,12 +4,14 @@ import { Elysia, t } from "elysia";
 import { periksaAdmin } from "../lib/auth";
 import { buatKoneksi, tutup } from "../lib/db";
 import { periksaPerubahan, periksaProdukBaru } from "../lib/products";
+import { periksaPerubahanVarian, periksaVarianBaru } from "../lib/variants";
 import {
   daftarProdukAdmin,
   perbaruiProduk,
   satuProdukAdmin,
   simpanProdukBaru,
 } from "../db/produk";
+import { perbaruiVarian, tambahVarian } from "../db/varian";
 import {
   batalkanPesanan,
   daftarPesanan,
@@ -330,6 +332,90 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
         category: t.Optional(t.String({ maxLength: 40 })),
         is_featured: t.Optional(t.Boolean()),
         sold_per_month: t.Optional(t.Integer({ minimum: 0, maximum: 100000 })),
+        sort_order: t.Optional(t.Integer({ minimum: 0, maximum: 10000 })),
+        is_active: t.Optional(t.Boolean()),
+      }),
+    },
+  )
+  .post(
+    "/products/:slug/variants",
+    async ({ params, body, set }) => {
+      const periksa = periksaVarianBaru(body);
+
+      if (!periksa.ok) {
+        set.status = periksa.status;
+        return periksa.badan;
+      }
+
+      const sql = koneksi();
+
+      try {
+        const hasil = await tambahVarian(sql, params.slug, periksa.bersih);
+
+        if (!hasil.ok && hasil.alasan === "not_found") {
+          set.status = 404;
+          return { error: "not_found", message: "Produk tidak ditemukan" };
+        }
+
+        if (!hasil.ok) {
+          set.status = 409;
+          return {
+            error: "slug_taken",
+            message: `Slug "${periksa.bersih.slug}" sudah dipakai varian lain`,
+            field: "slug",
+          };
+        }
+
+        set.status = 201;
+        return hasil.varian;
+      } finally {
+        await tutup(sql);
+      }
+    },
+    {
+      params: t.Object({ slug: t.String({ maxLength: 120 }) }),
+      body: t.Object({
+        slug: t.String({ minLength: 1, maxLength: 120 }),
+        label: t.String({ minLength: 1, maxLength: 60 }),
+        price: t.Integer({ minimum: 1, maximum: 100000000 }),
+        weight_g: t.Integer({ minimum: 1, maximum: 50000 }),
+        stock: t.Optional(t.Integer({ minimum: 0, maximum: 100000 })),
+        sort_order: t.Optional(t.Integer({ minimum: 0, maximum: 10000 })),
+      }),
+    },
+  )
+  .patch(
+    "/variants/:slug",
+    async ({ params, body, set }) => {
+      const periksa = periksaPerubahanVarian(body);
+
+      if (!periksa.ok) {
+        set.status = periksa.status;
+        return periksa.badan;
+      }
+
+      const sql = koneksi();
+
+      try {
+        const varian = await perbaruiVarian(sql, params.slug, periksa.bersih);
+
+        if (!varian) {
+          set.status = 404;
+          return { error: "not_found", message: "Varian tidak ditemukan" };
+        }
+
+        return varian;
+      } finally {
+        await tutup(sql);
+      }
+    },
+    {
+      params: t.Object({ slug: t.String({ maxLength: 120 }) }),
+      body: t.Object({
+        label: t.Optional(t.String({ minLength: 1, maxLength: 60 })),
+        price: t.Optional(t.Integer({ minimum: 1, maximum: 100000000 })),
+        weight_g: t.Optional(t.Integer({ minimum: 1, maximum: 50000 })),
+        stock: t.Optional(t.Integer({ minimum: 0, maximum: 100000 })),
         sort_order: t.Optional(t.Integer({ minimum: 0, maximum: 10000 })),
         is_active: t.Optional(t.Boolean()),
       }),

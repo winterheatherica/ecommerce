@@ -25,6 +25,7 @@ describe("database tes", () => {
       "order_items",
       "orders",
       "product_images",
+      "product_variants",
       "products",
       "regions",
       "shipping_quotes",

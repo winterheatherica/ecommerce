@@ -1,6 +1,6 @@
 import AdminSweepButton from "@/app/components/admin-sweep-button";
 import Link from "next/link";
-import { rupiah } from "@/app/data/produk";
+import { namaDenganUkuran, rupiah } from "@/app/data/produk";
 import { statusLabel, statusWarna } from "@/app/data/status-pesanan";
 import { ambilDaftarPesanan, ambilProdukAdmin } from "@/app/lib/api";
 
@@ -16,8 +16,13 @@ export default async function AdminRingkasanPage() {
   const perluDikirim = daftarPesanan.filter((p) => p.status === "PAID");
   const menungguBayar = daftarPesanan.filter((p) => p.status === "PENDING");
   const stokMenipis = daftarProduk
-    .filter((p) => p.stok <= AMBANG_STOK_MENIPIS)
-    .sort((a, b) => a.stok - b.stok);
+    .flatMap((produk) =>
+      produk.varian
+        .filter((varian) => varian.aktif !== false)
+        .map((varian) => ({ produk, varian })),
+    )
+    .filter((x) => x.varian.stok <= AMBANG_STOK_MENIPIS)
+    .sort((a, b) => a.varian.stok - b.varian.stok);
 
   const terbaru = [...daftarPesanan]
     .sort((a, b) => b.created_at.localeCompare(a.created_at))
@@ -57,7 +62,7 @@ export default async function AdminRingkasanPage() {
             {stokMenipis.length}
           </p>
           <p className="mt-2 text-sm text-stone-500">
-            Sisa {AMBANG_STOK_MENIPIS} unit atau kurang.
+            Ukuran yang sisanya {AMBANG_STOK_MENIPIS} unit atau kurang.
           </p>
         </Link>
       </div>
@@ -68,15 +73,20 @@ export default async function AdminRingkasanPage() {
             <h2 className="text-sm font-medium text-ink">Stok yang perlu diisi</h2>
           </div>
           <ul className="divide-y divide-ink/5">
-            {stokMenipis.slice(0, TAMPIL_STOK).map((p) => (
-              <li key={p.slug} className="flex items-center justify-between gap-4 px-6 py-3">
-                <span className="text-sm text-stone-700">{p.nama}</span>
+            {stokMenipis.slice(0, TAMPIL_STOK).map((x) => (
+              <li
+                key={x.varian.slug}
+                className="flex items-center justify-between gap-4 px-6 py-3"
+              >
+                <span className="text-sm text-stone-700">
+                  {namaDenganUkuran(x)}
+                </span>
                 <span
                   className={`font-mono text-sm ${
-                    p.stok === 0 ? "text-red-600" : "text-amber-600"
+                    x.varian.stok === 0 ? "text-red-600" : "text-amber-600"
                   }`}
                 >
-                  {p.stok}
+                  {x.varian.stok}
                 </span>
               </li>
             ))}
@@ -87,7 +97,7 @@ export default async function AdminRingkasanPage() {
                 href="/admin/produk"
                 className="font-mono text-[13px] tracking-[0.18em] text-stone-500 uppercase transition-colors hover:text-brand-600"
               >
-                {stokMenipis.length - TAMPIL_STOK} produk lainnya &rarr;
+                {stokMenipis.length - TAMPIL_STOK} ukuran lainnya &rarr;
               </Link>
             </div>
           )}

@@ -1,7 +1,7 @@
 import { afterAll, beforeEach, describe, expect, it } from "vitest";
 
 import type { Sql } from "../lib/db";
-import { bersihkan, koneksiTes } from "../test/db";
+import { bersihkan, koneksiTes, pecahUkuran } from "../test/db";
 import {
   ambilPesanan,
   batalkanPesanan,
@@ -226,7 +226,8 @@ describe("buatPesanan", () => {
 
   it("membekukan harga dan nama produk di item pesanan", async () => {
     const pesanan = await buat();
-    await sql`update products set price = 1, name = 'Diganti' where slug = ${KUCING}`;
+    await sql`update products set name = 'Diganti' where slug = ${KUCING}`;
+    await sql`update product_variants set price = 1 where slug = ${KUCING}`;
 
     const lagi = await cariPesanan(sql, pesanan.order_no);
 
@@ -234,6 +235,53 @@ describe("buatPesanan", () => {
     expect(lagi?.items[0].name_snapshot).toBe(
       "Alat pengusir kucing Bye Bye Cat 50g",
     );
+  });
+
+  it("memotong stok ukuran yang dipilih saja", async () => {
+    await pecahUkuran(sql, KUCING, [
+      { slug: "kucing-50g", label: "50 g", price: 49000, weight_g: 50, stock: 10 },
+      { slug: "kucing-80g", label: "80 g", price: 59000, weight_g: 80, stock: 7 },
+    ]);
+
+    await buat({ items: [{ slug: "kucing-80g", qty: 2 }] });
+
+    const baris = await sql<{ slug: string; stock: number }[]>`
+      select slug, stock from product_variants
+      where slug in ('kucing-50g', 'kucing-80g')
+      order by slug
+    `;
+
+    expect(baris).toEqual([
+      { slug: "kucing-50g", stock: 10 },
+      { slug: "kucing-80g", stock: 5 },
+    ]);
+    expect(await stok(KUCING)).toBe(15);
+  });
+
+  it("menyertakan ukuran di nama item kalau produknya punya lebih dari satu", async () => {
+    await pecahUkuran(sql, KUCING, [
+      { slug: "kucing-50g", label: "50 g", price: 49000, weight_g: 50, stock: 10 },
+      { slug: "kucing-80g", label: "80 g", price: 59000, weight_g: 80, stock: 7 },
+    ]);
+
+    const pesanan = await buat({ items: [{ slug: "kucing-80g", qty: 1 }] });
+    const lagi = await cariPesanan(sql, pesanan.order_no);
+
+    expect(lagi?.items[0].name_snapshot).toBe(
+      "Alat pengusir kucing Bye Bye Cat 50g (80 g)",
+    );
+    expect(lagi?.items[0].price_snapshot).toBe(59000);
+  });
+
+  it("memakai berat ukuran yang dipilih, bukan ukuran termurah", async () => {
+    await pecahUkuran(sql, KUCING, [
+      { slug: "kucing-50g", label: "50 g", price: 49000, weight_g: 50, stock: 10 },
+      { slug: "kucing-80g", label: "80 g", price: 59000, weight_g: 80, stock: 7 },
+    ]);
+
+    const pesanan = await buat({ items: [{ slug: "kucing-80g", qty: 3 }] });
+
+    expect(pesanan.weight_g).toBe(240);
   });
 
   it("membuat nomor pesanan yang tidak berurutan", async () => {
@@ -321,7 +369,10 @@ describe("buatPesanan", () => {
   });
 
   it("menolak nilai pesanan yang melampaui batas integer, stok kembali utuh", async () => {
-    await sql`update products set price = 100000000, stock = 99 where slug = ${KUCING}`;
+    await sql`
+      update product_variants set price = 100000000, stock = 99
+      where slug = ${KUCING}
+    `;
     const hasil = await buatPesanan(
       sql,
       permintaan({ items: [{ slug: KUCING, qty: 99 }] }),
@@ -344,7 +395,7 @@ describe("buatPesanan", () => {
 
 describe("balapan stok", () => {
   it("dua pesanan berebut stok terakhir, hanya satu yang berhasil", async () => {
-    await sql`update products set stock = 1 where slug = ${KUCING}`;
+    await sql`update product_variants set stock = 1 where slug = ${KUCING}`;
 
     const a = koneksiTes();
     const b = koneksiTes();
