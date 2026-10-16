@@ -2,10 +2,13 @@ import type { Gagal } from "./products";
 
 const POLA_SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
+const POLA_SKU = /^[A-Za-z0-9][A-Za-z0-9._\/-]{0,39}$/;
+
 export const LABEL_TUNGGAL = "Standar";
 
 export type VarianBaru = {
   slug: string;
+  sku?: string;
   label: string;
   price: number;
   weight_g: number;
@@ -15,6 +18,7 @@ export type VarianBaru = {
 
 export type VarianBersih = {
   slug: string;
+  sku: string | null;
   label: string;
   price: number;
   weight_g: number;
@@ -23,6 +27,7 @@ export type VarianBersih = {
 };
 
 export type PerubahanVarian = {
+  sku?: string;
   label?: string;
   price?: number;
   weight_g?: number;
@@ -32,6 +37,16 @@ export type PerubahanVarian = {
 };
 
 export type PerubahanVarianBersih = PerubahanVarian;
+
+const GALAT_SKU: Gagal = {
+  status: 422,
+  badan: {
+    error: "invalid_sku",
+    message:
+      "SKU hanya boleh huruf, angka, titik, garis bawah, garis miring, dan tanda hubung, maksimal 40 karakter",
+    field: "sku",
+  },
+};
 
 const GALAT_LABEL: Gagal = {
   status: 422,
@@ -62,10 +77,14 @@ export function periksaVarianBaru(
   const label = data.label.trim();
   if (!label) return { ok: false, ...GALAT_LABEL };
 
+  const sku = data.sku?.trim() || null;
+  if (sku !== null && !POLA_SKU.test(sku)) return { ok: false, ...GALAT_SKU };
+
   return {
     ok: true,
     bersih: {
       slug,
+      sku,
       label,
       price: data.price,
       weight_g: data.weight_g,
@@ -79,6 +98,12 @@ export function periksaPerubahanVarian(
   p: PerubahanVarian,
 ): { ok: true; bersih: PerubahanVarianBersih } | ({ ok: false } & Gagal) {
   const bersih: PerubahanVarianBersih = {};
+
+  if (p.sku !== undefined) {
+    const sku = p.sku.trim();
+    if (!POLA_SKU.test(sku)) return { ok: false, ...GALAT_SKU };
+    bersih.sku = sku;
+  }
 
   if (p.label !== undefined) {
     const label = p.label.trim();

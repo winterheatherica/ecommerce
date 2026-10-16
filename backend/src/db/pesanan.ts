@@ -14,6 +14,7 @@ import { cariOpsi, type OpsiOngkir } from "../lib/shipping";
 export type ItemPesanan = {
   product_id: number;
   slug: string;
+  sku: string | null;
   name_snapshot: string;
   qty: number;
   price_snapshot: number;
@@ -29,6 +30,7 @@ export type Pesanan = {
   notes: string | null;
   dest_id: string;
   dest_label: string;
+  dest_postal_code: string | null;
   courier: string;
   service: string;
   etd: string | null;
@@ -83,6 +85,7 @@ const pilih = (sql: Sql) => sql`
   o.notes,
   o.dest_id,
   r.label as dest_label,
+  r.postal_code as dest_postal_code,
   o.courier,
   o.service,
   o.etd,
@@ -106,6 +109,7 @@ const pilih = (sql: Sql) => sql`
         json_build_object(
           'product_id', i.product_id::int,
           'slug', p.slug,
+          'sku', v.sku,
           'name_snapshot', i.name_snapshot,
           'qty', i.qty,
           'price_snapshot', i.price_snapshot
@@ -114,6 +118,7 @@ const pilih = (sql: Sql) => sql`
       )
       from order_items i
       join products p on p.id = i.product_id
+      left join product_variants v on v.id = i.variant_id
       where i.order_id = o.id
     ),
     '[]'::json

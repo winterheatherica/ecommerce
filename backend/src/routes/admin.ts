@@ -357,6 +357,17 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
           return { error: "not_found", message: "Produk tidak ditemukan" };
         }
 
+        if (!hasil.ok && hasil.alasan === "sku_taken") {
+          set.status = 409;
+          return {
+            error: "sku_taken",
+            message: periksa.bersih.sku
+              ? `SKU "${periksa.bersih.sku}" sudah dipakai varian lain`
+              : "SKU otomatis bentrok dengan SKU yang diisi manual. Coba simpan sekali lagi",
+            field: "sku",
+          };
+        }
+
         if (!hasil.ok) {
           set.status = 409;
           return {
@@ -376,6 +387,7 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
       params: t.Object({ slug: t.String({ maxLength: 120 }) }),
       body: t.Object({
         slug: t.String({ minLength: 1, maxLength: 120 }),
+        sku: t.Optional(t.String({ maxLength: 40 })),
         label: t.String({ minLength: 1, maxLength: 60 }),
         price: t.Integer({ minimum: 1, maximum: 100000000 }),
         weight_g: t.Integer({ minimum: 1, maximum: 50000 }),
@@ -397,14 +409,23 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
       const sql = koneksi();
 
       try {
-        const varian = await perbaruiVarian(sql, params.slug, periksa.bersih);
+        const hasil = await perbaruiVarian(sql, params.slug, periksa.bersih);
 
-        if (!varian) {
+        if (!hasil.ok && hasil.alasan === "sku_taken") {
+          set.status = 409;
+          return {
+            error: "sku_taken",
+            message: `SKU "${periksa.bersih.sku}" sudah dipakai varian lain`,
+            field: "sku",
+          };
+        }
+
+        if (!hasil.ok) {
           set.status = 404;
           return { error: "not_found", message: "Varian tidak ditemukan" };
         }
 
-        return varian;
+        return hasil.varian;
       } finally {
         await tutup(sql);
       }
@@ -412,6 +433,7 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
     {
       params: t.Object({ slug: t.String({ maxLength: 120 }) }),
       body: t.Object({
+        sku: t.Optional(t.String({ minLength: 1, maxLength: 40 })),
         label: t.Optional(t.String({ minLength: 1, maxLength: 60 })),
         price: t.Optional(t.Integer({ minimum: 1, maximum: 100000000 })),
         weight_g: t.Optional(t.Integer({ minimum: 1, maximum: 50000 })),

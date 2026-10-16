@@ -11,6 +11,7 @@ export type BarisVarian = {
 };
 
 export type BarisVarianLengkap = BarisVarian & {
+  sku: string;
   sort_order: number;
   is_active: boolean;
 };
@@ -85,6 +86,7 @@ const kolomAdmin = (sql: Kueri) => sql`
         'price', v.price,
         'weight_g', v.weight_g,
         'stock', v.stock,
+        'sku', v.sku,
         'sort_order', v.sort_order,
         'is_active', v.is_active
       ) order by v.sort_order, v.price

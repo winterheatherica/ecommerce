@@ -34,3 +34,10 @@ export function bentrokUnik(e: unknown): boolean {
     (e as { code: unknown }).code === "23505"
   );
 }
+
+export function kendalaBentrok(e: unknown): string | null {
+  if (!bentrokUnik(e)) return null;
+
+  const nama = (e as { constraint_name?: unknown }).constraint_name;
+  return typeof nama === "string" ? nama : null;
+}

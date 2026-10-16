@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useSuntingDiTempat } from "@/app/lib/sunting-di-tempat";
 
 type Props = {
   nilai: number;
@@ -19,44 +19,25 @@ export default function AdminNumberBox({
   mati,
   onSimpan,
 }: Props) {
-  const [draf, setDraf] = useState(String(nilai));
-  const [fokus, setFokus] = useState(false);
-
-  const simpan = () => {
-    setFokus(false);
-
-    const bersih = draf.trim();
-    const angka = Number(bersih);
-
-    if (!bersih || !Number.isInteger(angka) || angka < min) {
-      setDraf(String(nilai));
-      return;
-    }
-
-    if (angka !== nilai) onSimpan(angka);
-  };
+  const sunting = useSuntingDiTempat(
+    nilai,
+    String,
+    (teks) => {
+      const bersih = teks.trim();
+      const angka = Number(bersih);
+      return bersih && Number.isInteger(angka) && angka >= min ? angka : null;
+    },
+    onSimpan,
+  );
 
   return (
     <input
       type="number"
       min={min}
       inputMode="numeric"
-      value={fokus ? draf : String(nilai)}
       aria-label={label}
       disabled={mati}
-      onFocus={() => {
-        setDraf(String(nilai));
-        setFokus(true);
-      }}
-      onChange={(e) => setDraf(e.target.value)}
-      onBlur={simpan}
-      onKeyDown={(e) => {
-        if (e.key === "Enter") e.currentTarget.blur();
-        if (e.key === "Escape") {
-          setDraf(String(nilai));
-          e.currentTarget.blur();
-        }
-      }}
+      {...sunting}
       className={`border px-2 py-1.5 text-right font-mono text-sm outline-none transition-colors focus:border-brand-500 disabled:cursor-not-allowed ${kelas}`}
     />
   );

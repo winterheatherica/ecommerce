@@ -212,6 +212,7 @@ export async function ubahProduk(
 }
 
 export type PerubahanVarian = {
+  sku?: string;
   label?: string;
   price?: number;
   weight_g?: number;
@@ -221,6 +222,7 @@ export type PerubahanVarian = {
 
 export type VarianBaru = {
   slug: string;
+  sku?: string;
   label: string;
   price: number;
   weight_g: number;

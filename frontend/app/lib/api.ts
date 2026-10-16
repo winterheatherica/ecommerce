@@ -19,6 +19,7 @@ function kepalaAdmin(): HeadersInit {
 
 type VarianAPI = {
   slug: string;
+  sku?: string;
   label: string;
   price: number;
   weight_g: number;
@@ -51,6 +52,7 @@ type DaftarAPI = {
 function petakan(p: ProdukAPI): Produk {
   const varian = (p.variants ?? []).map((v) => ({
     slug: v.slug,
+    sku: v.sku,
     label: v.label,
     harga: v.price,
     beratG: v.weight_g,
@@ -155,6 +157,7 @@ export const ambilSatuProduk = cache(async function ambilSatuProduk(
 export type ItemPesanan = {
   product_id: number;
   slug: string;
+  sku: string | null;
   name_snapshot: string;
   qty: number;
   price_snapshot: number;
@@ -170,6 +173,7 @@ export type Pesanan = {
   notes: string | null;
   dest_id: string;
   dest_label: string;
+  dest_postal_code: string | null;
   courier: string;
   service: string;
   etd: string | null;

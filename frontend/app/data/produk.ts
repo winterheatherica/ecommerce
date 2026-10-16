@@ -23,6 +23,7 @@ export type Kategori =
 
 export type Varian = {
   slug: string;
+  sku?: string;
   label: string;
   harga: number;
   beratG: number;

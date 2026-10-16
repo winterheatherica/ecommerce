@@ -148,9 +148,21 @@ export default function AdminOrders({ pesanan, status }: Props) {
         ))}
       </div>
 
-      <p className="mt-6 font-mono text-[13px] tracking-[0.16em] text-stone-500 uppercase">
-        {pesanan.length} pesanan
-      </p>
+      <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
+        <p className="font-mono text-[13px] tracking-[0.16em] text-stone-500 uppercase">
+          {pesanan.length} pesanan
+        </p>
+        {status === "PAID" && pesanan.length > 0 && (
+          <a
+            href="/admin/pesanan/label?status=PAID"
+            target="_blank"
+            rel="noopener"
+            className="border border-ink px-4 py-2 font-mono text-[12px] tracking-[0.18em] text-ink uppercase transition-colors hover:bg-ink hover:text-white"
+          >
+            Cetak semua label ({pesanan.length})
+          </a>
+        )}
+      </div>
 
       {galat && (
         <p role="alert" className="mt-4 border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">
@@ -238,8 +250,8 @@ export default function AdminOrders({ pesanan, status }: Props) {
                         Isi pesanan
                       </p>
                       <ul className="mt-2 space-y-1.5">
-                        {p.items.map((it) => (
-                          <li key={it.slug} className="flex justify-between gap-4 text-sm">
+                        {p.items.map((it, i) => (
+                          <li key={`${it.slug}-${i}`} className="flex justify-between gap-4 text-sm">
                             <span className="text-stone-700">
                               {it.qty}&times; {it.name_snapshot}
                             </span>
@@ -263,7 +275,25 @@ export default function AdminOrders({ pesanan, status }: Props) {
                   </div>
 
                   {p.status === "PAID" && (
-                    <div className="mt-8 flex flex-wrap items-center gap-3 border-t border-ink/10 pt-6">
+                    <div className="mt-8 border-t border-ink/10 pt-6">
+                      <div className="flex flex-wrap items-center gap-3">
+                        <a
+                          href={`/admin/pesanan/label?no=${encodeURIComponent(p.order_no)}`}
+                          target="_blank"
+                          rel="noopener"
+                          className="border border-ink px-6 py-2.5 font-mono text-[13px] tracking-[0.18em] text-ink uppercase transition-colors hover:bg-ink hover:text-white"
+                        >
+                          Cetak label
+                        </a>
+                        <span className="text-xs text-stone-500">
+                          Tempel di paket sebelum di-drop ke kurir. Resi diisi setelah dapat struk.
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                  {p.status === "PAID" && (
+                    <div className="mt-4 flex flex-wrap items-center gap-3">
                       <input
                         value={resi}
                         onChange={(e) => setResi(e.target.value)}

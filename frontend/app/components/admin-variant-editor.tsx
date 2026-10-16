@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 import AdminNumberBox from "@/app/components/admin-number-box";
+import AdminTextBox from "@/app/components/admin-text-box";
 import { tambahVarian, ubahVarian } from "@/app/lib/api-client";
 import { rupiah, type Produk, type Varian } from "@/app/data/produk";
 
@@ -29,6 +30,7 @@ export default function AdminVariantEditor({ produk }: { produk: Produk }) {
   const [labelBaru, setLabelBaru] = useState("");
   const [slugBaru, setSlugBaru] = useState("");
   const [slugDisentuh, setSlugDisentuh] = useState(false);
+  const [skuBaru, setSkuBaru] = useState("");
   const [hargaBaru, setHargaBaru] = useState("");
   const [beratBaru, setBeratBaru] = useState("");
   const [stokBaru, setStokBaru] = useState("0");
@@ -72,11 +74,6 @@ export default function AdminVariantEditor({ produk }: { produk: Produk }) {
     void simpan(v.slug, { aktif: berikut }, { is_active: berikut });
   };
 
-  const ubahLabel = (v: Varian, nilai: string) => {
-    const bersih = nilai.trim();
-    if (!bersih || bersih === v.label) return;
-    void simpan(v.slug, { label: bersih }, { label: bersih });
-  };
 
   const ubahLabelBaru = (nilai: string) => {
     setLabelBaru(nilai);
@@ -108,6 +105,7 @@ export default function AdminVariantEditor({ produk }: { produk: Produk }) {
     try {
       await tambahVarian(produk.slug, {
         slug: slugBaru.trim(),
+        sku: skuBaru.trim() || undefined,
         label: labelBaru.trim(),
         price: Number(hargaBaru),
         weight_g: Number(beratBaru),
@@ -118,6 +116,7 @@ export default function AdminVariantEditor({ produk }: { produk: Produk }) {
         ...lama,
         {
           slug: slugBaru.trim(),
+          sku: skuBaru.trim() || undefined,
           label: labelBaru.trim(),
           harga: Number(hargaBaru),
           beratG: Number(beratBaru),
@@ -130,6 +129,7 @@ export default function AdminVariantEditor({ produk }: { produk: Produk }) {
       setLabelBaru("");
       setSlugBaru("");
       setSlugDisentuh(false);
+      setSkuBaru("");
       setHargaBaru("");
       setBeratBaru("");
       setStokBaru("0");
@@ -166,6 +166,7 @@ export default function AdminVariantEditor({ produk }: { produk: Produk }) {
           <thead>
             <tr className="border-b border-ink/10 text-left">
               <th className={kepala}>Ukuran</th>
+              <th className={kepala}>SKU</th>
               <th className={`${kepala} text-right`}>Harga</th>
               <th className={`${kepala} text-right`}>Berat (g)</th>
               <th className={`${kepala} text-right`}>Stok</th>
@@ -176,16 +177,25 @@ export default function AdminVariantEditor({ produk }: { produk: Produk }) {
             {varian.map((v) => (
               <tr key={v.slug} className={v.aktif === false ? "bg-stone-50" : ""}>
                 <td className="px-3 py-3">
-                  <input
-                    defaultValue={v.label}
-                    aria-label={`Label ukuran ${v.label}`}
-                    disabled={menyimpan === v.slug}
-                    onBlur={(e) => ubahLabel(v, e.target.value)}
-                    className="w-28 border border-ink/15 bg-white px-2 py-1.5 text-sm text-ink outline-none transition-colors focus:border-brand-500 disabled:bg-stone-100"
+                  <AdminTextBox
+                    nilai={v.label}
+                    label={`Label ukuran ${v.label}`}
+                    kelas="w-28 border-ink/15"
+                    mati={menyimpan === v.slug}
+                    onSimpan={(teks) => void simpan(v.slug, { label: teks }, { label: teks })}
                   />
                   <span className="mt-1 block font-mono text-[12px] text-stone-400">
                     {v.slug}
                   </span>
+                </td>
+                <td className="px-3 py-3">
+                  <AdminTextBox
+                    nilai={v.sku ?? ""}
+                    label={`SKU ukuran ${v.label}`}
+                    kelas="w-24 border-ink/15 font-mono"
+                    mati={menyimpan === v.slug}
+                    onSimpan={(teks) => void simpan(v.slug, { sku: teks }, { sku: teks })}
+                  />
                 </td>
                 <td className="px-3 py-3 text-right">
                   <AdminNumberBox
@@ -259,7 +269,7 @@ export default function AdminVariantEditor({ produk }: { produk: Produk }) {
           </h3>
 
           <fieldset disabled={menambah} className="mt-6 space-y-6">
-            <div className="grid gap-6 sm:grid-cols-2">
+            <div className="grid gap-6 sm:grid-cols-3">
               <div>
                 <label className={label} htmlFor="label-baru">
                   Label
@@ -284,6 +294,18 @@ export default function AdminVariantEditor({ produk }: { produk: Produk }) {
                     setSlugDisentuh(true);
                   }}
                   placeholder={`${produk.slug}-120g`}
+                  className={`${kotak} font-mono`}
+                />
+              </div>
+              <div>
+                <label className={label} htmlFor="sku-baru">
+                  SKU
+                </label>
+                <input
+                  id="sku-baru"
+                  value={skuBaru}
+                  onChange={(e) => setSkuBaru(e.target.value)}
+                  placeholder="Otomatis"
                   className={`${kotak} font-mono`}
                 />
               </div>

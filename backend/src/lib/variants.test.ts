@@ -101,3 +101,48 @@ describe("periksaPerubahanVarian", () => {
     expect(hasil.badan.error).toBe("invalid_label");
   });
 });
+
+describe("SKU varian", () => {
+  it("menerima format SKU yang umum dipakai penjual", () => {
+    for (const sku of ["001", "GOCAT-350", "BBC.80g", "PAKET/01", "a_b"]) {
+      const hasil = periksaVarianBaru(baru({ sku }));
+      expect(hasil.ok, sku).toBe(true);
+    }
+  });
+
+  it("menolak spasi, awalan simbol, dan yang terlalu panjang", () => {
+    for (const sku of ["GO CAT", "-001", "#12", "x".repeat(41)]) {
+      const hasil = periksaVarianBaru(baru({ sku }));
+
+      expect(hasil.ok, sku).toBe(false);
+      if (hasil.ok) return;
+      expect(hasil.badan.error).toBe("invalid_sku");
+    }
+  });
+
+  it("SKU kosong saat menambah berarti minta nomor otomatis", () => {
+    for (const sku of [undefined, "", "   "]) {
+      const hasil = periksaVarianBaru(baru({ sku }));
+
+      expect(hasil.ok).toBe(true);
+      if (!hasil.ok) return;
+      expect(hasil.bersih.sku).toBeNull();
+    }
+  });
+
+  it("SKU kosong saat mengubah ditolak, karena setiap varian wajib punya SKU", () => {
+    const hasil = periksaPerubahanVarian({ sku: "  " });
+
+    expect(hasil.ok).toBe(false);
+    if (hasil.ok) return;
+    expect(hasil.badan.error).toBe("invalid_sku");
+  });
+
+  it("membuang spasi di tepi SKU", () => {
+    const hasil = periksaPerubahanVarian({ sku: "  GOCAT-350 " });
+
+    expect(hasil.ok).toBe(true);
+    if (!hasil.ok) return;
+    expect(hasil.bersih.sku).toBe("GOCAT-350");
+  });
+});

@@ -183,8 +183,8 @@ export default async function StatusPesananPage({ params }: Props) {
             Rincian
           </h2>
           <ul className="mt-4 space-y-2">
-            {pesanan.items.map((it) => (
-              <li key={it.slug} className="flex justify-between gap-4 text-sm">
+            {pesanan.items.map((it, i) => (
+              <li key={`${it.slug}-${i}`} className="flex justify-between gap-4 text-sm">
                 <span className="text-stone-700">
                   {it.qty}&times; {it.name_snapshot}
                 </span>

@@ -13,9 +13,11 @@ export default function AdminLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <div className="flex min-h-full flex-col bg-stone-50 lg:flex-row">
-      <AdminNav />
-      <main className="flex-1 px-6 py-10 lg:px-10">{children}</main>
+    <div className="flex min-h-full flex-col bg-stone-50 lg:flex-row print:block print:bg-white">
+      <div className="contents print:hidden">
+        <AdminNav />
+      </div>
+      <main className="flex-1 px-6 py-10 lg:px-10 print:p-0">{children}</main>
     </div>
   );
 }

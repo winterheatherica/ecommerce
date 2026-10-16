@@ -391,6 +391,24 @@ describe("buatPesanan", () => {
 
     expect(pesanan.dest_label).toBe("Coblong, Kota Bandung, Jawa Barat");
   });
+
+  it("menyertakan kode pos dan SKU, karena label kirim membutuhkannya", async () => {
+    await sql`update product_variants set sku = 'GOCAT-50' where slug = ${KUCING}`;
+
+    const pesanan = await buat({
+      items: [
+        { slug: KUCING, qty: 2 },
+        { slug: NYAMUK, qty: 1 },
+      ],
+    });
+    const lagi = await cariPesanan(sql, pesanan.order_no);
+
+    expect(lagi?.dest_postal_code).toBe("40132");
+    expect(lagi?.items.map((i) => [i.slug, i.sku, i.qty])).toEqual([
+      [KUCING, "GOCAT-50", 2],
+      [NYAMUK, expect.stringMatching(/^\d{3}$/), 1],
+    ]);
+  });
 });
 
 describe("balapan stok", () => {

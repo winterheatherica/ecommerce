@@ -25,6 +25,11 @@ export const KONTAK = {
   maps: "https://maps.app.goo.gl/bJCzn1oBK7J1mZrS7",
 } as const;
 
+export const PENGIRIM_LABEL = {
+  nama: "Menikstore12",
+  hp: KONTAK.waTampil,
+} as const;
+
 export const INSTAGRAM_URL = "https://www.instagram.com/menikstore12";
 
 export const WA_URL = "https://wa.me/message/3CITYZQM7RROA1";

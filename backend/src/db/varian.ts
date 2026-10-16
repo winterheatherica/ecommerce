@@ -1,9 +1,10 @@
-import { bentrokUnik, type Kueri, type Sql } from "../lib/db";
+import { kendalaBentrok, type Kueri, type Sql } from "../lib/db";
 import type { PerubahanVarianBersih, VarianBersih } from "../lib/variants";
 
 export type BarisVarianAdmin = {
   id: number;
   slug: string;
+  sku: string;
   label: string;
   price: number;
   weight_g: number;
@@ -15,6 +16,7 @@ export type BarisVarianAdmin = {
 const kolom = (sql: Kueri) => sql`
   v.id::int as id,
   v.slug,
+  v.sku,
   v.label,
   v.price,
   v.weight_g,
@@ -22,6 +24,16 @@ const kolom = (sql: Kueri) => sql`
   v.sort_order,
   v.is_active
 `;
+
+type AlasanBentrok = "slug_taken" | "sku_taken";
+
+function alasanBentrok(e: unknown): AlasanBentrok | null {
+  const kendala = kendalaBentrok(e);
+
+  if (kendala === "product_variants_sku_key") return "sku_taken";
+  if (kendala === "product_variants_slug_key") return "slug_taken";
+  return null;
+}
 
 export async function satuVarian(
   sql: Sql,
@@ -37,28 +49,40 @@ export async function satuVarian(
   return varian;
 }
 
+export type HasilUbahVarian =
+  | { ok: true; varian: BarisVarianAdmin }
+  | { ok: false; alasan: "not_found" | "sku_taken" };
+
 export async function perbaruiVarian(
   sql: Sql,
   slug: string,
   b: PerubahanVarianBersih,
-): Promise<BarisVarianAdmin | undefined> {
-  if (Object.keys(b).length === 0) {
-    return satuVarian(sql, slug);
+): Promise<HasilUbahVarian> {
+  try {
+    const varian =
+      Object.keys(b).length === 0
+        ? await satuVarian(sql, slug)
+        : (
+            await sql<BarisVarianAdmin[]>`
+              update product_variants v
+              set ${sql(b as Record<string, never>)}, updated_at = now()
+              where v.slug = ${slug}
+              returning ${kolom(sql)}
+            `
+          )[0];
+
+    if (!varian) return { ok: false, alasan: "not_found" };
+
+    return { ok: true, varian };
+  } catch (e) {
+    if (alasanBentrok(e) === "sku_taken") return { ok: false, alasan: "sku_taken" };
+    throw e;
   }
-
-  const [varian] = await sql<BarisVarianAdmin[]>`
-    update product_variants v
-    set ${sql(b as Record<string, never>)}, updated_at = now()
-    where v.slug = ${slug}
-    returning ${kolom(sql)}
-  `;
-
-  return varian;
 }
 
 export type HasilVarian =
   | { ok: true; varian: BarisVarianAdmin }
-  | { ok: false; alasan: "slug_taken" | "not_found" };
+  | { ok: false; alasan: AlasanBentrok | "not_found" };
 
 export async function tambahVarian(
   sql: Sql,
@@ -68,11 +92,12 @@ export async function tambahVarian(
   try {
     const [varian] = await sql<BarisVarianAdmin[]>`
       insert into product_variants (
-        product_id, slug, label, price, weight_g, stock, sort_order
+        product_id, slug, sku, label, price, weight_g, stock, sort_order
       )
       select
         p.id,
         ${b.slug},
+        coalesce(${b.sku}::text, sku_varian_berikutnya()),
         ${b.label},
         ${b.price},
         ${b.weight_g},
@@ -90,6 +115,7 @@ export async function tambahVarian(
       returning
         id::int as id,
         slug,
+        sku,
         label,
         price,
         weight_g,
@@ -102,7 +128,8 @@ export async function tambahVarian(
 
     return { ok: true, varian };
   } catch (e) {
-    if (bentrokUnik(e)) return { ok: false, alasan: "slug_taken" };
+    const alasan = alasanBentrok(e);
+    if (alasan) return { ok: false, alasan };
     throw e;
   }
 }
