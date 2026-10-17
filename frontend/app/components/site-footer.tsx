@@ -60,12 +60,28 @@ export default function SiteFooter() {
               Ceritakan masalahnya, kami bantu pilihkan. Dibalas rata-rata dalam
               satu jam pada hari kerja.
             </p>
-            <a
-              href={WA_URL}
-              className="mt-8 inline-block border border-ink px-8 py-3.5 font-mono text-[13px] tracking-[0.22em] text-ink uppercase transition-colors hover:bg-ink hover:text-white"
-            >
-              Chat WhatsApp
-            </a>
+            <div className="mt-8 flex flex-wrap items-center gap-x-8 gap-y-6">
+              <a
+                href={WA_URL}
+                className="inline-block border border-ink px-8 py-3.5 font-mono text-[13px] tracking-[0.22em] text-ink uppercase transition-colors hover:bg-ink hover:text-white"
+              >
+                Chat WhatsApp
+              </a>
+
+              <div className="hidden items-center gap-4 lg:flex">
+                <Image
+                  src="/wa-qr.png"
+                  alt="Kode QR untuk chat WhatsApp Menik Store"
+                  width={144}
+                  height={144}
+                  unoptimized
+                  className="h-36 w-36 border border-ink/10 bg-white p-1.5"
+                />
+                <p className="max-w-36 text-sm leading-relaxed text-stone-600">
+                  Atau pindai pakai kamera HP untuk langsung chat.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </section>

@@ -95,6 +95,11 @@ const kelompok = [
         jawab:
           "Rekam video saat membuka paket, lalu kirimkan ke WhatsApp kami dalam 2x24 jam sejak paket diterima. Barang akan kami ganti tanpa biaya tambahan.",
       },
+      {
+        tanya: "Bisa retur kalau berubah pikiran?",
+        jawab:
+          "Setelah barang dikirim, pengembalian karena berubah pikiran tidak bisa kami terima. Kalau ragu soal ukuran atau kecocokan produk, tanyakan dulu lewat WhatsApp sebelum memesan.",
+      },
     ],
   },
 ];
