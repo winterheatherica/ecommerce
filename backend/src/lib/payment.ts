@@ -1,9 +1,11 @@
 import {
   JALUR_CHECKOUT,
+  JALUR_STATUS,
   METODE_BAYAR,
   dasarDoku,
   hpInternasional,
   kepalaPermintaan,
+  type KabarDoku,
   type KonfigDoku,
 } from "./doku";
 
@@ -90,14 +92,14 @@ export async function bacaJawaban(res: Response): Promise<HasilGateway<HalamanBa
     };
   }
 
+  return { ok: false, status: res.ok ? 502 : res.status, pesan: pesanTolak(isi, res.status) };
+}
+
+function pesanTolak(isi: JawabanDoku | null, status: number): string {
   const alasan =
     isi?.error_messages?.join(", ") || isi?.error?.message || isi?.message?.join(", ");
 
-  return {
-    ok: false,
-    status: res.ok ? 502 : res.status,
-    pesan: alasan ? `DOKU menolak: ${alasan}` : `DOKU menolak permintaan (${res.status})`,
-  };
+  return alasan ? `DOKU menolak: ${alasan}` : `DOKU menolak permintaan (${status})`;
 }
 
 const BATAS_MS = 10000;
@@ -154,5 +156,33 @@ export async function buatHalamanBayar(
       status: 504,
       pesan: "DOKU tidak merespons tepat waktu. Coba lagi sebentar.",
     };
+  }
+}
+
+export async function cekStatusBayar(
+  konfig: KonfigDoku,
+  invoice: string,
+  requestId: string = crypto.randomUUID(),
+  waktu: Date = new Date(),
+): Promise<HasilGateway<KabarDoku>> {
+  const target = `${JALUR_STATUS}/${encodeURIComponent(invoice)}`;
+  const kepala = await kepalaPermintaan(konfig, target, null, requestId, waktu);
+
+  try {
+    const res = await fetch(`${dasarDoku(konfig)}${target}`, {
+      method: "GET",
+      headers: kepala,
+      signal: AbortSignal.timeout(BATAS_MS),
+    });
+
+    const isi = (await res.json().catch(() => null)) as (KabarDoku & JawabanDoku) | null;
+
+    if (res.ok && isi) return { ok: true, data: isi };
+
+    return { ok: false, status: res.ok ? 502 : res.status, pesan: pesanTolak(isi, res.status) };
+  } catch (e) {
+    console.error("[doku] cek status tidak merespons", invoice, e);
+
+    return { ok: false, status: 504, pesan: "DOKU tidak merespons tepat waktu." };
   }
 }

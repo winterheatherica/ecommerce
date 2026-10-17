@@ -109,6 +109,22 @@ export async function bayarPesanan(orderNo: string): Promise<{ checkout_url: str
   return (await res.json()) as { checkout_url: string };
 }
 
+export async function cekPembayaran(
+  orderNo: string,
+): Promise<{ status: string; changed: boolean }> {
+  const res = await fetch(
+    `/api/orders/${encodeURIComponent(orderNo)}/check-payment`,
+    { method: "POST" },
+  );
+
+  if (!res.ok) {
+    const galat = (await res.json().catch(() => ({}))) as { message?: string };
+    throw new Error(galat.message ?? `Gagal mengecek pembayaran (${res.status})`);
+  }
+
+  return (await res.json()) as { status: string; changed: boolean };
+}
+
 export async function buatPesanan(
   data: PesananBaru,
   signal?: AbortSignal,

@@ -2,19 +2,13 @@ import { env } from "cloudflare:workers";
 import { Elysia } from "elysia";
 
 import { buatKoneksi, tutup, type Sql } from "../lib/db";
+import { terapkanKabarDoku } from "../db/pelunasan";
 import {
-  ambilPesanan,
-  gagalkanPembayaran,
-  tandaiTerbayar,
-} from "../db/pesanan";
-import { JALUR_NOTIFIKASI, bacaKonfig, namaMetode, notifikasiSah } from "../lib/doku";
-
-type NotifikasiDoku = {
-  order?: { invoice_number?: string; amount?: number | string };
-  transaction?: { status?: string; date?: string };
-  channel?: { id?: string };
-  service?: { id?: string };
-};
+  JALUR_NOTIFIKASI,
+  bacaKonfig,
+  notifikasiSah,
+  type KabarDoku,
+} from "../lib/doku";
 
 async function catat(
   sql: Sql,
@@ -65,63 +59,47 @@ export const webhookRoutes = new Elysia().post(
       return { error: "invalid_signature" };
     }
 
-    let isi: NotifikasiDoku;
+    let isi: KabarDoku;
 
     try {
-      isi = JSON.parse(mentah) as NotifikasiDoku;
+      isi = JSON.parse(mentah) as KabarDoku;
     } catch {
       set.status = 400;
       return { error: "bad_request" };
     }
 
-    const nomor = isi.order?.invoice_number ?? null;
-    const status = isi.transaction?.status ?? null;
     const sql = buatKoneksi(wadah);
 
     try {
-      const idPeristiwa = await catat(sql, nomor, status, mentah);
+      const idPeristiwa = await catat(
+        sql,
+        isi.order?.invoice_number ?? null,
+        isi.transaction?.status ?? null,
+        mentah,
+      );
 
-      if (!nomor) return { received: true, ignored: true };
+      const hasil = await terapkanKabarDoku(sql, isi);
 
-      if (status === "EXPIRED") {
-        await gagalkanPembayaran(sql, nomor, "EXPIRED");
+      if (hasil.jenis === "kedaluwarsa") {
         await tandaiDiproses(sql, idPeristiwa);
         return { received: true, expired: true };
       }
 
-      if (status !== "SUCCESS") return { received: true, ignored: true };
-
-      const pesanan = await ambilPesanan(sql, nomor);
-
-      if (!pesanan) return { received: true, ignored: true };
-
-      if (Number(isi.order?.amount) !== pesanan.total) {
-        console.error("[doku] nominal tidak cocok", nomor, {
-          notifikasi: isi.order?.amount,
-          pesanan: pesanan.total,
-        });
-
+      if (hasil.jenis === "nominal_beda") {
         set.status = 409;
         return { received: true, error: "amount_mismatch" };
       }
 
-      const hasil = await tandaiTerbayar(
-        sql,
-        nomor,
-        namaMetode(isi.channel?.id) ?? namaMetode(isi.service?.id) ?? "DOKU",
-      );
-
-      if (!hasil.ok) {
-        console.error(
-          "[doku] uang masuk tapi pesanan tidak bisa ditandai lunas, cek manual",
-          nomor,
-          hasil.alasan,
-        );
+      if (hasil.jenis === "gagal_tandai") {
         return { received: true, applied: false, error: hasil.alasan };
       }
 
-      await tandaiDiproses(sql, idPeristiwa);
-      return { received: true, applied: !hasil.sudahPernah };
+      if (hasil.jenis === "lunas") {
+        await tandaiDiproses(sql, idPeristiwa);
+        return { received: true, applied: hasil.baru };
+      }
+
+      return { received: true, ignored: true };
     } finally {
       await tutup(sql);
     }

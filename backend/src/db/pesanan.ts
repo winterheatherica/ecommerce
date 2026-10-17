@@ -527,8 +527,9 @@ export async function tandaiTerbayar(
   sql: Sql,
   orderNo: string,
   paymentMethod: string | null,
+  opsi: { lewatiKedaluwarsa?: boolean } = {},
 ): Promise<HasilBayar> {
-  await sapuKedaluwarsa(sql, orderNo.trim());
+  if (!opsi.lewatiKedaluwarsa) await sapuKedaluwarsa(sql, orderNo.trim());
 
   const [diubah] = await sql<{ order_no: string }[]>`
     update orders
@@ -663,6 +664,21 @@ export async function simpanPembayaran(
   `;
 
   return hasilUbah(sql, orderNo, diubah);
+}
+
+export async function pesananMenungguDoku(sql: Sql, batas = 20): Promise<string[]> {
+  const baris = await sql<{ order_no: string }[]>`
+    select order_no
+    from orders
+    where status = 'PENDING'
+      and payment_channel = 'DOKU'
+      and payment_url is not null
+      and created_at < now() - interval '1 minute'
+    order by expires_at nulls last
+    limit ${batas}
+  `;
+
+  return baris.map((b) => b.order_no);
 }
 
 export async function gagalkanPembayaran(

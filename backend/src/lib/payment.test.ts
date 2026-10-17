@@ -6,6 +6,7 @@ import {
   bacaJawaban,
   badanCheckout,
   buatHalamanBayar,
+  cekStatusBayar,
   type PermintaanBayar,
 } from "./payment";
 
@@ -187,6 +188,83 @@ describe("buatHalamanBayar", () => {
     }));
 
     const hasil = await buatHalamanBayar(KONFIG, permintaan());
+
+    expect(hasil.ok).toBe(false);
+    if (hasil.ok) return;
+    expect(hasil.status).toBe(504);
+  });
+});
+
+describe("cekStatusBayar", () => {
+  it("GET ke alamat status tanpa Digest, dan Request-Target ikut nomor invoice", async () => {
+    const tangkap = vi.fn(async (_url: string, _init: RequestInit) =>
+      new Response(
+        JSON.stringify({
+          order: { invoice_number: "MNK-ABC123", amount: 58000 },
+          transaction: { status: "SUCCESS" },
+          channel: { id: "QRIS" },
+        }),
+        { status: 200 },
+      ),
+    );
+    vi.stubGlobal("fetch", tangkap);
+
+    const waktu = new Date("2026-10-17T13:40:05.900Z");
+    const hasil = await cekStatusBayar(KONFIG, "MNK-ABC123", "req-cek", waktu);
+
+    const [url, init] = tangkap.mock.calls[0];
+    const kepala = init.headers as Record<string, string>;
+
+    expect(url).toBe("https://api-sandbox.doku.com/orders/v1/status/MNK-ABC123");
+    expect(init.method).toBe("GET");
+    expect(init.body).toBeUndefined();
+
+    const komponen = [
+      `Client-Id:${KONFIG.clientId}`,
+      "Request-Id:req-cek",
+      "Request-Timestamp:2026-10-17T13:40:05Z",
+      "Request-Target:/orders/v1/status/MNK-ABC123",
+    ].join("\n");
+
+    expect(kepala.Signature).toBe(
+      `HMACSHA256=${createHmac("sha256", KONFIG.secretKey).update(komponen).digest("base64")}`,
+    );
+
+    expect(hasil.ok).toBe(true);
+    if (!hasil.ok) return;
+    expect(hasil.data.transaction?.status).toBe("SUCCESS");
+  });
+
+  it("memakai alamat produksi kalau sandbox dimatikan", async () => {
+    const tangkap = vi.fn(
+      async (_url: string, _init?: RequestInit) => new Response("{}", { status: 200 }),
+    );
+    vi.stubGlobal("fetch", tangkap);
+
+    await cekStatusBayar({ ...KONFIG, sandbox: false }, "MNK-ABC123");
+
+    expect(tangkap.mock.calls[0][0]).toBe("https://api.doku.com/orders/v1/status/MNK-ABC123");
+  });
+
+  it("meneruskan kode dan pesan penolakan DOKU", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () =>
+      new Response(JSON.stringify({ error: { message: "Invoice not found" } }), { status: 404 }),
+    ));
+
+    const hasil = await cekStatusBayar(KONFIG, "MNK-TIDAKADA");
+
+    expect(hasil.ok).toBe(false);
+    if (hasil.ok) return;
+    expect(hasil.status).toBe(404);
+    expect(hasil.pesan).toContain("Invoice not found");
+  });
+
+  it("melapor 504 kalau DOKU tidak merespons", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => {
+      throw new DOMException("timeout", "TimeoutError");
+    }));
+
+    const hasil = await cekStatusBayar(KONFIG, "MNK-ABC123");
 
     expect(hasil.ok).toBe(false);
     if (hasil.ok) return;

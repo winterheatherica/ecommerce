@@ -3,6 +3,7 @@ import { WA_URL } from "@/app/data/kontak";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import PaymentCheck from "@/app/components/payment-check";
 import ReorderButton from "@/app/components/reorder-button";
 import { ambilPesanan, ambilSemuaProduk } from "@/app/lib/api";
 import { rupiah } from "@/app/data/produk";
@@ -143,6 +144,10 @@ export default async function StatusPesananPage({ params }: Props) {
                   >
                     Bayar sekarang
                   </Link>
+                )}
+
+                {sekarang && l.status === "PENDING" && pesanan.payment_channel === "DOKU" && (
+                  <PaymentCheck orderNo={pesanan.order_no} />
                 )}
               </li>
             );

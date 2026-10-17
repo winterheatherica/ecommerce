@@ -11,7 +11,9 @@ import {
 } from "./lib/ratelimit";
 
 import { buatKoneksi, tutup } from "./lib/db";
+import { bacaKonfig } from "./lib/doku";
 import { sapuKedaluwarsa } from "./db/pesanan";
+import { periksaTertundaKeDoku } from "./db/pelunasan";
 import { sapuSesi } from "./db/akun";
 
 import { productRoutes } from "./routes/products";
@@ -84,7 +86,21 @@ const app = new Elysia({ adapter: CloudflareAdapter })
   .compile();
 
 async function sapuTerjadwal(): Promise<void> {
-  const sql = buatKoneksi(env as unknown as Record<string, unknown>);
+  const wadah = env as unknown as Record<string, unknown>;
+  const sql = buatKoneksi(wadah);
+  const konfig = bacaKonfig(wadah);
+
+  if (konfig) {
+    try {
+      const berubah = (await periksaTertundaKeDoku(sql, konfig)).filter(
+        (h) => h.jenis === "lunas" || h.jenis === "kedaluwarsa",
+      );
+
+      if (berubah.length > 0) console.log("[cron] status dari DOKU diterapkan", berubah);
+    } catch (e) {
+      console.error("[cron] gagal mencocokkan pembayaran dengan DOKU", e);
+    }
+  }
 
   try {
     const disapu = await sapuKedaluwarsa(sql);

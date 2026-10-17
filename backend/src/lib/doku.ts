@@ -10,7 +10,15 @@ const DASAR_SANDBOX = "https://api-sandbox.doku.com";
 const DASAR_PRODUKSI = "https://api.doku.com";
 
 export const JALUR_CHECKOUT = "/checkout/v1/payment";
+export const JALUR_STATUS = "/orders/v1/status";
 export const JALUR_NOTIFIKASI = "/api/webhooks/doku";
+
+export type KabarDoku = {
+  order?: { invoice_number?: string; amount?: number | string };
+  transaction?: { status?: string; date?: string };
+  channel?: { id?: string };
+  service?: { id?: string };
+};
 
 export const METODE_BAYAR = [
   { code: "QRIS", name: "QRIS", group: "QRIS" },

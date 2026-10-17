@@ -3,7 +3,8 @@ import { Elysia, t } from "elysia";
 
 import { alamatToko, asalApi } from "../lib/alamat";
 import { buatKoneksi, tutup } from "../lib/db";
-import { buatPesanan, cariPesanan, simpanPembayaran } from "../db/pesanan";
+import { ambilPesanan, buatPesanan, cariPesanan, simpanPembayaran } from "../db/pesanan";
+import { periksaKeDoku } from "../db/pelunasan";
 import { penggunaDariCookie } from "../db/akun";
 import { JALUR_NOTIFIKASI, bacaKonfig, menitBayar } from "../lib/doku";
 import { buatHalamanBayar } from "../lib/payment";
@@ -225,5 +226,49 @@ export const orderRoutes = new Elysia({ prefix: "/api/orders" })
     {
       params: t.Object({ orderNo: t.String({ maxLength: 40 }) }),
       body: t.Optional(t.Object({ method: t.Optional(t.String({ maxLength: 40 })) })),
+    },
+  )
+  .post(
+    "/:orderNo/check-payment",
+    async ({ params, set }) => {
+      const wadah = wadahEnv() as unknown as Record<string, unknown>;
+      const pembatas = ambilPembatas(wadah, "PESANAN_LIMIT");
+
+      if (!(await lolos(pembatas, `cek-bayar:${params.orderNo.trim().toUpperCase()}`))) {
+        set.status = 429;
+        set.headers["retry-after"] = "60";
+        return BADAN_PADAT;
+      }
+
+      const sql = buatKoneksi(wadahEnv());
+
+      try {
+        const sebelum = await ambilPesanan(sql, params.orderNo);
+
+        if (!sebelum) {
+          set.status = 404;
+          return { error: "not_found", message: "Pesanan tidak ditemukan" };
+        }
+
+        const konfig = bacaKonfig(wadah);
+
+        if (
+          konfig &&
+          sebelum.status === "PENDING" &&
+          sebelum.payment_channel === "DOKU" &&
+          sebelum.payment_url
+        ) {
+          await periksaKeDoku(sql, konfig, sebelum.order_no);
+        }
+
+        const sesudah = (await cariPesanan(sql, sebelum.order_no)) ?? sebelum;
+
+        return { status: sesudah.status, changed: sesudah.status !== sebelum.status };
+      } finally {
+        await tutup(sql);
+      }
+    },
+    {
+      params: t.Object({ orderNo: t.String({ maxLength: 40 }) }),
     },
   );
