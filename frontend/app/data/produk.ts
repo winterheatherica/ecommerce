@@ -21,15 +21,29 @@ export type Kategori =
   | "aroma-rumah"
   | "paket";
 
+export type StatusPromo = "none" | "active" | "scheduled" | "ended";
+
+export type PromoAdmin = {
+  harga: number | null;
+  mulai: string | null;
+  akhir: string | null;
+  tampilkanPeriode: boolean;
+  aktif: boolean;
+  status: StatusPromo;
+};
+
 export type Varian = {
   slug: string;
   sku?: string;
   label: string;
   harga: number;
+  hargaNormal?: number;
+  promoSampai?: string;
   beratG: number;
   stok: number;
   gambar?: string;
   aktif?: boolean;
+  promo?: PromoAdmin;
 };
 
 export type Produk = {
@@ -37,6 +51,7 @@ export type Produk = {
   nama: string;
   deskripsi: string;
   harga: number;
+  hargaNormal?: number;
   kategori: Kategori;
   beratG: number;
   stok: number;

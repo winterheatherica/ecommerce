@@ -41,3 +41,11 @@ export function kendalaBentrok(e: unknown): string | null {
   const nama = (e as { constraint_name?: unknown }).constraint_name;
   return typeof nama === "string" ? nama : null;
 }
+
+export function kendalaCek(e: unknown): string | null {
+  if (typeof e !== "object" || e === null) return null;
+  if ((e as { code?: unknown }).code !== "23514") return null;
+
+  const nama = (e as { constraint_name?: unknown }).constraint_name;
+  return typeof nama === "string" ? nama : null;
+}

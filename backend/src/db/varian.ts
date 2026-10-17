@@ -1,5 +1,6 @@
-import { kendalaBentrok, type Kueri, type Sql } from "../lib/db";
+import { kendalaBentrok, kendalaCek, type Kueri, type Sql } from "../lib/db";
 import type { PerubahanVarianBersih, VarianBersih } from "../lib/variants";
+import type { StatusPromo } from "./produk";
 
 export type BarisVarianAdmin = {
   id: number;
@@ -11,7 +12,22 @@ export type BarisVarianAdmin = {
   stock: number;
   sort_order: number;
   is_active: boolean;
+  promo_price: number | null;
+  promo_starts_at: string | null;
+  promo_ends_at: string | null;
+  promo_show_period: boolean;
+  promo_active: boolean;
+  promo_status: StatusPromo;
 };
+
+const kolomPromo = (sql: Kueri) => sql`
+  promo_price,
+  promo_starts_at,
+  promo_ends_at,
+  promo_show_period,
+  promo_aktif(promo_price, promo_starts_at, promo_ends_at) as promo_active,
+  status_promo(promo_price, promo_starts_at, promo_ends_at) as promo_status
+`;
 
 const kolom = (sql: Kueri) => sql`
   v.id::int as id,
@@ -22,7 +38,8 @@ const kolom = (sql: Kueri) => sql`
   v.weight_g,
   v.stock,
   v.sort_order,
-  v.is_active
+  v.is_active,
+  ${kolomPromo(sql)}
 `;
 
 type AlasanBentrok = "slug_taken" | "sku_taken";
@@ -51,7 +68,10 @@ export async function satuVarian(
 
 export type HasilUbahVarian =
   | { ok: true; varian: BarisVarianAdmin }
-  | { ok: false; alasan: "not_found" | "sku_taken" };
+  | {
+      ok: false;
+      alasan: "not_found" | "sku_taken" | "promo_not_cheaper" | "promo_period_reversed";
+    };
 
 export async function perbaruiVarian(
   sql: Sql,
@@ -76,6 +96,15 @@ export async function perbaruiVarian(
     return { ok: true, varian };
   } catch (e) {
     if (alasanBentrok(e) === "sku_taken") return { ok: false, alasan: "sku_taken" };
+
+    const cek = kendalaCek(e);
+    if (cek === "product_variants_promo_lebih_murah") {
+      return { ok: false, alasan: "promo_not_cheaper" };
+    }
+    if (cek === "product_variants_promo_urutan_waktu") {
+      return { ok: false, alasan: "promo_period_reversed" };
+    }
+
     throw e;
   }
 }
@@ -121,7 +150,8 @@ export async function tambahVarian(
         weight_g,
         stock,
         sort_order,
-        is_active
+        is_active,
+        ${kolomPromo(sql)}
     `;
 
     if (!varian) return { ok: false, alasan: "not_found" };

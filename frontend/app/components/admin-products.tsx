@@ -5,7 +5,7 @@ import { useState } from "react";
 
 import AdminNumberBox from "@/app/components/admin-number-box";
 import { ubahProduk, ubahVarian } from "@/app/lib/api-client";
-import { kategoriLabel, type Produk, type Varian } from "@/app/data/produk";
+import { kategoriLabel, rupiah, type Produk, type Varian } from "@/app/data/produk";
 
 export const AMBANG_MENIPIS = 10;
 
@@ -164,6 +164,16 @@ export default function AdminProducts({ awal }: { awal: Produk[] }) {
                       mati={menyimpan === v.slug}
                       onSimpan={(angka) => void ubahAngkaVarian(v.slug, "harga", angka)}
                     />
+                    {v.promo?.status === "active" && v.promo.harga && (
+                      <span className="mt-1 block font-mono text-[11px] text-red-700">
+                        Promo {rupiah(v.promo.harga)}
+                      </span>
+                    )}
+                    {v.promo?.status === "scheduled" && (
+                      <span className="mt-1 block font-mono text-[11px] text-amber-700">
+                        Promo terjadwal
+                      </span>
+                    )}
                   </td>
 
                   <td className="px-4 py-3 text-right">

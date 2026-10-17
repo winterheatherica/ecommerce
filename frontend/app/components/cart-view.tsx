@@ -1,5 +1,6 @@
 "use client";
 
+import HargaCoret from "@/app/components/harga-coret";
 import Link from "next/link";
 import Image from "next/image";
 import { useEffect } from "react";
@@ -108,7 +109,7 @@ export default function CartView({ produk }: { produk: Produk[] }) {
                     {namaDenganUkuran({ produk, varian })}
                   </Link>
                   <p className="mt-1 font-mono text-sm text-brand-600">
-                    {rupiah(varian.harga)}
+                    <HargaCoret harga={varian.harga} normal={varian.hargaNormal} kecil />
                   </p>
 
                   {lebih && (

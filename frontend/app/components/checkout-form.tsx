@@ -74,6 +74,10 @@ export default function CheckoutForm({ produk, akun, urlMasuk }: Props) {
     .filter((x): x is Baris => x !== null);
 
   const subtotal = baris.reduce((s, b) => s + b.varian.harga * b.qty, 0);
+  const hemat = baris.reduce(
+    (s, b) => s + ((b.varian.hargaNormal ?? b.varian.harga) - b.varian.harga) * b.qty,
+    0,
+  );
   const beratTotal = baris.reduce((s, b) => s + b.varian.beratG * b.qty, 0);
 
   const kataBersih = kataWilayah.trim();
@@ -448,6 +452,12 @@ export default function CheckoutForm({ produk, akun, urlMasuk }: Props) {
                 <dt className="text-stone-600">Subtotal</dt>
                 <dd className="font-mono text-ink">{rupiah(subtotal)}</dd>
               </div>
+              {hemat > 0 && (
+                <div className="flex justify-between text-red-700">
+                  <dt>Hemat dari promo</dt>
+                  <dd className="font-mono">{rupiah(hemat)}</dd>
+                </div>
+              )}
               <div className="flex justify-between">
                 <dt className="text-stone-600">Ongkir</dt>
                 <dd className="font-mono text-ink">

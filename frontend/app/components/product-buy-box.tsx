@@ -4,7 +4,9 @@ import { WA_URL } from "@/app/data/kontak";
 import Link from "next/link";
 import { useState } from "react";
 
+import HargaCoret from "@/app/components/harga-coret";
 import { tambahKeKeranjang } from "@/app/lib/keranjang";
+import { tanggalWib } from "@/app/lib/waktu-wib";
 import { rupiah, type Produk, type Varian } from "@/app/data/produk";
 
 function varianAwal(daftar: Varian[]): Varian | null {
@@ -22,6 +24,7 @@ export default function ProductBuyBox({ produk }: { produk: Produk }) {
   const banyakUkuran = produk.varian.length > 1;
   const stok = dipilih?.stok ?? produk.stok;
   const harga = dipilih?.harga ?? produk.harga;
+  const hargaNormal = dipilih ? dipilih.hargaNormal : produk.hargaNormal;
   const habis = stok === 0;
   const maksimal = Math.max(1, stok);
 
@@ -72,7 +75,7 @@ export default function ProductBuyBox({ produk }: { produk: Produk }) {
                 {v.label}
               </span>
               <span className="mt-0.5 block font-mono text-[12px] text-stone-500">
-                {kosong ? "Stok habis" : rupiah(v.harga)}
+                {kosong ? "Stok habis" : <HargaCoret harga={v.harga} normal={v.hargaNormal} kecil />}
               </span>
             </button>
           );
@@ -146,7 +149,14 @@ export default function ProductBuyBox({ produk }: { produk: Produk }) {
       <p className="mt-4 font-mono text-[13px] tracking-[0.16em] text-stone-500 uppercase">
         Subtotal {rupiah(harga * qty)}
         {dipilih && banyakUkuran ? ` · ${dipilih.label}` : ""}
+        {hargaNormal && hargaNormal > harga ? ` · Hemat ${rupiah((hargaNormal - harga) * qty)}` : ""}
       </p>
+
+      {dipilih?.promoSampai && (
+        <p className="mt-2 text-sm text-red-700">
+          Harga promo berlaku sampai {tanggalWib(dipilih.promoSampai)} WIB
+        </p>
+      )}
 
       {baruDitambah && (
         <p

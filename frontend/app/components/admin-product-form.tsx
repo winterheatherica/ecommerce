@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
+import AdminPromoEditor from "@/app/components/admin-promo-editor";
 import AdminVariantEditor from "@/app/components/admin-variant-editor";
 import { buatProdukBaru, simpanProduk } from "@/app/lib/api-client";
 import { kategoriLabel, type Kategori, type Produk } from "@/app/data/produk";
@@ -285,6 +286,7 @@ export default function AdminProductForm({ awal }: Props) {
       </form>
 
       {ubahMode && awal && <AdminVariantEditor produk={awal} />}
+      {ubahMode && awal && <AdminPromoEditor produk={awal} />}
     </div>
   );
 }

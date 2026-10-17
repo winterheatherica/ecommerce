@@ -146,3 +146,55 @@ describe("SKU varian", () => {
     expect(hasil.bersih.sku).toBe("GOCAT-350");
   });
 });
+
+describe("isian promo", () => {
+  it("tanggal dari form admin diseragamkan jadi waktu UTC", () => {
+    const hasil = periksaPerubahanVarian({
+      promo_price: 39000,
+      promo_starts_at: "2026-10-20T09:00+07:00",
+      promo_ends_at: "2026-10-27T21:00+07:00",
+    });
+
+    expect(hasil.ok).toBe(true);
+    if (!hasil.ok) return;
+    expect(hasil.bersih.promo_starts_at).toBe("2026-10-20T02:00:00.000Z");
+    expect(hasil.bersih.promo_ends_at).toBe("2026-10-27T14:00:00.000Z");
+  });
+
+  it("tanggal yang tidak terbaca ditolak", () => {
+    const hasil = periksaPerubahanVarian({ promo_ends_at: "besok sore" });
+
+    expect(hasil.ok).toBe(false);
+    if (hasil.ok) return;
+    expect(hasil.badan.error).toBe("invalid_promo_date");
+  });
+
+  it("akhir sebelum mulai di isian yang sama langsung ditolak", () => {
+    const hasil = periksaPerubahanVarian({
+      promo_starts_at: "2026-10-27T00:00:00Z",
+      promo_ends_at: "2026-10-20T00:00:00Z",
+    });
+
+    expect(hasil.ok).toBe(false);
+    if (hasil.ok) return;
+    expect(hasil.badan.error).toBe("promo_period_reversed");
+  });
+
+  it("null berarti dikosongkan, bukan diabaikan", () => {
+    const hasil = periksaPerubahanVarian({
+      promo_price: null,
+      promo_starts_at: null,
+      promo_ends_at: null,
+      promo_show_period: false,
+    });
+
+    expect(hasil.ok).toBe(true);
+    if (!hasil.ok) return;
+    expect(hasil.bersih).toEqual({
+      promo_price: null,
+      promo_starts_at: null,
+      promo_ends_at: null,
+      promo_show_period: false,
+    });
+  });
+});

@@ -420,6 +420,24 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
           };
         }
 
+        if (!hasil.ok && hasil.alasan === "promo_not_cheaper") {
+          set.status = 422;
+          return {
+            error: "promo_not_cheaper",
+            message: "Harga promo harus lebih murah dari harga normal",
+            field: "promo",
+          };
+        }
+
+        if (!hasil.ok && hasil.alasan === "promo_period_reversed") {
+          set.status = 422;
+          return {
+            error: "promo_period_reversed",
+            message: "Tanggal berakhir promo harus setelah tanggal mulainya",
+            field: "promo",
+          };
+        }
+
         if (!hasil.ok) {
           set.status = 404;
           return { error: "not_found", message: "Varian tidak ditemukan" };
@@ -440,6 +458,12 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
         stock: t.Optional(t.Integer({ minimum: 0, maximum: 100000 })),
         sort_order: t.Optional(t.Integer({ minimum: 0, maximum: 10000 })),
         is_active: t.Optional(t.Boolean()),
+        promo_price: t.Optional(
+          t.Union([t.Integer({ minimum: 1, maximum: 100000000 }), t.Null()]),
+        ),
+        promo_starts_at: t.Optional(t.Union([t.String({ maxLength: 40 }), t.Null()])),
+        promo_ends_at: t.Optional(t.Union([t.String({ maxLength: 40 }), t.Null()])),
+        promo_show_period: t.Optional(t.Boolean()),
       }),
     },
   );

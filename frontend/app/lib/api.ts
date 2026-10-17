@@ -1,7 +1,7 @@
 import { cache } from "react";
 
 import { PUNYA_GAMBAR, urlGambar } from "@/app/data/gambar";
-import type { Kategori, Produk } from "@/app/data/produk";
+import type { Kategori, Produk, StatusPromo, Varian } from "@/app/data/produk";
 import type { StatusPesanan } from "@/app/data/status-pesanan";
 
 function basis(): string {
@@ -25,6 +25,14 @@ type VarianAPI = {
   weight_g: number;
   stock: number;
   is_active?: boolean;
+  regular_price?: number | null;
+  promo_visible_until?: string | null;
+  promo_price?: number | null;
+  promo_starts_at?: string | null;
+  promo_ends_at?: string | null;
+  promo_show_period?: boolean;
+  promo_active?: boolean;
+  promo_status?: StatusPromo;
 };
 
 type ProdukAPI = {
@@ -50,16 +58,33 @@ type DaftarAPI = {
 };
 
 function petakan(p: ProdukAPI): Produk {
-  const varian = (p.variants ?? []).map((v) => ({
+  const varian: Varian[] = (p.variants ?? []).map((v) => ({
     slug: v.slug,
     sku: v.sku,
     label: v.label,
     harga: v.price,
+    hargaNormal: v.regular_price ?? undefined,
+    promoSampai: v.promo_visible_until ?? undefined,
     beratG: v.weight_g,
     stok: v.stock,
     gambar: PUNYA_GAMBAR.has(v.slug) ? urlGambar(v.slug) : undefined,
     aktif: v.is_active,
+    promo:
+      v.promo_show_period === undefined
+        ? undefined
+        : {
+            harga: v.promo_price ?? null,
+            mulai: v.promo_starts_at ?? null,
+            akhir: v.promo_ends_at ?? null,
+            tampilkanPeriode: v.promo_show_period,
+            aktif: v.promo_active ?? false,
+            status: v.promo_status ?? "none",
+          },
   }));
+
+  const termurah = varian
+    .filter((v) => v.aktif !== false)
+    .reduce<Varian | null>((m, v) => (!m || v.harga < m.harga ? v : m), null);
 
   const berfoto = PUNYA_GAMBAR.has(p.slug)
     ? urlGambar(p.slug)
@@ -69,7 +94,8 @@ function petakan(p: ProdukAPI): Produk {
     slug: p.slug,
     nama: p.name,
     deskripsi: p.description ?? "",
-    harga: p.price,
+    harga: termurah?.harga ?? p.price,
+    hargaNormal: termurah?.hargaNormal,
     kategori: p.category as Kategori,
     beratG: p.weight_g,
     stok: p.stock,
@@ -161,6 +187,7 @@ export type ItemPesanan = {
   name_snapshot: string;
   qty: number;
   price_snapshot: number;
+  list_price_snapshot: number | null;
 };
 
 export type Pesanan = {

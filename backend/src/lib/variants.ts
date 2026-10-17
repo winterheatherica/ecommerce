@@ -34,6 +34,10 @@ export type PerubahanVarian = {
   stock?: number;
   sort_order?: number;
   is_active?: boolean;
+  promo_price?: number | null;
+  promo_starts_at?: string | null;
+  promo_ends_at?: string | null;
+  promo_show_period?: boolean;
 };
 
 export type PerubahanVarianBersih = PerubahanVarian;
@@ -47,6 +51,30 @@ const GALAT_SKU: Gagal = {
     field: "sku",
   },
 };
+
+const GALAT_TANGGAL: Gagal = {
+  status: 422,
+  badan: {
+    error: "invalid_promo_date",
+    message: "Tanggal promo tidak terbaca",
+    field: "promo",
+  },
+};
+
+const GALAT_URUTAN: Gagal = {
+  status: 422,
+  badan: {
+    error: "promo_period_reversed",
+    message: "Tanggal berakhir promo harus setelah tanggal mulainya",
+    field: "promo",
+  },
+};
+
+function tanggalBersih(nilai: string | null): string | null | undefined {
+  if (nilai === null) return null;
+  const waktu = Date.parse(nilai);
+  return Number.isNaN(waktu) ? undefined : new Date(waktu).toISOString();
+}
 
 const GALAT_LABEL: Gagal = {
   status: 422,
@@ -116,6 +144,23 @@ export function periksaPerubahanVarian(
   if (p.stock !== undefined) bersih.stock = p.stock;
   if (p.sort_order !== undefined) bersih.sort_order = p.sort_order;
   if (p.is_active !== undefined) bersih.is_active = p.is_active;
+  if (p.promo_price !== undefined) bersih.promo_price = p.promo_price;
+  if (p.promo_show_period !== undefined) bersih.promo_show_period = p.promo_show_period;
+
+  for (const kolom of ["promo_starts_at", "promo_ends_at"] as const) {
+    if (p[kolom] === undefined) continue;
+    const tanggal = tanggalBersih(p[kolom]);
+    if (tanggal === undefined) return { ok: false, ...GALAT_TANGGAL };
+    bersih[kolom] = tanggal;
+  }
+
+  if (
+    bersih.promo_starts_at &&
+    bersih.promo_ends_at &&
+    bersih.promo_ends_at <= bersih.promo_starts_at
+  ) {
+    return { ok: false, ...GALAT_URUTAN };
+  }
 
   return { ok: true, bersih };
 }

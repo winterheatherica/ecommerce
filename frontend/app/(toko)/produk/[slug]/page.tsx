@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import HargaCoret from "@/app/components/harga-coret";
 import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
@@ -119,8 +120,12 @@ export default async function DetailProdukPage({ params }: Props) {
             {produk.nama}
           </h1>
 
-          <p className="mt-6 text-3xl font-semibold tracking-tight text-brand-600">
-            {rupiah(produk.harga)}
+          <p className="mt-6">
+            <HargaCoret
+              harga={produk.harga}
+              normal={produk.hargaNormal}
+              kelasHarga="text-3xl font-semibold tracking-tight text-brand-600"
+            />
           </p>
 
           <p className="mt-3 font-mono text-[13px] tracking-[0.16em] text-stone-500 uppercase">

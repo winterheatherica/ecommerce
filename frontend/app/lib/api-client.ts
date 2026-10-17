@@ -1,5 +1,7 @@
 "use client";
 
+import type { StatusPromo } from "@/app/data/produk";
+
 export type Wilayah = {
   id: string;
   province: string;
@@ -216,6 +218,10 @@ export type PerubahanVarian = {
   weight_g?: number;
   stock?: number;
   is_active?: boolean;
+  promo_price?: number | null;
+  promo_starts_at?: string | null;
+  promo_ends_at?: string | null;
+  promo_show_period?: boolean;
 };
 
 export type VarianBaru = {
@@ -257,7 +263,7 @@ async function pastikanOk(res: Response) {
 export async function ubahVarian(
   slug: string,
   perubahan: PerubahanVarian,
-): Promise<void> {
+): Promise<{ promo_status?: StatusPromo }> {
   const res = await fetch(`/api/admin/variants/${encodeURIComponent(slug)}`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
@@ -265,6 +271,7 @@ export async function ubahVarian(
   });
 
   await pastikanOk(res);
+  return (await res.json()) as { promo_status?: StatusPromo };
 }
 
 export async function tambahVarian(

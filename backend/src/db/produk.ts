@@ -6,15 +6,25 @@ export type BarisVarian = {
   slug: string;
   label: string;
   price: number;
+  regular_price: number | null;
+  promo_visible_until: string | null;
   weight_g: number;
   stock: number;
 };
 
-export type BarisVarianLengkap = BarisVarian & {
+export type BarisVarianLengkap = Omit<BarisVarian, "regular_price" | "promo_visible_until"> & {
   sku: string;
   sort_order: number;
   is_active: boolean;
+  promo_price: number | null;
+  promo_starts_at: string | null;
+  promo_ends_at: string | null;
+  promo_show_period: boolean;
+  promo_active: boolean;
+  promo_status: StatusPromo;
 };
+
+export type StatusPromo = "none" | "active" | "scheduled" | "ended";
 
 export type BarisProduk = {
   id: number;
@@ -66,7 +76,15 @@ const kolom = (sql: Kueri) => sql`
       jsonb_build_object(
         'slug', v.slug,
         'label', v.label,
-        'price', v.price,
+        'price', harga_berlaku(v.price, v.promo_price, v.promo_starts_at, v.promo_ends_at),
+        'regular_price', case
+          when promo_aktif(v.promo_price, v.promo_starts_at, v.promo_ends_at) then v.price
+        end,
+        'promo_visible_until', case
+          when promo_aktif(v.promo_price, v.promo_starts_at, v.promo_ends_at)
+            and v.promo_show_period
+          then v.promo_ends_at
+        end,
         'weight_g', v.weight_g,
         'stock', v.stock
       ) order by v.sort_order, v.price
@@ -88,7 +106,13 @@ const kolomAdmin = (sql: Kueri) => sql`
         'stock', v.stock,
         'sku', v.sku,
         'sort_order', v.sort_order,
-        'is_active', v.is_active
+        'is_active', v.is_active,
+        'promo_price', v.promo_price,
+        'promo_starts_at', v.promo_starts_at,
+        'promo_ends_at', v.promo_ends_at,
+        'promo_show_period', v.promo_show_period,
+        'promo_active', promo_aktif(v.promo_price, v.promo_starts_at, v.promo_ends_at),
+        'promo_status', status_promo(v.promo_price, v.promo_starts_at, v.promo_ends_at)
       ) order by v.sort_order, v.price
     )
     from product_variants v

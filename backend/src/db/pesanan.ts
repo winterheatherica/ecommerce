@@ -18,6 +18,7 @@ export type ItemPesanan = {
   name_snapshot: string;
   qty: number;
   price_snapshot: number;
+  list_price_snapshot: number | null;
 };
 
 export type Pesanan = {
@@ -112,7 +113,8 @@ const pilih = (sql: Sql) => sql`
           'sku', v.sku,
           'name_snapshot', i.name_snapshot,
           'qty', i.qty,
-          'price_snapshot', i.price_snapshot
+          'price_snapshot', i.price_snapshot,
+          'list_price_snapshot', i.list_price_snapshot
         )
         order by i.id
       )
@@ -264,6 +266,7 @@ type ProdukTerkunci = {
   slug: string;
   name: string;
   price: number;
+  list_price: number | null;
   weight_g: number;
 };
 
@@ -296,7 +299,10 @@ async function kurangiStok(
       v.id::int as variant_id,
       v.slug,
       ${namaUkuran(tx)} as name,
-      v.price,
+      harga_berlaku(v.price, v.promo_price, v.promo_starts_at, v.promo_ends_at) as price,
+      case
+        when promo_aktif(v.promo_price, v.promo_starts_at, v.promo_ends_at) then v.price
+      end as list_price,
       v.weight_g
   `;
 
@@ -488,6 +494,7 @@ export async function buatPesanan(
               variant_id: b.produk.variant_id,
               qty: b.qty,
               price_snapshot: b.produk.price,
+              list_price_snapshot: b.produk.list_price,
               name_snapshot: b.produk.name,
             })) as unknown as Record<string, never>[],
           )}

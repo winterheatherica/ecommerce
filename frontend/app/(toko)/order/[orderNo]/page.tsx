@@ -188,7 +188,12 @@ export default async function StatusPesananPage({ params }: Props) {
                 <span className="text-stone-700">
                   {it.qty}&times; {it.name_snapshot}
                 </span>
-                <span className="font-mono whitespace-nowrap text-stone-500">
+                <span className="text-right font-mono whitespace-nowrap text-stone-500">
+                  {it.list_price_snapshot && (
+                    <s className="mr-2 text-xs text-stone-400">
+                      {rupiah(it.list_price_snapshot * it.qty)}
+                    </s>
+                  )}
                   {rupiah(it.price_snapshot * it.qty)}
                 </span>
               </li>

@@ -1,7 +1,8 @@
 import Image from "next/image";
+import HargaCoret from "@/app/components/harga-coret";
 import Link from "next/link";
 
-import { rupiah, type Produk } from "../data/produk";
+import type { Produk } from "../data/produk";
 
 export default function ProductCard({ produk }: { produk: Produk }) {
   const habis = produk.stok === 0;
@@ -35,9 +36,12 @@ export default function ProductCard({ produk }: { produk: Produk }) {
       </p>
 
       <div className="mt-auto flex flex-col gap-1 pt-3 sm:flex-row sm:items-baseline sm:justify-between sm:gap-3">
-        <span className="text-lg font-semibold tracking-tight text-brand-600">
-          {rupiah(produk.harga)}
-        </span>
+        <HargaCoret
+          harga={produk.harga}
+          normal={produk.hargaNormal}
+          kelasHarga="text-lg font-semibold tracking-tight text-brand-600"
+          kecil
+        />
         <span className="font-mono text-[12px] tracking-[0.14em] text-stone-400 uppercase">
           {produk.terjualPerBulan} terjual/bln
         </span>
