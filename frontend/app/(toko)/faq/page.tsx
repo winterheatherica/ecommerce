@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { KONTAK, WA_URL } from "@/app/data/kontak";
+import { KONTAK } from "@/app/data/kontak";
 
 import JsonLd from "@/app/components/json-ld";
 import { metaHalaman, skemaFaq } from "@/app/lib/seo";
@@ -150,21 +150,6 @@ export default function FaqPage() {
           </div>
         </div>
       ))}
-
-      <div className="mt-16 border border-brand-200 bg-brand-50 px-8 py-10">
-        <p className="font-mono text-[13px] tracking-[0.28em] text-brand-700 uppercase">
-          Masih bingung?
-        </p>
-        <p className="mt-4 max-w-md leading-relaxed text-ink">
-          Ceritakan masalah di rumahmu, kami bantu pilihkan produk yang cocok.
-        </p>
-        <a
-          href={WA_URL}
-          className="mt-8 inline-block border border-ink px-8 py-3.5 font-mono text-[13px] tracking-[0.22em] text-ink uppercase transition-colors hover:bg-ink hover:text-white"
-        >
-          Chat WhatsApp
-        </a>
-      </div>
     </section>
   );
 }
