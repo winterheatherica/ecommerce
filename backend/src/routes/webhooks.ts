@@ -7,32 +7,24 @@ import {
   gagalkanPembayaran,
   tandaiTerbayar,
 } from "../db/pesanan";
-import { bacaKonfig, samaAman, tandaTanganCallback } from "../lib/tripay";
+import { JALUR_NOTIFIKASI, bacaKonfig, namaMetode, notifikasiSah } from "../lib/doku";
 
-type Callback = {
-  reference?: string;
-  merchant_ref?: string;
-  payment_method?: string;
-  payment_method_code?: string;
-  total_amount?: number;
-  status?: string;
-  is_closed_payment?: number;
+type NotifikasiDoku = {
+  order?: { invoice_number?: string; amount?: number | string };
+  transaction?: { status?: string; date?: string };
+  channel?: { id?: string };
+  service?: { id?: string };
 };
 
 async function catat(
   sql: Sql,
-  isi: Callback,
+  nomor: string | null,
+  status: string | null,
   mentah: string,
 ): Promise<number> {
   const [baris] = await sql<{ id: number }[]>`
     insert into webhook_events (provider, external_id, event_type, payload, processed)
-    values (
-      'tripay',
-      ${isi.merchant_ref ?? null},
-      ${isi.status ?? null},
-      ${sql.json(JSON.parse(mentah))},
-      false
-    )
+    values ('doku', ${nomor}, ${status}, ${sql.json(JSON.parse(mentah))}, false)
     returning id::int as id
   `;
 
@@ -44,8 +36,8 @@ async function tandaiDiproses(sql: Sql, id: number): Promise<void> {
 }
 
 export const webhookRoutes = new Elysia().post(
-  "/api/webhooks/tripay",
-  async ({ body, headers, set }) => {
+  JALUR_NOTIFIKASI,
+  async ({ body, headers, set, request }) => {
     const wadah = env as unknown as Record<string, unknown>;
     const konfig = bacaKonfig(wadah);
 
@@ -55,57 +47,59 @@ export const webhookRoutes = new Elysia().post(
     }
 
     const mentah = typeof body === "string" ? body : "";
-    const dikirim = headers["x-callback-signature"];
-    const diharapkan = await tandaTanganCallback(konfig, mentah);
 
-    if (!dikirim || !samaAman(dikirim, diharapkan)) {
+    const sah = await notifikasiSah(
+      konfig,
+      {
+        clientId: headers["client-id"],
+        requestId: headers["request-id"],
+        timestamp: headers["request-timestamp"],
+        signature: headers["signature"],
+      },
+      mentah,
+      new URL(request.url).pathname,
+    );
+
+    if (!sah) {
       set.status = 401;
       return { error: "invalid_signature" };
     }
 
-    let isi: Callback;
+    let isi: NotifikasiDoku;
 
     try {
-      isi = JSON.parse(mentah) as Callback;
+      isi = JSON.parse(mentah) as NotifikasiDoku;
     } catch {
       set.status = 400;
       return { error: "bad_request" };
     }
 
+    const nomor = isi.order?.invoice_number ?? null;
+    const status = isi.transaction?.status ?? null;
     const sql = buatKoneksi(wadah);
 
     try {
-      const idPeristiwa = await catat(sql, isi, mentah);
+      const idPeristiwa = await catat(sql, nomor, status, mentah);
 
-      if (!isi.merchant_ref) {
-        return { received: true, ignored: true };
+      if (!nomor) return { received: true, ignored: true };
+
+      if (status === "EXPIRED") {
+        await gagalkanPembayaran(sql, nomor, "EXPIRED");
+        await tandaiDiproses(sql, idPeristiwa);
+        return { received: true, expired: true };
       }
 
-      if (isi.status !== "PAID") {
-        if (isi.status === "EXPIRED" || isi.status === "FAILED") {
-          await gagalkanPembayaran(sql, isi.merchant_ref, "EXPIRED");
-          await tandaiDiproses(sql, idPeristiwa);
-          return { received: true, expired: true };
-        }
+      if (status !== "SUCCESS") return { received: true, ignored: true };
 
-        return { received: true, ignored: true };
-      }
+      const pesanan = await ambilPesanan(sql, nomor);
 
-      const pesanan = await ambilPesanan(sql, isi.merchant_ref);
+      if (!pesanan) return { received: true, ignored: true };
 
-      if (!pesanan) {
-        return { received: true, ignored: true };
-      }
-
-      if (isi.total_amount !== pesanan.total) {
-        console.error(
-          "[tripay] nominal tidak cocok",
-          isi.merchant_ref,
-          "callback:",
-          isi.total_amount,
-          "pesanan:",
-          pesanan.total,
-        );
+      if (Number(isi.order?.amount) !== pesanan.total) {
+        console.error("[doku] nominal tidak cocok", nomor, {
+          notifikasi: isi.order?.amount,
+          pesanan: pesanan.total,
+        });
 
         set.status = 409;
         return { received: true, error: "amount_mismatch" };
@@ -113,13 +107,21 @@ export const webhookRoutes = new Elysia().post(
 
       const hasil = await tandaiTerbayar(
         sql,
-        isi.merchant_ref,
-        isi.payment_method ?? isi.payment_method_code ?? null,
+        nomor,
+        namaMetode(isi.channel?.id) ?? namaMetode(isi.service?.id) ?? "DOKU",
       );
 
-      if (hasil.ok) await tandaiDiproses(sql, idPeristiwa);
+      if (!hasil.ok) {
+        console.error(
+          "[doku] uang masuk tapi pesanan tidak bisa ditandai lunas, cek manual",
+          nomor,
+          hasil.alasan,
+        );
+        return { received: true, applied: false, error: hasil.alasan };
+      }
 
-      return { received: true, applied: hasil.ok && !hasil.sudahPernah };
+      await tandaiDiproses(sql, idPeristiwa);
+      return { received: true, applied: !hasil.sudahPernah };
     } finally {
       await tutup(sql);
     }

@@ -22,21 +22,23 @@ const bagian = [
   {
     judul: "Kami tidak menyimpan data pembayaranmu",
     isi: [
-      "Nomor kartu, PIN, OTP, dan kredensial rekening tidak pernah melewati situs ini. Seluruh proses pembayaran ditangani Tripay di halaman mereka sendiri.",
-      "Yang kami terima kembali dari Tripay hanya nomor rujukan transaksi, metode pembayaran yang kamu pakai, dan konfirmasi lunas atau belum.",
+      "Nomor kartu, PIN, OTP, dan kredensial rekening tidak pernah melewati situs ini. Seluruh proses pembayaran ditangani DOKU di halaman mereka sendiri.",
+      "Yang kami terima kembali dari DOKU hanya nomor rujukan transaksi, metode pembayaran yang kamu pakai, dan konfirmasi lunas atau belum.",
     ],
   },
   {
-    judul: "Tidak ada akun, tidak ada kata sandi",
+    judul: "Akun lewat Google, tanpa kata sandi",
     isi: [
-      "Belanja di sini tidak memerlukan pendaftaran. Karena tidak ada akun, kami tidak menyimpan kata sandi siapa pun.",
+      "Belanja tetap bisa tanpa akun. Kalau kamu memilih masuk dengan Google, yang kami terima dari Google hanya nama, alamat email, dan nomor pengenal akun Google-mu. Kami tidak pernah menerima maupun menyimpan kata sandi.",
+      "Saat kamu masuk, pesanan lama yang dulu dibuat dengan email yang sama ikut tersambung ke akunmu supaya riwayatnya lengkap. Ini aman karena Google sudah memastikan email itu memang milikmu.",
+      "Status masuk disimpan di cookie bernama sid selama 30 hari. Isinya cuma kode acak, dan yang kami simpan di server hanya sidik jari kode itu, bukan kodenya. Menekan Keluar menghapusnya.",
       "Keranjang belanjamu disimpan di browser sendiri lewat localStorage dengan kunci menik-keranjang-v1, bukan di server kami. Isinya cuma kode produk dan jumlahnya, dan akan hilang kalau kamu membersihkan data browser.",
     ],
   },
   {
     judul: "Siapa saja yang menerima datamu",
     isi: [
-      "Tripay menerima nama, email, dan nomor HP untuk menerbitkan tagihan dan mengirimkan instruksi pembayaran kepadamu.",
+      "DOKU menerima nama, email, nomor HP, serta rincian barang yang kamu pesan untuk menerbitkan tagihan dan mengirimkan instruksi serta bukti pembayaran kepadamu.",
       "RajaOngkir menerima kecamatan tujuan dan berat paket untuk menghitung ongkos kirim. Nama dan alamat lengkapmu tidak dikirimkan ke sana.",
       "Kurir yang kamu pilih menerima nama, nomor HP, dan alamat pengiriman, karena tanpa itu paket tidak bisa diantar.",
       "Selain ketiganya, kami tidak membagikan, menjual, atau menyewakan datamu kepada siapa pun.",

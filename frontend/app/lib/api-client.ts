@@ -70,14 +70,15 @@ export type ChannelBayar = {
   code: string;
   name: string;
   group: string;
-  icon_url: string;
-  minimum_amount: number;
-  maximum_amount: number;
 };
 
-export async function ambilChannel(
-  signal?: AbortSignal,
-): Promise<{ data: ChannelBayar[]; sandbox: boolean }> {
+export type InfoPembayaran = {
+  configured: boolean;
+  sandbox: boolean;
+  data: ChannelBayar[];
+};
+
+export async function ambilChannel(signal?: AbortSignal): Promise<InfoPembayaran> {
   const res = await fetch("/api/payment-channels", { signal });
 
   if (!res.ok) {
@@ -85,19 +86,16 @@ export async function ambilChannel(
     throw new Error(galat.message ?? `Gagal memuat metode bayar (${res.status})`);
   }
 
-  return (await res.json()) as { data: ChannelBayar[]; sandbox: boolean };
+  return (await res.json()) as InfoPembayaran;
 }
 
-export async function bayarPesanan(
-  orderNo: string,
-  method: string,
-): Promise<{ checkout_url: string }> {
+export async function bayarPesanan(orderNo: string): Promise<{ checkout_url: string }> {
   const res = await fetch(
     `/api/orders/${encodeURIComponent(orderNo)}/pay`,
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ method }),
+      body: "{}",
     },
   );
 

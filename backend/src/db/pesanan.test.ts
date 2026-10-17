@@ -360,7 +360,7 @@ describe("buatPesanan", () => {
     expect(hasil.badan.error).toBe("invalid_email");
   });
 
-  it("menolak pesanan tanpa email karena Tripay mewajibkannya", async () => {
+  it("menolak pesanan tanpa email karena bukti bayar DOKU dikirim ke sana", async () => {
     const hasil = await buatPesanan(sql, permintaan({ email: "" }), UMUR_JAM, cariOngkir);
 
     expect(hasil.ok).toBe(false);
@@ -758,10 +758,10 @@ describe("batalkanPesanan", () => {
 
 describe("simpanPembayaran", () => {
   const bayar = {
-    reference: "T0001000000000000006",
-    url: "https://tripay.co.id/checkout/T0001000000000000006",
-    channel: "QRIS",
-    method: "QRIS by ShopeePay",
+    reference: "4a1c0e2b8f5d4a7c9e1b",
+    url: "https://sandbox.doku.com/checkout-link-v2/4a1c0e2b8f5d4a7c9e1b",
+    channel: "DOKU",
+    method: null,
   };
 
   it("menyimpan referensi dan alamat pembayaran", async () => {
@@ -772,8 +772,8 @@ describe("simpanPembayaran", () => {
     if (!hasil.ok) return;
     expect(hasil.pesanan.payment_reference).toBe(bayar.reference);
     expect(hasil.pesanan.payment_url).toBe(bayar.url);
-    expect(hasil.pesanan.payment_channel).toBe("QRIS");
-    expect(hasil.pesanan.payment_method).toBe(bayar.method);
+    expect(hasil.pesanan.payment_channel).toBe("DOKU");
+    expect(hasil.pesanan.payment_method).toBeNull();
     expect(hasil.pesanan.status).toBe("PENDING");
   });
 
@@ -798,7 +798,7 @@ describe("simpanPembayaran", () => {
 });
 
 describe("gagalkanPembayaran", () => {
-  it("mengembalikan stok saat Tripay bilang kedaluwarsa", async () => {
+  it("mengembalikan stok saat DOKU bilang kedaluwarsa", async () => {
     const sebelum = await stok(KUCING);
     const pesanan = await buat({ items: [{ slug: KUCING, qty: 2 }] });
 

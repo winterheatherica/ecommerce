@@ -20,16 +20,18 @@ function alamatApi(): string {
   return cocok[1];
 }
 
+const ASAL_API = new URL(alamatApi()).origin;
+
 const CSP = [
   "default-src 'self'",
   "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
   "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob: https://assets.tripay.co.id https://res.cloudinary.com",
+  "img-src 'self' data: blob: https://res.cloudinary.com",
   "font-src 'self' data:",
   "connect-src 'self'",
   "object-src 'none'",
   "base-uri 'self'",
-  "form-action 'self'",
+  `form-action 'self' ${ASAL_API}`,
   "frame-ancestors 'none'",
   "upgrade-insecure-requests",
 ].join("; ");
@@ -42,7 +44,6 @@ const nextConfig: NextConfig = {
     imageSizes: [96, 128, 256],
     qualities: [75, 92],
     remotePatterns: [
-      { protocol: "https", hostname: "assets.tripay.co.id", pathname: "/**" },
       { protocol: "https", hostname: "res.cloudinary.com", pathname: "/**" },
     ],
   },

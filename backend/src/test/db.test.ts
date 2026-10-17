@@ -28,7 +28,9 @@ describe("database tes", () => {
       "product_variants",
       "products",
       "regions",
+      "sessions",
       "shipping_quotes",
+      "users",
       "webhook_events",
     ]);
   });

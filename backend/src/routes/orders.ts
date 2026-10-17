@@ -1,12 +1,14 @@
 import { env } from "cloudflare:workers";
 import { Elysia, t } from "elysia";
 
+import { alamatToko, asalApi } from "../lib/alamat";
 import { buatKoneksi, tutup } from "../lib/db";
 import { buatPesanan, cariPesanan, simpanPembayaran } from "../db/pesanan";
-import { buatTransaksi } from "../lib/payment";
+import { penggunaDariCookie } from "../db/akun";
+import { JALUR_NOTIFIKASI, bacaKonfig, menitBayar } from "../lib/doku";
+import { buatHalamanBayar } from "../lib/payment";
 import { umurPesananJam } from "../lib/orders";
 import { opsiUntuk } from "../lib/ongkir";
-import { bacaKonfig } from "../lib/tripay";
 import {
   BADAN_PADAT,
   ambilPembatas,
@@ -43,7 +45,7 @@ export const orderRoutes = new Elysia({ prefix: "/api/orders" })
   )
   .post(
     "/",
-    async ({ body, set, request }) => {
+    async ({ body, set, request, headers }) => {
       const wadah = wadahEnv();
 
       const pembatas = ambilPembatas(
@@ -60,6 +62,8 @@ export const orderRoutes = new Elysia({ prefix: "/api/orders" })
       const sql = buatKoneksi(wadah);
 
       try {
+        const pengguna = await penggunaDariCookie(sql, headers.cookie);
+
         const hasil = await buatPesanan(
           sql,
           body,
@@ -73,6 +77,7 @@ export const orderRoutes = new Elysia({ prefix: "/api/orders" })
             );
             return opsi.ok ? opsi.opsi : null;
           },
+          pengguna?.id ?? null,
         );
 
         if (!hasil.ok) {
@@ -113,7 +118,7 @@ export const orderRoutes = new Elysia({ prefix: "/api/orders" })
   )
   .post(
     "/:orderNo/pay",
-    async ({ params, body, set, request }) => {
+    async ({ params, set, request }) => {
       const wadah = wadahEnv();
 
       const pembatas = ambilPembatas(
@@ -163,11 +168,11 @@ export const orderRoutes = new Elysia({ prefix: "/api/orders" })
           };
         }
 
-        const asal = new URL(request.url).origin;
-        const toko = wadah.STOREFRONT_URL ?? "http://localhost:3000";
+        const asal = asalApi(wadah, request);
+        const toko = alamatToko(wadah);
 
         const item = pesanan.items.map((i) => ({
-          sku: i.slug,
+          sku: i.sku ?? i.slug,
           name: i.name_snapshot,
           price: i.price_snapshot,
           quantity: i.qty,
@@ -175,41 +180,42 @@ export const orderRoutes = new Elysia({ prefix: "/api/orders" })
 
         if (pesanan.shipping_cost > 0) {
           item.push({
-            sku: "ongkir",
+            sku: "ONGKIR",
             name: `Ongkir ${pesanan.courier} ${pesanan.service}`,
             price: pesanan.shipping_cost,
             quantity: 1,
           });
         }
 
-        const hasil = await buatTransaksi(konfig, {
-          order_no: pesanan.order_no,
-          method: body.method,
+        const hasil = await buatHalamanBayar(konfig, {
+          invoice_number: pesanan.order_no,
           amount: pesanan.total,
-          customer_name: pesanan.customer_name,
-          customer_email: pesanan.email ?? "",
-          customer_phone: pesanan.phone,
-          expires_at: pesanan.expires_at ?? new Date().toISOString(),
+          due_minutes: menitBayar(pesanan.expires_at, new Date()),
+          customer: {
+            name: pesanan.customer_name,
+            email: pesanan.email,
+            phone: pesanan.phone,
+          },
           items: item,
-          callback_url: `${asal}/api/webhooks/tripay`,
-          return_url: `${toko}/order/${pesanan.order_no}`,
+          callback_url: `${toko}/order/${pesanan.order_no}`,
+          notification_url: `${asal}${JALUR_NOTIFIKASI}`,
         });
 
         if (!hasil.ok) {
-          set.status = hasil.status === 502 ? 502 : 422;
+          set.status = hasil.status === 504 ? 504 : 502;
           return { error: "payment_gateway_error", message: hasil.pesan };
         }
 
         await simpanPembayaran(sql, pesanan.order_no, {
-          reference: hasil.data.reference,
-          url: hasil.data.checkout_url,
-          channel: body.method,
-          method: hasil.data.payment_name,
+          reference: hasil.data.token_id,
+          url: hasil.data.url,
+          channel: "DOKU",
+          method: null,
         });
 
         return {
-          checkout_url: hasil.data.checkout_url,
-          channel: body.method,
+          checkout_url: hasil.data.url,
+          channel: "DOKU",
           reused: false,
         };
       } finally {
@@ -218,6 +224,6 @@ export const orderRoutes = new Elysia({ prefix: "/api/orders" })
     },
     {
       params: t.Object({ orderNo: t.String({ maxLength: 40 }) }),
-      body: t.Object({ method: t.String({ minLength: 2, maxLength: 40 }) }),
+      body: t.Optional(t.Object({ method: t.Optional(t.String({ maxLength: 40 })) })),
     },
   );

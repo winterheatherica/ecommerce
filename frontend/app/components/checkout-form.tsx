@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
+import GoogleButton from "@/app/components/google-button";
+import type { Akun } from "@/app/lib/akun";
 import { kosongkanKeranjang, useKeranjang } from "@/app/lib/keranjang";
 import {
   ambilOngkir,
@@ -27,18 +29,31 @@ const labelInput =
 const kotakInput =
   "mt-2 w-full border border-ink/15 px-4 py-3 text-sm text-ink outline-none transition-colors placeholder:text-stone-400 focus:border-brand-500 disabled:bg-stone-100";
 
-export default function CheckoutForm({ produk }: { produk: Produk[] }) {
+type Props = {
+  produk: Produk[];
+  akun: Akun | null;
+  urlMasuk: string;
+};
+
+function wilayahTersimpan(akun: Akun | null): Wilayah | null {
+  const a = akun?.last_address;
+  if (!a) return null;
+  return { id: a.dest_id, label: a.dest_label, province: "", city: "", district: "", postal_code: null };
+}
+
+export default function CheckoutForm({ produk, akun, urlMasuk }: Props) {
   const router = useRouter();
   const items = useKeranjang();
+  const terakhir = akun?.last_address ?? null;
 
-  const [nama, setNama] = useState("");
-  const [telepon, setTelepon] = useState("");
-  const [email, setEmail] = useState("");
-  const [alamat, setAlamat] = useState("");
+  const [nama, setNama] = useState(terakhir?.customer_name ?? akun?.user.name ?? "");
+  const [telepon, setTelepon] = useState(terakhir?.phone ?? "");
+  const [email, setEmail] = useState(akun?.user.email ?? "");
+  const [alamat, setAlamat] = useState(terakhir?.address ?? "");
   const [catatan, setCatatan] = useState("");
 
-  const [kataWilayah, setKataWilayah] = useState("");
-  const [tujuan, setTujuan] = useState<Wilayah | null>(null);
+  const [kataWilayah, setKataWilayah] = useState(terakhir?.dest_label ?? "");
+  const [tujuan, setTujuan] = useState<Wilayah | null>(() => wilayahTersimpan(akun));
   const [saranMentah, setSaranMentah] = useState<Wilayah[]>([]);
   const [mencariWilayah, setMencariWilayah] = useState(false);
 
@@ -192,6 +207,22 @@ export default function CheckoutForm({ produk }: { produk: Produk[] }) {
         Data pengiriman
       </h1>
 
+      {akun ? (
+        <p className="mt-6 border border-brand-200 bg-brand-50 px-5 py-4 text-sm leading-relaxed text-brand-800">
+          Masuk sebagai <span className="font-medium">{akun.user.name}</span> (
+          {akun.user.email}). Pesanan ini akan tersimpan di riwayat akunmu
+          {terakhir ? ", dan datanya diisi dari pesanan terakhirmu." : "."}
+        </p>
+      ) : (
+        <div className="mt-6 flex flex-wrap items-center justify-between gap-4 border border-ink/10 bg-stone-50 px-5 py-4">
+          <p className="max-w-md text-sm leading-relaxed text-stone-600">
+            Punya akun Google? Masuk supaya pesanan tersimpan dan data terisi
+            otomatis lain kali. Tanpa masuk juga tetap bisa.
+          </p>
+          <GoogleButton href={urlMasuk} label="Masuk dengan Google" />
+        </div>
+      )}
+
       <form
         onSubmit={kirim}
         className="mt-12 grid gap-12 lg:grid-cols-[1fr_20rem] lg:gap-16"
@@ -236,7 +267,7 @@ export default function CheckoutForm({ produk }: { produk: Produk[] }) {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="untuk bukti pembayaran dari Tripay"
+              placeholder="untuk bukti pembayaran dari DOKU"
               autoComplete="email"
               className={kotakInput}
             />

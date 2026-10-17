@@ -1,13 +1,12 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import {
   ambilChannel,
   bayarPesanan,
-  type ChannelBayar,
+  type InfoPembayaran,
 } from "@/app/lib/api-client";
 import { rupiah } from "@/app/data/produk";
 import { waPesan } from "@/app/data/kontak";
@@ -19,12 +18,11 @@ type Props = {
 
 type Muatan =
   | { keadaan: "memuat" }
-  | { keadaan: "siap"; channel: ChannelBayar[]; sandbox: boolean }
+  | { keadaan: "siap"; info: InfoPembayaran }
   | { keadaan: "gagal"; pesan: string };
 
 export default function PaymentPicker({ orderNo, total }: Props) {
   const [muatan, setMuatan] = useState<Muatan>({ keadaan: "memuat" });
-  const [dipilih, setDipilih] = useState<string | null>(null);
   const [memproses, setMemproses] = useState(false);
   const [galat, setGalat] = useState<string | null>(null);
 
@@ -32,13 +30,9 @@ export default function PaymentPicker({ orderNo, total }: Props) {
     const kendali = new AbortController();
 
     ambilChannel(kendali.signal)
-      .then((isi) => {
+      .then((info) => {
         if (kendali.signal.aborted) return;
-        setMuatan({
-          keadaan: "siap",
-          channel: isi.data,
-          sandbox: isi.sandbox,
-        });
+        setMuatan({ keadaan: "siap", info });
       })
       .catch((err: unknown) => {
         if (kendali.signal.aborted) return;
@@ -53,13 +47,11 @@ export default function PaymentPicker({ orderNo, total }: Props) {
   }, []);
 
   const bayar = async () => {
-    if (!dipilih) return;
-
     setMemproses(true);
     setGalat(null);
 
     try {
-      const { checkout_url } = await bayarPesanan(orderNo, dipilih);
+      const { checkout_url } = await bayarPesanan(orderNo);
       window.location.href = checkout_url;
     } catch (err) {
       setGalat(err instanceof Error ? err.message : "Pembayaran gagal dibuat");
@@ -94,7 +86,9 @@ export default function PaymentPicker({ orderNo, total }: Props) {
     );
   }
 
-  if (muatan.sandbox) {
+  const { info } = muatan;
+
+  if (!info.configured) {
     const pesan = `Halo Menik Store, saya mau menyelesaikan pembayaran pesanan ${orderNo} senilai ${rupiah(total)}.`;
 
     return (
@@ -127,76 +121,58 @@ export default function PaymentPicker({ orderNo, total }: Props) {
     );
   }
 
-  const kelompok = [...new Set(muatan.channel.map((c) => c.group))];
-  const cocok = muatan.channel.filter(
-    (c) => total >= c.minimum_amount && (c.maximum_amount === 0 || total <= c.maximum_amount),
-  );
+  const kelompok = [...new Set(info.data.map((c) => c.group))];
 
   return (
     <div className="mt-10">
-      <fieldset disabled={memproses}>
-        <legend className="font-mono text-[12px] tracking-[0.2em] text-stone-500 uppercase">
-          Pilih metode
-        </legend>
-
-        {kelompok.map((g) => {
-          const isi = cocok.filter((c) => c.group === g);
-          if (isi.length === 0) return null;
-
-          return (
-            <div key={g} className="mt-6">
-              <p className="font-mono text-[12px] tracking-[0.18em] text-stone-400 uppercase">
-                {g}
-              </p>
-              <div className="mt-3 flex flex-wrap gap-2">
-                {isi.map((c) => (
-                  <button
-                    key={c.code}
-                    type="button"
-                    onClick={() => setDipilih(c.code)}
-                    aria-pressed={dipilih === c.code}
-                    className={`flex items-center gap-3 border px-4 py-2.5 text-sm transition-colors ${
-                      dipilih === c.code
-                        ? "border-brand-500 bg-brand-50 text-brand-700"
-                        : "border-ink/15 text-stone-600 hover:border-brand-400 hover:text-brand-600"
-                    }`}
-                  >
-                    <Image
-                      src={c.icon_url}
-                      alt=""
-                      width={40}
-                      height={20}
-                      unoptimized
-                      className="h-5 w-10 object-contain"
-                    />
-                    {c.name}
-                  </button>
-                ))}
-              </div>
-            </div>
-          );
-        })}
-      </fieldset>
-
-      {cocok.length === 0 && (
-        <p className="mt-6 border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-          Tidak ada metode pembayaran yang cocok untuk nominal ini. Hubungi kami
-          lewat WhatsApp.
+      {info.sandbox && (
+        <p className="mb-8 border border-amber-300 bg-amber-50 px-4 py-3 text-sm leading-relaxed text-amber-800">
+          <span className="font-semibold">Mode uji.</span> Halaman berikutnya
+          memakai sandbox DOKU dan tidak menagih uang sungguhan.
         </p>
       )}
+
+      <p className="font-mono text-[12px] tracking-[0.2em] text-stone-500 uppercase">
+        Bisa dibayar dengan
+      </p>
+      <dl className="mt-4 space-y-3">
+        {kelompok.map((g) => (
+          <div key={g} className="flex flex-wrap items-baseline gap-x-4 gap-y-2">
+            <dt className="w-32 shrink-0 font-mono text-[12px] tracking-[0.16em] text-stone-400 uppercase">
+              {g}
+            </dt>
+            <dd className="flex flex-wrap gap-2">
+              {info.data
+                .filter((c) => c.group === g)
+                .map((c) => (
+                  <span
+                    key={c.code}
+                    className="border border-ink/15 px-3 py-1.5 text-sm text-stone-700"
+                  >
+                    {c.name}
+                  </span>
+                ))}
+            </dd>
+          </div>
+        ))}
+      </dl>
 
       <button
         type="button"
         onClick={bayar}
-        disabled={memproses || !dipilih}
+        disabled={memproses}
         className="mt-10 w-full border border-brand-500 bg-brand-500 px-8 py-4 font-mono text-[13px] tracking-[0.22em] text-white uppercase transition-colors hover:border-brand-600 hover:bg-brand-600 disabled:cursor-not-allowed disabled:border-stone-300 disabled:bg-stone-300 sm:w-auto"
       >
         {memproses ? "Menyiapkan..." : `Bayar ${rupiah(total)}`}
       </button>
+      <p className="mt-3 text-xs leading-relaxed text-stone-500">
+        Kamu akan diarahkan ke halaman pembayaran DOKU dan memilih metodenya di
+        sana.
+      </p>
 
       <Link
         href={`/order/${orderNo}`}
-        className="mt-4 block font-mono text-[12px] tracking-[0.18em] text-stone-500 uppercase transition-colors hover:text-brand-600 sm:mt-6"
+        className="mt-6 block font-mono text-[12px] tracking-[0.18em] text-stone-500 uppercase transition-colors hover:text-brand-600"
       >
         Bayar nanti
       </Link>

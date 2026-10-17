@@ -1,141 +1,158 @@
 import {
-  bentukFormulir,
-  dasarTripay,
-  tandaTanganTransaksi,
-  type ItemTripay,
-  type KonfigTripay,
-} from "./tripay";
+  JALUR_CHECKOUT,
+  METODE_BAYAR,
+  dasarDoku,
+  hpInternasional,
+  kepalaPermintaan,
+  type KonfigDoku,
+} from "./doku";
 
-export type Channel = {
-  code: string;
+export type ItemBayar = {
+  sku: string;
   name: string;
-  group: string;
-  icon_url: string;
-  active: boolean;
-  minimum_amount: number;
-  maximum_amount: number;
+  price: number;
+  quantity: number;
 };
 
-export type PermintaanTransaksi = {
-  order_no: string;
-  method: string;
+export type PermintaanBayar = {
+  invoice_number: string;
   amount: number;
-  customer_name: string;
-  customer_email: string;
-  customer_phone: string;
-  expires_at: string;
-  items: ItemTripay[];
+  due_minutes: number;
+  customer: { name: string; email: string | null; phone: string };
+  items: ItemBayar[];
   callback_url: string;
-  return_url: string;
+  notification_url: string;
 };
 
-export type Transaksi = {
-  reference: string;
-  checkout_url: string;
-  payment_name: string;
-  expired_time: number;
+export type HalamanBayar = {
+  url: string;
+  token_id: string;
+  expired_date: string | null;
 };
 
-export type HasilTripay<T> =
+export type HasilGateway<T> =
   | { ok: true; data: T }
   | { ok: false; status: number; pesan: string };
 
-async function baca<T>(res: Response): Promise<HasilTripay<T>> {
-  const isi = (await res.json().catch(() => null)) as {
-    success?: boolean;
-    message?: string;
-    data?: T;
-  } | null;
+export function badanCheckout(req: PermintaanBayar) {
+  return {
+    order: {
+      amount: req.amount,
+      invoice_number: req.invoice_number,
+      currency: "IDR",
+      callback_url: req.callback_url,
+      auto_redirect: true,
+      line_items: req.items.map((i) => ({
+        id: i.sku,
+        sku: i.sku,
+        name: i.name.slice(0, 255),
+        price: i.price,
+        quantity: i.quantity,
+      })),
+    },
+    payment: {
+      payment_due_date: req.due_minutes,
+      payment_method_types: METODE_BAYAR.map((m) => m.code),
+    },
+    customer: {
+      name: req.customer.name.slice(0, 255),
+      ...(req.customer.email ? { email: req.customer.email.slice(0, 128) } : {}),
+      phone: hpInternasional(req.customer.phone).slice(0, 16),
+      country: "ID",
+    },
+    additional_info: {
+      override_notification_url: req.notification_url,
+    },
+  };
+}
 
-  if (!isi || isi.success !== true || isi.data === undefined) {
+type JawabanDoku = {
+  message?: string[];
+  error_messages?: string[];
+  error?: { message?: string };
+  response?: {
+    payment?: { url?: string; token_id?: string; expired_date?: string };
+  };
+};
+
+export async function bacaJawaban(res: Response): Promise<HasilGateway<HalamanBayar>> {
+  const isi = (await res.json().catch(() => null)) as JawabanDoku | null;
+  const bayar = isi?.response?.payment;
+
+  if (res.ok && bayar?.url && bayar.token_id) {
     return {
-      ok: false,
-      status: res.ok ? 502 : res.status,
-      pesan: isi?.message || `Tripay menolak permintaan (${res.status})`,
+      ok: true,
+      data: {
+        url: bayar.url,
+        token_id: bayar.token_id,
+        expired_date: bayar.expired_date ?? null,
+      },
     };
   }
 
-  return { ok: true, data: isi.data };
+  const alasan =
+    isi?.error_messages?.join(", ") || isi?.error?.message || isi?.message?.join(", ");
+
+  return {
+    ok: false,
+    status: res.ok ? 502 : res.status,
+    pesan: alasan ? `DOKU menolak: ${alasan}` : `DOKU menolak permintaan (${res.status})`,
+  };
 }
 
 const BATAS_MS = 10000;
 
-async function panggil<T>(
-  url: string,
-  init: RequestInit,
-): Promise<HasilTripay<T>> {
+export async function buatHalamanBayar(
+  konfig: KonfigDoku,
+  req: PermintaanBayar,
+  requestId: string = crypto.randomUUID(),
+  waktu: Date = new Date(),
+): Promise<HasilGateway<HalamanBayar>> {
+  const jumlahItem = req.items.reduce((s, i) => s + i.price * i.quantity, 0);
+
+  if (jumlahItem !== req.amount) {
+    console.error("[doku] rincian tidak sama dengan total", {
+      invoice: req.invoice_number,
+      rincian: jumlahItem,
+      total: req.amount,
+    });
+
+    return {
+      ok: false,
+      status: 500,
+      pesan: "Rincian pesanan tidak cocok dengan totalnya. Hubungi kami lewat WhatsApp.",
+    };
+  }
+
+  const badan = JSON.stringify(badanCheckout(req));
+  const kepala = await kepalaPermintaan(konfig, JALUR_CHECKOUT, badan, requestId, waktu);
+
   try {
-    const res = await fetch(url, {
-      ...init,
+    const res = await fetch(`${dasarDoku(konfig)}${JALUR_CHECKOUT}`, {
+      method: "POST",
+      headers: { ...kepala, "Content-Type": "application/json" },
+      body: badan,
       signal: AbortSignal.timeout(BATAS_MS),
     });
 
-    return baca<T>(res);
+    const hasil = await bacaJawaban(res);
+
+    if (!hasil.ok) {
+      console.error("[doku] halaman bayar ditolak", {
+        status: hasil.status,
+        pesan: hasil.pesan,
+        invoice: req.invoice_number,
+      });
+    }
+
+    return hasil;
   } catch (e) {
-    console.error("[tripay] tidak merespons", url, e);
+    console.error("[doku] tidak merespons", req.invoice_number, e);
 
     return {
       ok: false,
       status: 504,
-      pesan: "Tripay tidak merespons tepat waktu. Coba lagi sebentar.",
+      pesan: "DOKU tidak merespons tepat waktu. Coba lagi sebentar.",
     };
   }
-}
-
-export async function daftarChannel(
-  konfig: KonfigTripay,
-): Promise<HasilTripay<Channel[]>> {
-  return panggil<Channel[]>(`${dasarTripay(konfig)}/merchant/payment-channel`, {
-    headers: { Authorization: `Bearer ${konfig.apiKey}` },
-  });
-}
-
-export async function buatTransaksi(
-  konfig: KonfigTripay,
-  req: PermintaanTransaksi,
-): Promise<HasilTripay<Transaksi>> {
-  const signature = await tandaTanganTransaksi(
-    konfig,
-    req.order_no,
-    req.amount,
-  );
-
-  const form = bentukFormulir(
-    {
-      method: req.method,
-      merchant_ref: req.order_no,
-      amount: req.amount,
-      customer_name: req.customer_name,
-      customer_email: req.customer_email,
-      customer_phone: req.customer_phone,
-      callback_url: req.callback_url,
-      return_url: req.return_url,
-      expired_time: Math.floor(new Date(req.expires_at).getTime() / 1000),
-      signature,
-    },
-    req.items,
-  );
-
-  const hasil = await panggil<Transaksi>(
-    `${dasarTripay(konfig)}/transaction/create`,
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${konfig.apiKey}`,
-        "content-type": "application/x-www-form-urlencoded",
-      },
-      body: form,
-    },
-  );
-
-  if (!hasil.ok) {
-    console.error("[tripay] transaksi ditolak", {
-      status: hasil.status,
-      pesan: hasil.pesan,
-      order_no: req.order_no,
-      method: req.method,
-    });
-  }
-
-  return hasil;
 }

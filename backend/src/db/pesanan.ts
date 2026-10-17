@@ -343,6 +343,7 @@ export async function buatPesanan(
   req: PermintaanPesanan,
   umurJam: number,
   cariOngkir: CariOngkir,
+  pemilik: number | null = null,
 ): Promise<HasilBuat> {
   if (!hpSah(req.phone)) {
     return {
@@ -456,7 +457,7 @@ export async function buatPesanan(
           insert into orders (
             order_no, customer_name, phone, email, address, notes,
             dest_id, courier, service, etd, weight_g,
-            subtotal, shipping_cost, total, status, expires_at
+            subtotal, shipping_cost, total, status, expires_at, user_id
           ) values (
             ${nomor},
             ${req.customer_name.trim()},
@@ -473,7 +474,8 @@ export async function buatPesanan(
             ${opsi.cost},
             ${total},
             'PENDING',
-            ${kedaluwarsa}
+            ${kedaluwarsa},
+            ${pemilik}
           )
           returning id::int as id
         `;
@@ -634,7 +636,7 @@ export type Pembayaran = {
   reference: string;
   url: string;
   channel: string;
-  method: string;
+  method: string | null;
 };
 
 export async function simpanPembayaran(
