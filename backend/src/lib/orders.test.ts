@@ -10,17 +10,17 @@ import {
 } from "./orders";
 
 describe("nomorPesananBaru", () => {
-  it("berawalan MNK- dan panjangnya tetap", () => {
-    const nomor = nomorPesananBaru();
-
-    expect(nomor).toMatch(/^MNK-[A-Z2-9]{8}$/);
+  it("MNK- diikuti 12 digit, dan digit pertamanya tidak pernah 0", () => {
+    for (const nomor of Array.from({ length: 300 }, nomorPesananBaru)) {
+      expect(nomor).toMatch(/^MNK-[1-9]\d{11}$/);
+    }
   });
 
-  it("tidak memakai huruf yang mudah tertukar angka", () => {
-    const gabungan = Array.from({ length: 200 }, nomorPesananBaru).join("");
+  it("semua angka 0 sampai 9 muncul di digit sisanya", () => {
+    const sisa = Array.from({ length: 300 }, () => nomorPesananBaru().slice(5)).join("");
 
-    for (const huruf of ["I", "O", "0", "1"]) {
-      expect(gabungan.slice(4), huruf).not.toContain(huruf);
+    for (const angka of "0123456789") {
+      expect(sisa, angka).toContain(angka);
     }
   });
 

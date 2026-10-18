@@ -20,7 +20,7 @@ export async function adaSesi(): Promise<boolean> {
   return Boolean((await cookies()).get(COOKIE_SESI)?.value);
 }
 
-async function kepalaSesi(): Promise<Record<string, string> | null> {
+export async function kepalaSesi(): Promise<Record<string, string> | null> {
   const token = (await cookies()).get(COOKIE_SESI)?.value;
   return token ? { Cookie: `${COOKIE_SESI}=${token}` } : null;
 }

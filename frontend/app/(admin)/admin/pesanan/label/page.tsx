@@ -3,7 +3,8 @@ import Link from "next/link";
 
 import PrintButton from "@/app/components/print-button";
 import ShippingLabel from "@/app/components/shipping-label";
-import { ambilDaftarPesanan, ambilPesanan, type Pesanan } from "@/app/lib/api";
+import { ambilDaftarPesanan, ambilPesananAdmin, type Pesanan } from "@/app/lib/api";
+import { ringkasPaket } from "@/app/lib/paket";
 
 export const metadata: Metadata = {
   title: "Cetak label",
@@ -30,12 +31,16 @@ export default async function CetakLabelPage({ searchParams }: Props) {
   let hilang = 0;
 
   if (diminta.length > 0) {
-    const hasil = await Promise.all(diminta.map((n) => ambilPesanan(n)));
+    const hasil = await Promise.all(diminta.map((n) => ambilPesananAdmin(n)));
     pesanan = hasil.filter((p): p is Pesanan => p !== null);
     hilang = diminta.length - pesanan.length;
   } else if (status === "PAID") {
     pesanan = (await ambilDaftarPesanan("PAID")).sort(urutanKirim);
   }
+
+  const tanpaPaket = [
+    ...new Set(pesanan.flatMap((p) => ringkasPaket(p.items).belumLengkap)),
+  ];
 
   return (
     <div>
@@ -75,6 +80,24 @@ export default async function CetakLabelPage({ searchParams }: Props) {
               ? "Nomor pesanan tidak ditemukan."
               : "Tidak ada pesanan yang perlu dikirim."}
           </p>
+        )}
+
+        {tanpaPaket.length > 0 && (
+          <div className="mt-4 border border-amber-300 bg-amber-50 px-4 py-3 text-sm leading-relaxed text-amber-900">
+            <p>
+              Berat atau dimensi paket belum diatur untuk produk ini, jadi
+              kolomnya di label dibiarkan kosong untuk ditulis tangan:
+            </p>
+            <ul className="mt-2 list-disc pl-5">
+              {tanpaPaket.map((nama) => (
+                <li key={nama}>{nama}</li>
+              ))}
+            </ul>
+            <p className="mt-2">
+              Isi di editor ukuran pada halaman ubah produk supaya label
+              berikutnya terisi otomatis.
+            </p>
+          </div>
         )}
 
         {hilang > 0 && pesanan.length > 0 && (

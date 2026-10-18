@@ -3,6 +3,8 @@ import { cache } from "react";
 import { PUNYA_GAMBAR, urlGambar } from "@/app/data/gambar";
 import type { Kategori, Produk, StatusPromo, Varian } from "@/app/data/produk";
 import type { StatusPesanan } from "@/app/data/status-pesanan";
+import { kepalaSesi } from "@/app/lib/akun";
+import { dimensiPaket } from "@/app/lib/paket";
 
 function basis(): string {
   return process.env.API_URL ?? "http://localhost:8787";
@@ -33,6 +35,10 @@ type VarianAPI = {
   promo_show_period?: boolean;
   promo_active?: boolean;
   promo_status?: StatusPromo;
+  package_weight_g?: number | null;
+  package_length_cm?: number | null;
+  package_width_cm?: number | null;
+  package_height_cm?: number | null;
 };
 
 type ProdukAPI = {
@@ -70,6 +76,8 @@ function petakan(p: ProdukAPI): Produk {
     stok: v.stock,
     gambar: PUNYA_GAMBAR.has(v.slug) ? urlGambar(v.slug) : undefined,
     aktif: v.is_active,
+    paketBeratG: v.package_weight_g ?? null,
+    paketDimensi: dimensiPaket(v),
     promo:
       v.promo_show_period === undefined
         ? undefined
@@ -190,6 +198,10 @@ export type ItemPesanan = {
   qty: number;
   price_snapshot: number;
   list_price_snapshot: number | null;
+  package_weight_g?: number | null;
+  package_length_cm?: number | null;
+  package_width_cm?: number | null;
+  package_height_cm?: number | null;
 };
 
 export type Pesanan = {
@@ -221,12 +233,34 @@ export type Pesanan = {
   paid_at: string | null;
   shipped_at: string | null;
   items: ItemPesanan[];
+  samar?: boolean;
 };
 
-export async function ambilPesanan(orderNo: string): Promise<Pesanan | null> {
+export type HasilPesanan =
+  | { status: "ada"; pesanan: Pesanan }
+  | { status: "tidak_ada" }
+  | { status: "perlu_masuk" };
+
+export async function ambilPesanan(orderNo: string): Promise<HasilPesanan> {
   const res = await fetch(
     `${basis()}/api/orders/${encodeURIComponent(orderNo)}`,
-    { cache: "no-store" },
+    { cache: "no-store", headers: (await kepalaSesi()) ?? {} },
+  );
+
+  if (res.status === 404) return { status: "tidak_ada" };
+  if (res.status === 401) return { status: "perlu_masuk" };
+
+  if (!res.ok) {
+    throw new Error(`Gagal mengambil pesanan ${orderNo} (${res.status})`);
+  }
+
+  return { status: "ada", pesanan: (await res.json()) as Pesanan };
+}
+
+export async function ambilPesananAdmin(orderNo: string): Promise<Pesanan | null> {
+  const res = await fetch(
+    `${basis()}/api/admin/orders/${encodeURIComponent(orderNo)}`,
+    { cache: "no-store", headers: kepalaAdmin() },
   );
 
   if (res.status === 404) return null;

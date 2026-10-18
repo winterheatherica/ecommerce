@@ -22,6 +22,10 @@ export type BarisVarianLengkap = Omit<BarisVarian, "regular_price" | "promo_visi
   promo_show_period: boolean;
   promo_active: boolean;
   promo_status: StatusPromo;
+  package_weight_g: number | null;
+  package_length_cm: number | null;
+  package_width_cm: number | null;
+  package_height_cm: number | null;
 };
 
 export type StatusPromo = "none" | "active" | "scheduled" | "ended";
@@ -111,6 +115,10 @@ const kolomAdmin = (sql: Kueri) => sql`
         'weight_g', v.weight_g,
         'stock', v.stock,
         'sku', v.sku,
+        'package_weight_g', v.package_weight_g,
+        'package_length_cm', v.package_length_cm,
+        'package_width_cm', v.package_width_cm,
+        'package_height_cm', v.package_height_cm,
         'sort_order', v.sort_order,
         'is_active', v.is_active,
         'promo_price', v.promo_price,

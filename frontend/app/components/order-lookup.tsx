@@ -9,9 +9,11 @@ export default function OrderLookup() {
 
   const cari = (e: React.FormEvent) => {
     e.preventDefault();
-    const bersih = nomor.trim().toUpperCase();
+    const bersih = nomor.replace(/\s+/g, "").toUpperCase();
     if (!bersih) return;
-    router.push(`/order/${encodeURIComponent(bersih)}`);
+
+    const lengkap = /^\d{12}$/.test(bersih) ? `MNK-${bersih}` : bersih;
+    router.push(`/order/${encodeURIComponent(lengkap)}`);
   };
 
   return (
@@ -19,7 +21,7 @@ export default function OrderLookup() {
       <input
         value={nomor}
         onChange={(e) => setNomor(e.target.value)}
-        placeholder="MNK-XXXXXXXX"
+        placeholder="MNK-123456789012"
         aria-label="Nomor pesanan"
         className="flex-1 border border-ink/15 px-4 py-3.5 font-mono text-sm tracking-[0.1em] text-ink uppercase outline-none transition-colors placeholder:font-sans placeholder:tracking-normal placeholder:normal-case placeholder:text-stone-400 focus:border-brand-500 sm:flex-none sm:w-72"
       />

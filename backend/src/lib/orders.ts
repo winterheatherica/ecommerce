@@ -6,16 +6,22 @@ export type StatusPesanan =
   | "EXPIRED"
   | "CANCELLED";
 
-const ALFABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+const DIGIT_NOMOR = 12;
+
+function digitAcak(terkecil: number): number {
+  const rentang = 10 - terkecil;
+  const batas = 256 - (256 % rentang);
+  const bita = new Uint8Array(1);
+
+  for (;;) {
+    crypto.getRandomValues(bita);
+    if (bita[0] < batas) return terkecil + (bita[0] % rentang);
+  }
+}
 
 export function nomorPesananBaru(): string {
-  let hasil = "";
-  const acak = new Uint8Array(8);
-  crypto.getRandomValues(acak);
-
-  for (const b of acak) {
-    hasil += ALFABET[b % ALFABET.length];
-  }
+  let hasil = String(digitAcak(1));
+  while (hasil.length < DIGIT_NOMOR) hasil += String(digitAcak(0));
 
   return `MNK-${hasil}`;
 }

@@ -38,9 +38,20 @@ export type PerubahanVarian = {
   promo_starts_at?: string | null;
   promo_ends_at?: string | null;
   promo_show_period?: boolean;
+  package_weight_g?: number | null;
+  package_length_cm?: number | null;
+  package_width_cm?: number | null;
+  package_height_cm?: number | null;
 };
 
 export type PerubahanVarianBersih = PerubahanVarian;
+
+const KOLOM_PAKET = [
+  "package_weight_g",
+  "package_length_cm",
+  "package_width_cm",
+  "package_height_cm",
+] as const;
 
 const GALAT_SKU: Gagal = {
   status: 422,
@@ -146,6 +157,10 @@ export function periksaPerubahanVarian(
   if (p.is_active !== undefined) bersih.is_active = p.is_active;
   if (p.promo_price !== undefined) bersih.promo_price = p.promo_price;
   if (p.promo_show_period !== undefined) bersih.promo_show_period = p.promo_show_period;
+
+  for (const kolom of KOLOM_PAKET) {
+    if (p[kolom] !== undefined) bersih[kolom] = p[kolom];
+  }
 
   for (const kolom of ["promo_starts_at", "promo_ends_at"] as const) {
     if (p[kolom] === undefined) continue;

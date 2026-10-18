@@ -19,11 +19,16 @@ export type ItemPesanan = {
   qty: number;
   price_snapshot: number;
   list_price_snapshot: number | null;
+  package_weight_g: number | null;
+  package_length_cm: number | null;
+  package_width_cm: number | null;
+  package_height_cm: number | null;
 };
 
 export type Pesanan = {
   id: number;
   order_no: string;
+  user_id: number | null;
   customer_name: string;
   phone: string;
   email: string | null;
@@ -79,6 +84,7 @@ function petakan(b: BarisMentah): Pesanan {
 const pilih = (sql: Sql) => sql`
   o.id::int as id,
   o.order_no,
+  o.user_id::int as user_id,
   o.customer_name,
   o.phone,
   o.email,
@@ -114,7 +120,11 @@ const pilih = (sql: Sql) => sql`
           'name_snapshot', i.name_snapshot,
           'qty', i.qty,
           'price_snapshot', i.price_snapshot,
-          'list_price_snapshot', i.list_price_snapshot
+          'list_price_snapshot', i.list_price_snapshot,
+          'package_weight_g', v.package_weight_g,
+          'package_length_cm', v.package_length_cm,
+          'package_width_cm', v.package_width_cm,
+          'package_height_cm', v.package_height_cm
         )
         order by i.id
       )

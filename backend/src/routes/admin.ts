@@ -14,6 +14,7 @@ import {
 import { perbaruiVarian, tambahVarian } from "../db/varian";
 import {
   batalkanPesanan,
+  cariPesanan,
   daftarPesanan,
   sapuKedaluwarsa,
   tandaiDikirim,
@@ -90,6 +91,28 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
         limit: t.Optional(t.Numeric({ minimum: 1, maximum: 100 })),
         offset: t.Optional(t.Numeric({ minimum: 0 })),
       }),
+    },
+  )
+  .get(
+    "/orders/:orderNo",
+    async ({ params, set }) => {
+      const sql = koneksi();
+
+      try {
+        const pesanan = await cariPesanan(sql, params.orderNo);
+
+        if (!pesanan) {
+          set.status = 404;
+          return { error: "not_found", message: "Pesanan tidak ditemukan" };
+        }
+
+        return pesanan;
+      } finally {
+        await tutup(sql);
+      }
+    },
+    {
+      params: t.Object({ orderNo: t.String({ maxLength: 40 }) }),
     },
   )
   .patch(
@@ -440,6 +463,15 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
           };
         }
 
+        if (!hasil.ok && hasil.alasan === "package_dimensions_incomplete") {
+          set.status = 422;
+          return {
+            error: "package_dimensions_incomplete",
+            message: "Dimensi paket harus lengkap: panjang, lebar, dan tinggi",
+            field: "package",
+          };
+        }
+
         if (!hasil.ok) {
           set.status = 404;
           return { error: "not_found", message: "Varian tidak ditemukan" };
@@ -466,6 +498,12 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
         promo_starts_at: t.Optional(t.Union([t.String({ maxLength: 40 }), t.Null()])),
         promo_ends_at: t.Optional(t.Union([t.String({ maxLength: 40 }), t.Null()])),
         promo_show_period: t.Optional(t.Boolean()),
+        package_weight_g: t.Optional(
+          t.Union([t.Integer({ minimum: 1, maximum: 50000 }), t.Null()]),
+        ),
+        package_length_cm: t.Optional(t.Union([t.Integer({ minimum: 1, maximum: 300 }), t.Null()])),
+        package_width_cm: t.Optional(t.Union([t.Integer({ minimum: 1, maximum: 300 }), t.Null()])),
+        package_height_cm: t.Optional(t.Union([t.Integer({ minimum: 1, maximum: 300 }), t.Null()])),
       }),
     },
   );

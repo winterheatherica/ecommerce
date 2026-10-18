@@ -18,7 +18,18 @@ export type BarisVarianAdmin = {
   promo_show_period: boolean;
   promo_active: boolean;
   promo_status: StatusPromo;
+  package_weight_g: number | null;
+  package_length_cm: number | null;
+  package_width_cm: number | null;
+  package_height_cm: number | null;
 };
+
+const kolomPaket = (sql: Kueri) => sql`
+  package_weight_g,
+  package_length_cm,
+  package_width_cm,
+  package_height_cm
+`;
 
 const kolomPromo = (sql: Kueri) => sql`
   promo_price,
@@ -39,7 +50,8 @@ const kolom = (sql: Kueri) => sql`
   v.stock,
   v.sort_order,
   v.is_active,
-  ${kolomPromo(sql)}
+  ${kolomPromo(sql)},
+  ${kolomPaket(sql)}
 `;
 
 type AlasanBentrok = "slug_taken" | "sku_taken";
@@ -70,7 +82,12 @@ export type HasilUbahVarian =
   | { ok: true; varian: BarisVarianAdmin }
   | {
       ok: false;
-      alasan: "not_found" | "sku_taken" | "promo_not_cheaper" | "promo_period_reversed";
+      alasan:
+        | "not_found"
+        | "sku_taken"
+        | "promo_not_cheaper"
+        | "promo_period_reversed"
+        | "package_dimensions_incomplete";
     };
 
 export async function perbaruiVarian(
@@ -103,6 +120,9 @@ export async function perbaruiVarian(
     }
     if (cek === "product_variants_promo_urutan_waktu") {
       return { ok: false, alasan: "promo_period_reversed" };
+    }
+    if (cek === "product_variants_dimensi_lengkap") {
+      return { ok: false, alasan: "package_dimensions_incomplete" };
     }
 
     throw e;
@@ -151,7 +171,8 @@ export async function tambahVarian(
         stock,
         sort_order,
         is_active,
-        ${kolomPromo(sql)}
+        ${kolomPromo(sql)},
+        ${kolomPaket(sql)}
     `;
 
     if (!varian) return { ok: false, alasan: "not_found" };

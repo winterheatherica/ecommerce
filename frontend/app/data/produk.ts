@@ -44,7 +44,11 @@ export type Varian = {
   gambar?: string;
   aktif?: boolean;
   promo?: PromoAdmin;
+  paketBeratG?: number | null;
+  paketDimensi?: DimensiPaket | null;
 };
+
+export type DimensiPaket = { p: number; l: number; t: number };
 
 export type Produk = {
   slug: string;

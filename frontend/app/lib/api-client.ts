@@ -238,6 +238,10 @@ export type PerubahanVarian = {
   promo_starts_at?: string | null;
   promo_ends_at?: string | null;
   promo_show_period?: boolean;
+  package_weight_g?: number | null;
+  package_length_cm?: number | null;
+  package_width_cm?: number | null;
+  package_height_cm?: number | null;
 };
 
 export type VarianBaru = {

@@ -14,7 +14,7 @@ import {
   sapuSesi,
   selesaikanMasuk,
 } from "./akun";
-import { buatPesanan, type CariOngkir, type PermintaanPesanan } from "./pesanan";
+import { buatPesanan, cariPesanan, type CariOngkir, type PermintaanPesanan } from "./pesanan";
 
 const sql: Sql = koneksiTes();
 
@@ -227,5 +227,16 @@ describe("riwayat dan alamat", () => {
     expect(await pemilik(pesanan)).toBeNull();
     const [s] = await sql<{ n: number }[]>`select count(*)::int as n from sessions`;
     expect(s.n).toBe(0);
+  });
+});
+
+describe("pemilik pesanan untuk aturan akses", () => {
+  it("cariPesanan membawa id pemilik: null untuk tamu, id akun setelah ditautkan", async () => {
+    const tamu = await pesanSebagaiTamu({ email: "orang.lain@contoh.test" });
+    const milikRina = await pesanSebagaiTamu();
+    const { pengguna } = await selesaikanMasuk(sql, RINA);
+
+    expect((await cariPesanan(sql, tamu))?.user_id).toBeNull();
+    expect((await cariPesanan(sql, milikRina))?.user_id).toBe(pengguna.id);
   });
 });

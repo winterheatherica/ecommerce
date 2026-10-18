@@ -22,7 +22,9 @@ export default function LacakPesananPage() {
       </h1>
       <p className="mt-4 max-w-lg leading-relaxed text-stone-600">
         Masukkan nomor pesanan yang kamu terima setelah checkout. Bentuknya
-        seperti <span className="font-mono text-ink">MNK-7K3QX9F2</span>.
+        seperti <span className="font-mono text-ink">MNK-482917365520</span>.
+        Pesanan yang dibuat saat masuk dengan akun hanya bisa dibuka setelah
+        masuk dengan akun yang sama.
       </p>
 
       <OrderLookup />

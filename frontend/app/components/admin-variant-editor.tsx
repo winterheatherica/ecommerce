@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
+import AdminDimensionBox from "@/app/components/admin-dimension-box";
 import AdminNumberBox from "@/app/components/admin-number-box";
 import AdminTextBox from "@/app/components/admin-text-box";
 import { tambahVarian, ubahVarian } from "@/app/lib/api-client";
@@ -162,13 +163,15 @@ export default function AdminVariantEditor({ produk }: { produk: Produk }) {
       )}
 
       <div className="mt-6 overflow-x-auto border border-ink/10 bg-white">
-        <table className="w-full min-w-150 text-sm">
+        <table className="w-full min-w-200 text-sm">
           <thead>
             <tr className="border-b border-ink/10 text-left">
               <th className={kepala}>Ukuran</th>
               <th className={kepala}>SKU</th>
               <th className={`${kepala} text-right`}>Harga</th>
               <th className={`${kepala} text-right`}>Berat (g)</th>
+              <th className={`${kepala} text-right`}>Berat paket (g)</th>
+              <th className={`${kepala} text-right`}>Dimensi paket (cm)</th>
               <th className={`${kepala} text-right`}>Stok</th>
               <th className={`${kepala} text-right`}>Status</th>
             </tr>
@@ -223,6 +226,38 @@ export default function AdminVariantEditor({ produk }: { produk: Produk }) {
                 </td>
                 <td className="px-3 py-3 text-right">
                   <AdminNumberBox
+                    nilai={v.paketBeratG ?? null}
+                    min={1}
+                    label={`Berat paket ukuran ${v.label}`}
+                    placeholder="belum"
+                    kelas={
+                      v.paketBeratG
+                        ? "w-24 border-ink/15 bg-white text-ink"
+                        : "w-24 border-amber-300 bg-amber-50 text-ink"
+                    }
+                    mati={menyimpan === v.slug}
+                    onSimpan={(angka) =>
+                      void simpan(v.slug, { paketBeratG: angka }, { package_weight_g: angka })
+                    }
+                  />
+                </td>
+                <td className="px-3 py-3 text-right">
+                  <AdminDimensionBox
+                    nilai={v.paketDimensi ?? null}
+                    label={`Dimensi paket ukuran ${v.label}`}
+                    kelas={v.paketDimensi ? "w-28 border-ink/15" : "w-28 border-amber-300 bg-amber-50"}
+                    mati={menyimpan === v.slug}
+                    onSimpan={(d) =>
+                      void simpan(
+                        v.slug,
+                        { paketDimensi: d },
+                        { package_length_cm: d.p, package_width_cm: d.l, package_height_cm: d.t },
+                      )
+                    }
+                  />
+                </td>
+                <td className="px-3 py-3 text-right">
+                  <AdminNumberBox
                     nilai={v.stok}
                     min={0}
                     label={`Stok ukuran ${v.label}`}
@@ -260,6 +295,11 @@ export default function AdminVariantEditor({ produk }: { produk: Produk }) {
       <p className="mt-4 text-sm text-stone-500">
         Termurah sekarang {aktif.length > 0 ? rupiah(Math.min(...aktif.map((v) => v.harga))) : "belum ada"}
         , total stok aktif {aktif.reduce((s, v) => s + v.stok, 0)}.
+      </p>
+      <p className="mt-2 text-sm leading-relaxed text-stone-500">
+        Berat dan dimensi paket dicetak di label kirim dan dijumlahkan sesuai
+        banyaknya barang. Kolom kuning artinya belum diisi, jadi di label nanti
+        dikosongkan untuk ditulis tangan.
       </p>
 
       {bukaTambah ? (

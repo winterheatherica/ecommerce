@@ -3,8 +3,10 @@ import { WA_URL } from "@/app/data/kontak";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import GoogleButton from "@/app/components/google-button";
 import PaymentCheck from "@/app/components/payment-check";
 import ReorderButton from "@/app/components/reorder-button";
+import { urlMasukGoogle } from "@/app/lib/akun";
 import { ambilPesanan, ambilSemuaProduk } from "@/app/lib/api";
 import { rupiah } from "@/app/data/produk";
 import { statusLabel, type StatusPesanan } from "@/app/data/status-pesanan";
@@ -66,11 +68,39 @@ async function slugYangMasihDijual(): Promise<string[] | null> {
   }
 }
 
+function PerluMasuk({ orderNo }: { orderNo: string }) {
+  return (
+    <div className="mx-auto w-full max-w-3xl px-6 pt-32 pb-24">
+      <p className="font-mono text-[13px] tracking-[0.28em] text-accent-600 uppercase">
+        Status pesanan
+      </p>
+      <h1 className="mt-3 font-mono text-2xl tracking-[0.1em] text-ink uppercase sm:text-3xl">
+        {orderNo}
+      </h1>
+
+      <div className="mt-10 border border-ink/10 bg-white px-6 py-8">
+        <p className="font-medium text-ink">Pesanan ini terhubung ke akun</p>
+        <p className="mt-2 max-w-lg text-sm leading-relaxed text-stone-600">
+          Supaya data pembeli tetap aman, pesanan yang dibuat saat masuk dengan
+          akun hanya bisa dibuka oleh pemiliknya. Masuk dengan akun Google yang
+          dipakai waktu memesan.
+        </p>
+        <div className="mt-6">
+          <GoogleButton href={urlMasukGoogle(`/order/${orderNo}`)} label="Masuk dengan Google" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default async function StatusPesananPage({ params }: Props) {
   const { orderNo } = await params;
-  const pesanan = await ambilPesanan(orderNo);
+  const hasil = await ambilPesanan(orderNo);
 
-  if (!pesanan) notFound();
+  if (hasil.status === "tidak_ada") notFound();
+  if (hasil.status === "perlu_masuk") return <PerluMasuk orderNo={orderNo} />;
+
+  const { pesanan } = hasil;
 
   const batal = pesanan.status === "EXPIRED" || pesanan.status === "CANCELLED";
   const posisi = ALUR.indexOf(pesanan.status);
@@ -165,10 +195,28 @@ export default async function StatusPesananPage({ params }: Props) {
             <br />
             {pesanan.phone}
             <br />
-            {pesanan.address}
-            <br />
+            {pesanan.address && (
+              <>
+                {pesanan.address}
+                <br />
+              </>
+            )}
             {pesanan.dest_label}
           </p>
+          {pesanan.samar && (
+            <p className="mt-3 max-w-xs text-xs leading-relaxed text-stone-500">
+              Alamat lengkap dan kontak disamarkan supaya data pembeli tetap
+              aman.{" "}
+              <a
+                href={urlMasukGoogle(`/order/${pesanan.order_no}`)}
+                className="border-b border-stone-400 text-ink transition-colors hover:border-brand-600 hover:text-brand-600"
+              >
+                Masuk dengan Google
+              </a>{" "}
+              pakai email yang dipakai waktu memesan untuk melihat detail
+              lengkapnya.
+            </p>
+          )}
           {pesanan.payment_method && (
             <p className="mt-3 font-mono text-xs text-stone-500">
               Dibayar lewat {pesanan.payment_method}

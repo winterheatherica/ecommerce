@@ -26,7 +26,7 @@ export const KONTAK = {
 } as const;
 
 export const PENGIRIM_LABEL = {
-  nama: "Menikstore12",
+  nama: "Menik Store",
   hp: KONTAK.waTampil,
 } as const;
 

@@ -1,5 +1,10 @@
+"use client";
+
+import { useLayoutEffect, useRef, useState } from "react";
+
 import { PENGIRIM_LABEL } from "@/app/data/kontak";
 import type { Pesanan } from "@/app/lib/api";
+import { ringkasPaket } from "@/app/lib/paket";
 
 const NAMA_KURIR: Record<string, string> = {
   JNE: "JNE",
@@ -8,6 +13,7 @@ const NAMA_KURIR: Record<string, string> = {
 };
 
 const MAKS_BARIS = 8;
+const MIN_BARIS = 2;
 
 function hpRapi(hp: string): string {
   const angka = hp.replace(/\D/g, "");
@@ -39,16 +45,30 @@ function tanggalRapi(iso: string): string {
 export default function ShippingLabel({ pesanan }: { pesanan: Pesanan }) {
   const kurir = NAMA_KURIR[pesanan.courier.toUpperCase()] ?? pesanan.courier;
   const totalQty = pesanan.items.reduce((s, i) => s + i.qty, 0);
+  const paket = ringkasPaket(pesanan.items);
+  const banyakJenis = (paket.dimensi?.length ?? 0) > 1;
 
-  const terlalu = pesanan.items.length > MAKS_BARIS;
-  const tampil = terlalu ? pesanan.items.slice(0, MAKS_BARIS - 1) : pesanan.items;
+  const kertas = useRef<HTMLElement>(null);
+  const [batas, setBatas] = useState(MAKS_BARIS);
+
+  useLayoutEffect(() => {
+    const el = kertas.current;
+    if (!el || batas <= MIN_BARIS) return;
+    if (el.scrollHeight > el.clientHeight + 1) setBatas((b) => b - 1);
+  }, [batas]);
+
+  const terlalu = pesanan.items.length > batas;
+  const tampil = terlalu ? pesanan.items.slice(0, batas - 1) : pesanan.items;
   const sisa = pesanan.items.slice(tampil.length);
 
   const kecil = "text-[7pt] font-bold tracking-[0.16em] uppercase";
   const garis = "border-black border-b-[0.4mm]";
 
   return (
-    <article className="flex h-[150mm] w-[100mm] flex-col bg-white p-[5mm] font-sans text-black">
+    <article
+      ref={kertas}
+      className="flex h-[150mm] w-[100mm] flex-col bg-white p-[5mm] font-sans text-black"
+    >
       <header className={`flex items-stretch justify-between gap-[3mm] pb-[3mm] ${garis}`}>
         <div className="flex flex-col justify-center bg-black px-[3mm] py-[2mm] text-white">
           <p className="text-[17pt] leading-none font-black tracking-tight">{kurir}</p>
@@ -64,8 +84,6 @@ export default function ShippingLabel({ pesanan }: { pesanan: Pesanan }) {
           </p>
           <p className="mt-[1.5mm] text-[8pt] leading-none">
             {tanggalRapi(pesanan.paid_at ?? pesanan.created_at)}
-            {" · "}
-            <span className="font-bold">{beratRapi(pesanan.weight_g)}</span>
           </p>
         </div>
       </header>
@@ -101,6 +119,34 @@ export default function ShippingLabel({ pesanan }: { pesanan: Pesanan }) {
             </>
           )}
         </p>
+      </section>
+
+      <section className={`grid grid-cols-[2fr_3fr] gap-[4mm] py-[2mm] ${garis}`}>
+        <div>
+          <p className={kecil}>Berat paket</p>
+          <p className="mt-[1mm] text-[12pt] leading-none font-black">
+            {paket.beratG !== null ? beratRapi(paket.beratG) : "______ g"}
+          </p>
+        </div>
+        <div className="min-w-0 border-l-[0.3mm] border-black pl-[3mm]">
+          <p className={kecil}>Dimensi paket (p × l × t)</p>
+          {paket.dimensi ? (
+            <ul className="mt-[1mm] text-[9pt] leading-snug font-bold">
+              {paket.dimensi.map((d) => (
+                <li key={d.teks}>
+                  {d.teks}
+                  {(banyakJenis || d.qty > 1) && (
+                    <span className="font-normal"> · {d.qty} barang</span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="mt-[1mm] text-[10pt] leading-none font-bold">
+              ____ × ____ × ____ cm
+            </p>
+          )}
+        </div>
       </section>
 
       {pesanan.notes && (

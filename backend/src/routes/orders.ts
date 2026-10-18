@@ -5,6 +5,7 @@ import { alamatToko, asalApi } from "../lib/alamat";
 import { buatKoneksi, tutup } from "../lib/db";
 import { ambilPesanan, buatPesanan, cariPesanan, simpanPembayaran } from "../db/pesanan";
 import { periksaKeDoku } from "../db/pelunasan";
+import { BADAN_PERLU_MASUK, aksesPesanan, untukPublik } from "../lib/privasi-pesanan";
 import { penggunaDariCookie } from "../db/akun";
 import { JALUR_NOTIFIKASI, bacaKonfig, menitBayar } from "../lib/doku";
 import { buatHalamanBayar } from "../lib/payment";
@@ -24,7 +25,7 @@ function wadahEnv() {
 export const orderRoutes = new Elysia({ prefix: "/api/orders" })
   .get(
     "/:orderNo",
-    async ({ params, set }) => {
+    async ({ params, set, headers }) => {
       const sql = buatKoneksi(wadahEnv());
 
       try {
@@ -35,7 +36,15 @@ export const orderRoutes = new Elysia({ prefix: "/api/orders" })
           return { error: "not_found", message: "Pesanan tidak ditemukan" };
         }
 
-        return pesanan;
+        const pengguna = await penggunaDariCookie(sql, headers.cookie);
+        const akses = aksesPesanan(pesanan.user_id, pengguna?.id ?? null);
+
+        if (akses === "tolak") {
+          set.status = 401;
+          return BADAN_PERLU_MASUK;
+        }
+
+        return untukPublik(pesanan, akses);
       } finally {
         await tutup(sql);
       }
@@ -119,7 +128,7 @@ export const orderRoutes = new Elysia({ prefix: "/api/orders" })
   )
   .post(
     "/:orderNo/pay",
-    async ({ params, set, request }) => {
+    async ({ params, set, request, headers }) => {
       const wadah = wadahEnv();
 
       const pembatas = ambilPembatas(
@@ -151,6 +160,13 @@ export const orderRoutes = new Elysia({ prefix: "/api/orders" })
         if (!pesanan) {
           set.status = 404;
           return { error: "not_found", message: "Pesanan tidak ditemukan" };
+        }
+
+        const pengguna = await penggunaDariCookie(sql, headers.cookie);
+
+        if (aksesPesanan(pesanan.user_id, pengguna?.id ?? null) === "tolak") {
+          set.status = 401;
+          return BADAN_PERLU_MASUK;
         }
 
         if (pesanan.status !== "PENDING") {

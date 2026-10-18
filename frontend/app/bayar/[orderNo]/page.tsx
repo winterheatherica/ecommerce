@@ -25,9 +25,12 @@ const jam = (iso: string) =>
 
 export default async function BayarPage({ params }: Props) {
   const { orderNo } = await params;
-  const pesanan = await ambilPesanan(orderNo);
+  const hasil = await ambilPesanan(orderNo);
 
-  if (!pesanan) notFound();
+  if (hasil.status === "tidak_ada") notFound();
+  if (hasil.status === "perlu_masuk") redirect(`/order/${encodeURIComponent(orderNo)}`);
+
+  const { pesanan } = hasil;
 
   if (pesanan.status !== "PENDING") {
     redirect(`/order/${pesanan.order_no}`);
