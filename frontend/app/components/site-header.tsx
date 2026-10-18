@@ -151,7 +151,7 @@ export default function SiteHeader({ masuk = false }: { masuk?: boolean }) {
               <circle cx="16.5" cy="19.5" r="1.25" />
             </svg>
             {jumlahItem > 0 && (
-              <span className="absolute -top-2 -right-2.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-brand-500 px-1 font-mono text-[11px] leading-none text-white">
+              <span className="absolute -top-2 -right-2.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-brand-500 px-1 pt-[2px] font-mono text-[11px] leading-none tracking-normal text-white">
                 {jumlahItem}
               </span>
             )}

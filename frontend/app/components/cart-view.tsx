@@ -121,37 +121,40 @@ export default function CartView({ produk }: { produk: Produk[] }) {
                   )}
 
                   <div className="mt-auto flex flex-wrap items-center gap-4 pt-4">
-                    <div className="flex items-center border border-ink/15">
+                    <div className="flex items-stretch gap-4">
+                      <div className="flex items-center border border-ink/15">
+                        <button
+                          type="button"
+                          onClick={() => ubahQty(varian.slug, qty - 1, varian.stok)}
+                          disabled={qty <= 1}
+                          aria-label={`Kurangi ${produk.nama}`}
+                          className="px-3 py-2 leading-none text-stone-600 transition-colors hover:text-brand-600 disabled:cursor-not-allowed disabled:text-stone-300"
+                        >
+                          &minus;
+                        </button>
+                        <span className="w-10 text-center font-mono text-sm text-ink">
+                          {qty}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => ubahQty(varian.slug, qty + 1, varian.stok)}
+                          disabled={qty >= varian.stok}
+                          aria-label={`Tambah ${produk.nama}`}
+                          className="px-3 py-2 leading-none text-stone-600 transition-colors hover:text-brand-600 disabled:cursor-not-allowed disabled:text-stone-300"
+                        >
+                          +
+                        </button>
+                      </div>
+
                       <button
                         type="button"
-                        onClick={() => ubahQty(varian.slug, qty - 1, varian.stok)}
-                        disabled={qty <= 1}
-                        aria-label={`Kurangi ${produk.nama}`}
-                        className="px-3 py-2 leading-none text-stone-600 transition-colors hover:text-brand-600 disabled:cursor-not-allowed disabled:text-stone-300"
+                        onClick={() => hapusDariKeranjang(varian.slug)}
+                        aria-label={`Hapus ${produk.nama} dari keranjang`}
+                        className="inline-flex items-center border border-red-300 bg-red-50 px-3 font-mono text-[12px] tracking-[0.18em] text-red-700 uppercase transition-colors hover:border-red-600 hover:bg-red-600 hover:text-white"
                       >
-                        &minus;
-                      </button>
-                      <span className="w-10 text-center font-mono text-sm text-ink">
-                        {qty}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => ubahQty(varian.slug, qty + 1, varian.stok)}
-                        disabled={qty >= varian.stok}
-                        aria-label={`Tambah ${produk.nama}`}
-                        className="px-3 py-2 leading-none text-stone-600 transition-colors hover:text-brand-600 disabled:cursor-not-allowed disabled:text-stone-300"
-                      >
-                        +
+                        Hapus
                       </button>
                     </div>
-
-                    <button
-                      type="button"
-                      onClick={() => hapusDariKeranjang(varian.slug)}
-                      className="font-mono text-[12px] tracking-[0.18em] text-stone-400 uppercase transition-colors hover:text-red-600"
-                    >
-                      Hapus
-                    </button>
 
                     <span className="ml-auto font-mono text-sm font-semibold text-ink">
                       {rupiah(varian.harga * qty)}
