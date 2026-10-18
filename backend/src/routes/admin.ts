@@ -293,6 +293,7 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
         sold_per_month: t.Optional(t.Integer({ minimum: 0, maximum: 100000 })),
         sort_order: t.Optional(t.Integer({ minimum: 0, maximum: 10000 })),
         is_active: t.Optional(t.Boolean()),
+        usage_instructions: t.Optional(t.Union([t.String({ maxLength: 4000 }), t.Null()])),
       }),
     },
   )
@@ -334,6 +335,7 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
         sold_per_month: t.Optional(t.Integer({ minimum: 0, maximum: 100000 })),
         sort_order: t.Optional(t.Integer({ minimum: 0, maximum: 10000 })),
         is_active: t.Optional(t.Boolean()),
+        usage_instructions: t.Optional(t.Union([t.String({ maxLength: 4000 }), t.Null()])),
       }),
     },
   )

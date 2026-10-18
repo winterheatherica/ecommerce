@@ -42,8 +42,13 @@ export type BarisProduk = {
   variants: BarisVarian[];
 };
 
+export type BarisProdukDetail = BarisProduk & {
+  usage_instructions: string | null;
+};
+
 export type BarisProdukAdmin = Omit<BarisProduk, "variants"> & {
   variants: BarisVarianLengkap[];
+  usage_instructions: string | null;
 };
 
 export type FilterProduk = {
@@ -96,6 +101,7 @@ const kolom = (sql: Kueri) => sql`
 
 const kolomAdmin = (sql: Kueri) => sql`
   ${dasar(sql)},
+  usage_instructions,
   coalesce((
     select jsonb_agg(
       jsonb_build_object(
@@ -173,9 +179,9 @@ async function hitungProduk(sql: Sql, f: FilterProduk): Promise<number> {
 export async function satuProduk(
   sql: Sql,
   slug: string,
-): Promise<BarisProduk | undefined> {
-  const [produk] = await sql<BarisProduk[]>`
-    select ${kolom(sql)}
+): Promise<BarisProdukDetail | undefined> {
+  const [produk] = await sql<BarisProdukDetail[]>`
+    select ${kolom(sql)}, usage_instructions
     from products
     where slug = ${slug} and is_active
     limit 1
@@ -235,7 +241,8 @@ export async function simpanProdukBaru(
       const [induk] = await tx<{ id: number }[]>`
         insert into products (
           slug, name, description, price, weight_g, stock,
-          category, is_featured, sold_per_month, sort_order, is_active
+          category, is_featured, sold_per_month, sort_order, is_active,
+          usage_instructions
         )
         values (
           ${b.slug},
@@ -251,7 +258,8 @@ export async function simpanProdukBaru(
             ${b.sort_order}::int,
             (select coalesce(max(sort_order), 0) + 1 from products)
           ),
-          ${b.is_active}
+          ${b.is_active},
+          ${b.usage_instructions}
         )
         returning id::int as id
       `;

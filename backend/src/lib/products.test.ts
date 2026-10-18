@@ -5,6 +5,7 @@ import {
   TURUNAN_VARIAN,
   periksaPerubahan,
   periksaProdukBaru,
+  rapikanCaraPakai,
   type ProdukBaru,
 } from "./products";
 
@@ -157,5 +158,32 @@ describe("periksaPerubahan", () => {
     if (!hasil.ok) return;
     expect(hasil.bersih.is_active).toBe(false);
     expect("is_featured" in hasil.bersih).toBe(false);
+  });
+
+  it("cara pakai yang tidak dikirim tidak ikut diubah, null berarti dihapus", () => {
+    const tanpa = periksaPerubahan({ name: "Nama" });
+    const hapus = periksaPerubahan({ usage_instructions: null });
+
+    expect(tanpa.ok && "usage_instructions" in tanpa.bersih).toBe(false);
+    expect(hapus.ok && hapus.bersih.usage_instructions).toBeNull();
+  });
+});
+
+describe("rapikanCaraPakai", () => {
+  it("satu langkah per baris: spasi dirapikan, baris kosong dibuang, akhir baris Windows diseragamkan", () => {
+    const mentah = "Gel:\r\n  Sebarkan   gel di sudut  \r\n\r\n\rUlangi tiap 3 hari\n\n";
+
+    expect(rapikanCaraPakai(mentah)).toBe("Gel:\nSebarkan gel di sudut\nUlangi tiap 3 hari");
+  });
+
+  it("isian yang cuma spasi dianggap kosong", () => {
+    expect(rapikanCaraPakai("   \n \r\n ")).toBeNull();
+    expect(rapikanCaraPakai(null)).toBeNull();
+  });
+
+  it("produk baru tanpa cara pakai tersimpan sebagai null, bukan teks kosong", () => {
+    const hasil = periksaProdukBaru(baru());
+
+    expect(hasil.ok && hasil.bersih.usage_instructions).toBeNull();
   });
 });

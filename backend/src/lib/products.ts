@@ -43,6 +43,7 @@ export type ProdukBaru = {
   sold_per_month?: number;
   sort_order?: number;
   is_active?: boolean;
+  usage_instructions?: string | null;
 };
 
 export type PerubahanProduk = Partial<Omit<ProdukBaru, "slug">>;
@@ -59,6 +60,7 @@ export type ProdukBersih = {
   sold_per_month: number;
   sort_order: number | null;
   is_active: boolean;
+  usage_instructions: string | null;
 };
 
 export type PerubahanBersih = Partial<
@@ -66,6 +68,17 @@ export type PerubahanBersih = Partial<
 > & {
   sort_order?: number;
 };
+
+export function rapikanCaraPakai(teks: string | null): string | null {
+  if (teks === null) return null;
+
+  const baris = teks
+    .split(/\r\n|\r|\n/)
+    .map((b) => b.replace(/\s+/g, " ").trim())
+    .filter(Boolean);
+
+  return baris.length > 0 ? baris.join("\n") : null;
+}
 
 function periksaKategori(kategori: string): Gagal | null {
   if (!(KATEGORI as readonly string[]).includes(kategori)) {
@@ -132,6 +145,7 @@ export function periksaProdukBaru(
       sold_per_month: data.sold_per_month ?? 0,
       sort_order: data.sort_order ?? null,
       is_active: data.is_active ?? true,
+      usage_instructions: rapikanCaraPakai(data.usage_instructions ?? null),
     },
   };
 }
@@ -156,6 +170,9 @@ export function periksaPerubahan(
   if (p.sold_per_month !== undefined) bersih.sold_per_month = p.sold_per_month;
   if (p.sort_order !== undefined) bersih.sort_order = p.sort_order;
   if (p.is_active !== undefined) bersih.is_active = p.is_active;
+  if (p.usage_instructions !== undefined) {
+    bersih.usage_instructions = rapikanCaraPakai(p.usage_instructions);
+  }
 
   return { ok: true, bersih };
 }

@@ -10,6 +10,7 @@ import { PUNYA_GAMBAR, urlGambarBagi } from "@/app/data/gambar";
 import ProductBuyBox from "@/app/components/product-buy-box";
 import ProductCard from "@/app/components/product-card";
 import { ambilProduk, ambilSatuProduk } from "@/app/lib/api";
+import { uraiCaraPakai } from "@/app/lib/cara-pakai";
 import {
   kategoriJudul,
   kategoriLabel,
@@ -55,6 +56,7 @@ export default async function DetailProdukPage({ params }: Props) {
   if (!produk) notFound();
 
   const habis = produk.stok === 0;
+  const caraPakai = uraiCaraPakai(produk.caraPakai);
 
   return (
     <div className="mx-auto w-full max-w-6xl px-6 pt-32 pb-24">
@@ -142,6 +144,36 @@ export default async function DetailProdukPage({ params }: Props) {
             </h2>
             <p className="mt-4 leading-relaxed text-stone-600">{produk.deskripsi}</p>
           </div>
+
+          {caraPakai.length > 0 && (
+            <div className="mt-10 border-t border-ink/10 pt-8">
+              <h2 className="font-mono text-[13px] tracking-[0.28em] text-stone-500 uppercase">
+                Cara pakai
+              </h2>
+              {caraPakai.map((bagian, i) => {
+                const Daftar = bagian.poin ? "ul" : "ol";
+
+                return (
+                  <div key={i} className="mt-5">
+                    {bagian.judul && (
+                      <h3 className="text-sm font-semibold text-ink">{bagian.judul}</h3>
+                    )}
+                    <Daftar
+                      className={`mt-2 space-y-2 pl-5 leading-relaxed text-stone-600 marker:text-stone-400 ${
+                        bagian.poin ? "list-disc" : "list-decimal"
+                      }`}
+                    >
+                      {bagian.isi.map((langkah, j) => (
+                        <li key={j} className="pl-1">
+                          {langkah}
+                        </li>
+                      ))}
+                    </Daftar>
+                  </div>
+                );
+              })}
+            </div>
+          )}
 
           <dl className="mt-10 grid grid-cols-2 gap-x-8 gap-y-4 border-t border-ink/10 pt-8 text-sm">
             <div>

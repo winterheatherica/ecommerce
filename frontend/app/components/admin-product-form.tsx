@@ -34,6 +34,7 @@ export default function AdminProductForm({ awal }: Props) {
   const [slugDisentuh, setSlugDisentuh] = useState(ubahMode);
   const [nama, setNama] = useState(awal?.nama ?? "");
   const [deskripsi, setDeskripsi] = useState(awal?.deskripsi ?? "");
+  const [caraPakai, setCaraPakai] = useState(awal?.caraPakai ?? "");
   const [harga, setHarga] = useState(String(awal?.harga ?? ""));
   const [berat, setBerat] = useState(String(awal?.beratG ?? ""));
   const [stok, setStok] = useState(String(awal?.stok ?? 0));
@@ -77,6 +78,7 @@ export default function AdminProductForm({ awal }: Props) {
       category: kategori,
       sold_per_month: Number(terjual),
       is_featured: unggulan,
+      usage_instructions: caraPakai.trim() || null,
     };
 
     try {
@@ -162,6 +164,27 @@ export default function AdminProductForm({ awal }: Props) {
               placeholder="Untuk apa, ditaruh di mana, dan kenapa aman."
               className={`${kotak} resize-none leading-relaxed`}
             />
+          </div>
+
+          <div>
+            <label className={label} htmlFor="cara-pakai">
+              Cara pakai
+            </label>
+            <textarea
+              id="cara-pakai"
+              value={caraPakai}
+              onChange={(e) => setCaraPakai(e.target.value)}
+              rows={8}
+              maxLength={4000}
+              placeholder={"Gel:\nSebarkan beberapa butir gel di tempat yang perlu.\nPeringatan:\nJauhkan dari jangkauan anak-anak."}
+              className={`${kotak} resize-y leading-relaxed`}
+            />
+            <p className="mt-2 text-xs leading-relaxed text-stone-500">
+              Satu langkah per baris. Baris yang diakhiri titik dua, misalnya
+              &ldquo;Gel:&rdquo;, jadi judul kecil. Isi di bawah
+              &ldquo;Peringatan:&rdquo; dan &ldquo;Catatan:&rdquo; tampil sebagai
+              poin, sisanya bernomor. Kosongkan kalau tidak perlu.
+            </p>
           </div>
 
           {!ubahMode && (

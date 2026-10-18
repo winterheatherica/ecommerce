@@ -50,6 +50,7 @@ export type Produk = {
   slug: string;
   nama: string;
   deskripsi: string;
+  caraPakai?: string | null;
   harga: number;
   hargaNormal?: number;
   kategori: Kategori;

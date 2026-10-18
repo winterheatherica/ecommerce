@@ -259,6 +259,7 @@ export type IsiProdukBaru = {
   category: string;
   sold_per_month: number;
   is_featured: boolean;
+  usage_instructions: string | null;
 };
 
 export type IsiProdukUbah = {
@@ -267,6 +268,7 @@ export type IsiProdukUbah = {
   category: string;
   sold_per_month: number;
   is_featured: boolean;
+  usage_instructions: string | null;
 };
 
 async function pastikanOk(res: Response) {
