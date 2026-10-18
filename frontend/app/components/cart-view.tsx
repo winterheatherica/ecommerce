@@ -150,7 +150,7 @@ export default function CartView({ produk }: { produk: Produk[] }) {
                         type="button"
                         onClick={() => hapusDariKeranjang(varian.slug)}
                         aria-label={`Hapus ${produk.nama} dari keranjang`}
-                        className="inline-flex items-center border border-red-300 bg-red-50 px-3 font-mono text-[12px] tracking-[0.18em] text-red-700 uppercase transition-colors hover:border-red-600 hover:bg-red-600 hover:text-white"
+                        className="inline-flex items-center border border-red-300 bg-red-50 pr-3 pl-[calc(0.75rem_+_0.18em)] font-mono text-[12px] tracking-[0.18em] text-red-700 uppercase transition-colors hover:border-red-600 hover:bg-red-600 hover:text-white"
                       >
                         Hapus
                       </button>
