@@ -213,6 +213,25 @@ export default function AdminOrders({ pesanan, status }: Props) {
                   <div className="grid gap-8 sm:grid-cols-2">
                     <div>
                       <p className="font-mono text-[12px] tracking-[0.2em] text-stone-500 uppercase">
+                        Nomor pesanan
+                      </p>
+                      <div className="mt-3 flex items-center gap-2">
+                        <p className="min-w-0 flex-1 font-mono text-sm break-all text-ink">
+                          {p.order_no}
+                        </p>
+                        <a
+                          href={`/order/${encodeURIComponent(p.order_no)}`}
+                          target="_blank"
+                          rel="noopener"
+                          title={`Buka halaman pesanan ${p.order_no}`}
+                          className="shrink-0 border border-ink/15 px-2 py-1 font-mono text-[12px] tracking-[0.14em] indent-[0.14em] text-stone-500 uppercase transition-colors hover:border-brand-500 hover:text-brand-600"
+                        >
+                          Buka
+                        </a>
+                        <CopyButton nilai={p.order_no} label="nomor pesanan" />
+                      </div>
+
+                      <p className="mt-6 font-mono text-[12px] tracking-[0.2em] text-stone-500 uppercase">
                         Alamat kirim
                       </p>
 
