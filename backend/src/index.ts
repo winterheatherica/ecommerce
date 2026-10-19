@@ -12,6 +12,7 @@ import {
 
 import { buatKoneksi, tutup } from "./lib/db";
 import { bacaKonfig } from "./lib/doku";
+import { bacaKonfigTurnstile } from "./lib/turnstile";
 import { sapuKedaluwarsa } from "./db/pesanan";
 import { periksaTertundaKeDoku } from "./db/pelunasan";
 import { sapuSesi } from "./db/akun";
@@ -76,6 +77,10 @@ const app = new Elysia({ adapter: CloudflareAdapter })
   .get("/api/health", () => ({
     status: "ok",
     runtime: "cloudflare-worker",
+  }))
+  .get("/api/captcha", () => ({
+    turnstile_site_key:
+      bacaKonfigTurnstile(env as unknown as Record<string, unknown>)?.siteKey ?? null,
   }))
   .use(productRoutes)
   .use(shippingRoutes)

@@ -59,6 +59,7 @@ export type PesananBaru = {
   courier: string;
   service: string;
   items: { slug: string; qty: number }[];
+  turnstile_token?: string;
 };
 
 export type HasilPesanan = {
@@ -136,12 +137,12 @@ export async function buatPesanan(
     signal,
   });
 
-  if (res.status === 409 || res.status === 422) {
-    const galat = (await res.json()) as { message?: string };
-    throw new Error(galat.message ?? "Pesanan ditolak");
+  if (!res.ok) {
+    const galat = (await res.json().catch(() => ({}))) as { message?: string };
+    throw new Error(galat.message ?? `Pesanan gagal dibuat (${res.status})`);
   }
 
-  return json<HasilPesanan>(res);
+  return (await res.json()) as HasilPesanan;
 }
 
 export async function tandaiDikirim(

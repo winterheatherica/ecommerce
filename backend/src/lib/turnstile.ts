@@ -3,6 +3,12 @@ const BATAS_MS = 8000;
 
 export type KonfigTurnstile = { siteKey: string; secret: string };
 
+export const BADAN_CAPTCHA = {
+  error: "captcha_failed",
+  message:
+    "Verifikasi keamanan gagal. Tekan tombolnya sekali lagi, atau muat ulang halaman kalau masih gagal.",
+};
+
 export function bacaKonfigTurnstile(env: Record<string, unknown>): KonfigTurnstile | null {
   const siteKey = env.TURNSTILE_SITE_KEY;
   const secret = env.TURNSTILE_SECRET_KEY;

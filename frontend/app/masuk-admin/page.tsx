@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Script from "next/script";
 
 import { alamatApi } from "@/app/lib/akun";
+import { ambilKunciCaptcha } from "@/app/lib/captcha";
 
 export const metadata: Metadata = {
   title: "Masuk admin",
@@ -20,23 +21,13 @@ type Props = {
   searchParams: Promise<{ galat?: string; next?: string }>;
 };
 
-async function kunciCaptcha(): Promise<string | null> {
-  try {
-    const res = await fetch(`${alamatApi()}/api/auth/admin/config`, { cache: "no-store" });
-    if (!res.ok) return null;
-    return ((await res.json()) as { turnstile_site_key: string | null }).turnstile_site_key;
-  } catch {
-    return null;
-  }
-}
-
 const label = "block font-mono text-[12px] tracking-[0.2em] text-stone-500 uppercase";
 const kotak =
   "mt-2 w-full border border-ink/15 bg-white px-4 py-3 text-sm text-ink outline-none transition-colors focus:border-brand-500";
 
 export default async function MasukAdminPage({ searchParams }: Props) {
   const { galat, next } = await searchParams;
-  const kunci = await kunciCaptcha();
+  const kunci = await ambilKunciCaptcha();
   const pesan = galat ? (PESAN[galat] ?? "Gagal masuk. Coba lagi.") : null;
 
   return (

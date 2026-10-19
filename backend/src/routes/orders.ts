@@ -16,9 +16,12 @@ import { opsiUntuk } from "../lib/ongkir";
 import {
   BADAN_PADAT,
   ambilPembatas,
+  ipPembeli,
   kunciIp,
   lolos,
+  zonaToko,
 } from "../lib/ratelimit";
+import { BADAN_CAPTCHA, bacaKonfigTurnstile, periksaTurnstile } from "../lib/turnstile";
 
 function wadahEnv() {
   return env as unknown as Record<string, string>;
@@ -72,6 +75,15 @@ export const orderRoutes = new Elysia({ prefix: "/api/orders" })
         set.status = 429;
         set.headers["retry-after"] = "60";
         return BADAN_PADAT;
+      }
+
+      const turnstile = bacaKonfigTurnstile(wadah);
+      if (turnstile) {
+        const ip = ipPembeli(request, zonaToko(wadah));
+        if (!(await periksaTurnstile(turnstile.secret, body.turnstile_token, ip))) {
+          set.status = 403;
+          return BADAN_CAPTCHA;
+        }
       }
 
       const sql = buatKoneksi(wadah);
@@ -128,6 +140,7 @@ export const orderRoutes = new Elysia({ prefix: "/api/orders" })
           }),
           { minItems: 1, maxItems: 30 },
         ),
+        turnstile_token: t.Optional(t.String({ maxLength: 4096 })),
       }),
     },
   )

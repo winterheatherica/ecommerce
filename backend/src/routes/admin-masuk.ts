@@ -41,9 +41,6 @@ function gagal(kode: string, next: string): Response {
 }
 
 export const adminMasukRoutes = new Elysia({ prefix: "/api/auth/admin" })
-  .get("/config", () => ({
-    turnstile_site_key: bacaKonfigTurnstile(wadah())?.siteKey ?? null,
-  }))
   .post(
     "/login",
     async ({ body, headers, request }) => {

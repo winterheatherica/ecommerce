@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import GoogleButton from "@/app/components/google-button";
+import Turnstile from "@/app/components/turnstile";
 import type { Akun } from "@/app/lib/akun";
 import { kosongkanKeranjang, useKeranjang } from "@/app/lib/keranjang";
 import { namaLayanan } from "@/app/lib/kurir";
@@ -35,6 +36,7 @@ type Props = {
   produk: Produk[];
   akun: Akun | null;
   urlMasuk: string;
+  kunciCaptcha: string | null;
 };
 
 function wilayahTersimpan(akun: Akun | null): Wilayah | null {
@@ -43,7 +45,7 @@ function wilayahTersimpan(akun: Akun | null): Wilayah | null {
   return { id: a.dest_id, label: a.dest_label, province: "", city: "", district: "", postal_code: null };
 }
 
-export default function CheckoutForm({ produk, akun, urlMasuk }: Props) {
+export default function CheckoutForm({ produk, akun, urlMasuk, kunciCaptcha }: Props) {
   const router = useRouter();
   const items = useKeranjang();
   const terakhir = akun?.last_address ?? null;
@@ -67,6 +69,9 @@ export default function CheckoutForm({ produk, akun, urlMasuk }: Props) {
 
   const [galat, setGalat] = useState<string[]>([]);
   const [mengirim, setMengirim] = useState(false);
+
+  const [tokenCaptcha, setTokenCaptcha] = useState<string | null>(null);
+  const [ulangCaptcha, setUlangCaptcha] = useState(0);
 
   const baris: Baris[] = items
     .map((i) => {
@@ -150,6 +155,10 @@ export default function CheckoutForm({ produk, akun, urlMasuk }: Props) {
       pesan.push("Alamat terlalu pendek. Tulis lengkap sampai nomor rumah.");
     if (!tujuan) pesan.push("Kecamatan tujuan belum dipilih.");
     if (!ongkirDipilih) pesan.push("Layanan pengiriman belum dipilih.");
+    if (kunciCaptcha && !tokenCaptcha)
+      pesan.push(
+        "Verifikasi keamanan belum selesai. Tunggu sampai kotaknya tercentang, atau centang sendiri, lalu tekan tombolnya lagi.",
+      );
     return pesan;
   };
 
@@ -172,6 +181,7 @@ export default function CheckoutForm({ produk, akun, urlMasuk }: Props) {
         courier: ongkirDipilih.courier,
         service: ongkirDipilih.service,
         items: baris.map((b) => ({ slug: b.varian.slug, qty: b.qty })),
+        turnstile_token: tokenCaptcha ?? undefined,
       });
 
       kosongkanKeranjang();
@@ -179,6 +189,11 @@ export default function CheckoutForm({ produk, akun, urlMasuk }: Props) {
     } catch (err) {
       setGalat([err instanceof Error ? err.message : "Pesanan gagal dibuat."]);
       setMengirim(false);
+
+      if (kunciCaptcha) {
+        setTokenCaptcha(null);
+        setUlangCaptcha((n) => n + 1);
+      }
     }
   };
 
@@ -430,6 +445,18 @@ export default function CheckoutForm({ produk, akun, urlMasuk }: Props) {
               </ul>
             )}
           </div>
+
+          {kunciCaptcha && (
+            <div className="border-t border-ink/10 pt-8">
+              <h2 className={labelInput}>Verifikasi keamanan</h2>
+              <Turnstile
+                siteKey={kunciCaptcha}
+                ulang={ulangCaptcha}
+                onToken={setTokenCaptcha}
+                className="mt-4"
+              />
+            </div>
+          )}
         </fieldset>
 
         <aside className="lg:sticky lg:top-28 lg:self-start">
