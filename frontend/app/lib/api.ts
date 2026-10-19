@@ -203,10 +203,8 @@ export type ItemPesanan = {
   qty: number;
   price_snapshot: number;
   list_price_snapshot: number | null;
+  weight_g?: number | null;
   package_weight_g?: number | null;
-  package_length_cm?: number | null;
-  package_width_cm?: number | null;
-  package_height_cm?: number | null;
 };
 
 export type Pesanan = {

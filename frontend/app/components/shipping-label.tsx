@@ -1,10 +1,10 @@
 "use client";
 
-import { useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
 import { PENGIRIM_LABEL } from "@/app/data/kontak";
 import type { Pesanan } from "@/app/lib/api";
-import { ringkasPaket } from "@/app/lib/paket";
+import { beratPaket } from "@/app/lib/paket";
 
 const NAMA_KURIR: Record<string, string> = {
   JNE: "JNE",
@@ -33,6 +33,12 @@ function beratRapi(gram: number): string {
   return `${(gram / 1000).toLocaleString("id-ID", { maximumFractionDigits: 2 })} kg`;
 }
 
+function tujuanTanpaKodePos(label: string, kodePos: string | null): string {
+  const rapi = label.trim();
+  if (!kodePos || !rapi.endsWith(kodePos)) return rapi;
+  return rapi.slice(0, -kodePos.length).replace(/[\s,]+$/, "");
+}
+
 function tanggalRapi(iso: string): string {
   return new Date(iso).toLocaleDateString("id-ID", {
     day: "numeric",
@@ -45,23 +51,27 @@ function tanggalRapi(iso: string): string {
 export default function ShippingLabel({ pesanan }: { pesanan: Pesanan }) {
   const kurir = NAMA_KURIR[pesanan.courier.toUpperCase()] ?? pesanan.courier;
   const totalQty = pesanan.items.reduce((s, i) => s + i.qty, 0);
-  const paket = ringkasPaket(pesanan.items);
-  const barisDimensi = [
-    ...paket.dimensi,
-    ...(paket.tanpaDimensi > 0
-      ? [{ teks: "____ × ____ × ____ cm", qty: paket.tanpaDimensi }]
-      : []),
-  ];
-  const banyakJenis = barisDimensi.length > 1;
+  const berat = beratPaket(pesanan.items);
 
-  const kertas = useRef<HTMLElement>(null);
+  const daftar = useRef<HTMLElement>(null);
   const [batas, setBatas] = useState(MAKS_BARIS);
+  const [ukurUlang, setUkurUlang] = useState(0);
+
+  useEffect(() => {
+    let aktif = true;
+    document.fonts.ready.then(() => {
+      if (aktif) setUkurUlang((n) => n + 1);
+    });
+    return () => {
+      aktif = false;
+    };
+  }, []);
 
   useLayoutEffect(() => {
-    const el = kertas.current;
+    const el = daftar.current;
     if (!el || batas <= MIN_BARIS) return;
     if (el.scrollHeight > el.clientHeight + 1) setBatas((b) => b - 1);
-  }, [batas]);
+  }, [batas, ukurUlang]);
 
   const terlalu = pesanan.items.length > batas;
   const tampil = terlalu ? pesanan.items.slice(0, batas - 1) : pesanan.items;
@@ -71,10 +81,7 @@ export default function ShippingLabel({ pesanan }: { pesanan: Pesanan }) {
   const garis = "border-black border-b-[0.4mm]";
 
   return (
-    <article
-      ref={kertas}
-      className="flex h-[150mm] w-[100mm] flex-col bg-white p-[5mm] font-sans text-black"
-    >
+    <article className="flex h-[150mm] w-[100mm] flex-col bg-white p-[5mm] font-sans text-black">
       <header className={`flex items-stretch justify-between gap-[3mm] pb-[3mm] ${garis}`}>
         <div className="flex flex-col justify-center bg-black px-[3mm] py-[2mm] text-white">
           <p className="text-[17pt] leading-none font-black tracking-tight">{kurir}</p>
@@ -117,7 +124,7 @@ export default function ShippingLabel({ pesanan }: { pesanan: Pesanan }) {
         <p className={kecil}>Alamat penerima</p>
         <p className="mt-[1mm] text-[10pt] leading-snug break-words">{pesanan.address}</p>
         <p className="mt-[0.8mm] text-[10pt] leading-snug">
-          {pesanan.dest_label}
+          {tujuanTanpaKodePos(pesanan.dest_label, pesanan.dest_postal_code)}
           {pesanan.dest_postal_code && (
             <>
               {" "}
@@ -127,25 +134,14 @@ export default function ShippingLabel({ pesanan }: { pesanan: Pesanan }) {
         </p>
       </section>
 
-      <section className={`grid grid-cols-[2fr_3fr] gap-[4mm] py-[2mm] ${garis}`}>
+      <section className={`grid grid-cols-[3fr_2fr] gap-[4mm] py-[2mm] ${garis}`}>
         <div>
           <p className={kecil}>Berat paket</p>
-          <p className="mt-[1mm] text-[12pt] leading-none font-black">
-            {beratRapi(paket.beratG)}
-          </p>
+          <p className="mt-[1mm] text-[12pt] leading-none font-black">{beratRapi(berat)}</p>
         </div>
-        <div className="min-w-0 border-l-[0.3mm] border-black pl-[3mm]">
-          <p className={kecil}>Dimensi paket (p × l × t)</p>
-          <ul className="mt-[1mm] text-[9pt] leading-snug font-bold">
-            {barisDimensi.map((d) => (
-              <li key={d.teks}>
-                {d.teks}
-                {(banyakJenis || d.qty > 1) && (
-                  <span className="font-normal"> · {d.qty} barang</span>
-                )}
-              </li>
-            ))}
-          </ul>
+        <div className="border-l-[0.3mm] border-black pl-[3mm]">
+          <p className={kecil}>Jumlah barang</p>
+          <p className="mt-[1mm] text-[12pt] leading-none font-black">{totalQty} barang</p>
         </div>
       </section>
 
@@ -156,7 +152,7 @@ export default function ShippingLabel({ pesanan }: { pesanan: Pesanan }) {
         </p>
       )}
 
-      <section className="mt-[3mm] min-h-0 flex-1">
+      <section ref={daftar} className="mt-[3mm] min-h-0 flex-1">
         <div className={`grid grid-cols-[1fr_17mm_9mm] gap-[2mm] pb-[1mm] ${kecil} border-b-[0.3mm] border-black`}>
           <span>Nama produk</span>
           <span>SKU</span>
@@ -188,9 +184,8 @@ export default function ShippingLabel({ pesanan }: { pesanan: Pesanan }) {
         </ul>
       </section>
 
-      <footer className="flex items-center justify-between border-t-[0.4mm] border-black pt-[2mm] text-[8pt]">
-        <span className="font-bold">Total {totalQty} barang</span>
-        <span>Terima kasih sudah belanja di Menik Store</span>
+      <footer className="border-t-[0.4mm] border-black pt-[2mm] text-center text-[8pt]">
+        Terima kasih sudah belanja di Menik Store
       </footer>
     </article>
   );

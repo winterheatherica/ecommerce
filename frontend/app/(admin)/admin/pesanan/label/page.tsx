@@ -4,7 +4,6 @@ import Link from "next/link";
 import PrintButton from "@/app/components/print-button";
 import ShippingLabel from "@/app/components/shipping-label";
 import { ambilDaftarPesanan, ambilPesananAdmin, type Pesanan } from "@/app/lib/api";
-import { ringkasPaket } from "@/app/lib/paket";
 
 export const metadata: Metadata = {
   title: "Cetak label",
@@ -38,15 +37,14 @@ export default async function CetakLabelPage({ searchParams }: Props) {
     pesanan = (await ambilDaftarPesanan("PAID")).sort(urutanKirim);
   }
 
-  const tanpaPaket = [
-    ...new Set(pesanan.flatMap((p) => ringkasPaket(p.items).produkTanpaDimensi)),
-  ];
-
   return (
     <div>
       <style>{`
         @page { size: 100mm 150mm; margin: 0; }
-        @media print { html, body { background: #fff !important; } }
+        @media print {
+          html, body { background: #fff !important; }
+          * { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+        }
       `}</style>
 
       <div className="mx-auto max-w-3xl print:hidden">
@@ -80,25 +78,6 @@ export default async function CetakLabelPage({ searchParams }: Props) {
               ? "Nomor pesanan tidak ditemukan."
               : "Tidak ada pesanan yang perlu dikirim."}
           </p>
-        )}
-
-        {tanpaPaket.length > 0 && (
-          <div className="mt-4 border border-amber-300 bg-amber-50 px-4 py-3 text-sm leading-relaxed text-amber-900">
-            <p>
-              Dimensi paket belum diatur untuk produk ini, jadi dimensinya di
-              label dikosongkan untuk ditulis tangan. Beratnya tetap terisi,
-              memakai berat produk kalau berat paketnya kosong:
-            </p>
-            <ul className="mt-2 list-disc pl-5">
-              {tanpaPaket.map((nama) => (
-                <li key={nama}>{nama}</li>
-              ))}
-            </ul>
-            <p className="mt-2">
-              Isi di editor ukuran pada halaman ubah produk supaya label
-              berikutnya terisi otomatis.
-            </p>
-          </div>
         )}
 
         {hilang > 0 && pesanan.length > 0 && (
