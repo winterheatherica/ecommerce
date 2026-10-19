@@ -1,6 +1,9 @@
 import type { Kueri, Sql } from "../lib/db";
 import {
   BATAS_RUPIAH,
+  MAKS_BELUM_BAYAR,
+  MAKS_PER_UKURAN,
+  MAKS_UNIT_PER_PESANAN,
   bersihkanHp,
   emailSah,
   gabungkanItem,
@@ -401,6 +404,47 @@ export async function buatPesanan(
   }
 
   const diminta = gabungkanItem(req.items);
+
+  if (diminta.some((i) => i.qty > MAKS_PER_UKURAN)) {
+    return {
+      ok: false,
+      status: 422,
+      badan: {
+        error: "qty_too_large",
+        message: `Maksimal ${MAKS_PER_UKURAN} per ukuran dalam satu pesanan. Untuk pembelian lebih banyak, hubungi kami lewat WhatsApp.`,
+      },
+    };
+  }
+
+  if (diminta.reduce((s, i) => s + i.qty, 0) > MAKS_UNIT_PER_PESANAN) {
+    return {
+      ok: false,
+      status: 422,
+      badan: {
+        error: "order_too_many_items",
+        message: `Maksimal ${MAKS_UNIT_PER_PESANAN} barang dalam satu pesanan. Untuk pembelian lebih banyak, hubungi kami lewat WhatsApp.`,
+      },
+    };
+  }
+
+  const [tertunda] = await sql<{ n: number }[]>`
+    select count(*)::int as n
+    from orders
+    where status = 'PENDING'
+      and (expires_at is null or expires_at > now())
+      and (phone = ${bersihkanHp(req.phone)} or lower(email) = ${req.email.trim().toLowerCase()})
+  `;
+
+  if (tertunda.n >= MAKS_BELUM_BAYAR) {
+    return {
+      ok: false,
+      status: 429,
+      badan: {
+        error: "too_many_unpaid",
+        message: `Masih ada ${tertunda.n} pesanan yang belum dibayar dengan nomor HP atau email ini. Bayar dulu, atau tunggu sampai kedaluwarsa, sebelum membuat pesanan baru.`,
+      },
+    };
+  }
 
   const praProduk = await sql<{ slug: string; weight_g: number }[]>`
     select v.slug, coalesce(v.package_weight_g, v.weight_g) as weight_g

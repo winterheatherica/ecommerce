@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useState } from "react";
 
 import HargaCoret from "@/app/components/harga-coret";
-import { tambahKeKeranjang } from "@/app/lib/keranjang";
+import { MAKS_PER_UKURAN, tambahKeKeranjang } from "@/app/lib/keranjang";
 import { angkaRating, jumlahLengkap } from "@/app/lib/rating";
 import { tanggalWib } from "@/app/lib/waktu-wib";
 import { rupiah, type Produk, type Varian } from "@/app/data/produk";
@@ -27,7 +27,7 @@ export default function ProductBuyBox({ produk }: { produk: Produk }) {
   const harga = dipilih?.harga ?? produk.harga;
   const hargaNormal = dipilih ? dipilih.hargaNormal : produk.hargaNormal;
   const habis = stok === 0;
-  const maksimal = Math.max(1, stok);
+  const maksimal = Math.max(1, Math.min(stok, MAKS_PER_UKURAN));
   const shopee = banyakUkuran ? (dipilih?.shopee ?? null) : null;
   const adaPenilaian = (shopee?.jumlah ?? 0) > 0 && shopee?.rata != null;
 
@@ -175,6 +175,16 @@ export default function ProductBuyBox({ produk }: { produk: Produk }) {
           Tambah ke keranjang
         </button>
       </div>
+
+      {qty >= MAKS_PER_UKURAN && stok > MAKS_PER_UKURAN && (
+        <p className="mt-3 text-sm text-stone-600">
+          Maksimal {MAKS_PER_UKURAN} per ukuran dalam satu pesanan. Butuh lebih banyak?{" "}
+          <a href={WA_URL} className="underline underline-offset-2">
+            Chat WhatsApp
+          </a>
+          .
+        </p>
+      )}
 
       <p className="mt-4 font-mono text-[13px] tracking-[0.16em] text-stone-500 uppercase">
         Subtotal {rupiah(harga * qty)}

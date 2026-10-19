@@ -52,6 +52,69 @@ async function perintah(
   return isi.result;
 }
 
+async function pipa(
+  konfig: KonfigRedis,
+  daftar: (string | number)[][],
+): Promise<unknown[]> {
+  const res = await fetch(`${konfig.url}/pipeline`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${konfig.token}`,
+      "content-type": "application/json",
+    },
+    body: JSON.stringify(daftar),
+    signal: AbortSignal.timeout(BATAS_MS),
+  });
+
+  if (!res.ok) {
+    throw new Error(`Upstash membalas ${res.status}`);
+  }
+
+  const isi = (await res.json()) as { result?: unknown; error?: string }[];
+  const galat = isi.find((b) => b.error);
+
+  if (galat?.error) throw new Error(galat.error);
+
+  return isi.map((b) => b.result);
+}
+
+export async function tambahHitungan(
+  konfig: KonfigRedis | undefined,
+  kunci: string,
+  detik: number,
+): Promise<number | null> {
+  if (!konfig) return null;
+
+  try {
+    const [hasil] = await pipa(konfig, [
+      ["INCR", kunci],
+      ["EXPIRE", kunci, detik],
+    ]);
+    const n = Number(hasil);
+    return Number.isFinite(n) ? n : null;
+  } catch (e) {
+    console.error("[redis] gagal menambah hitungan", kunci, e);
+    return null;
+  }
+}
+
+export async function bacaHitungan(
+  konfig: KonfigRedis | undefined,
+  kunci: string,
+): Promise<number | null> {
+  if (!konfig) return null;
+
+  try {
+    const hasil = await perintah(konfig, ["GET", kunci]);
+    if (hasil === null || hasil === undefined) return 0;
+    const n = Number(hasil);
+    return Number.isFinite(n) ? n : null;
+  } catch (e) {
+    console.error("[redis] gagal membaca hitungan", kunci, e);
+    return null;
+  }
+}
+
 export async function ambilCache<T>(
   konfig: KonfigRedis | undefined,
   kunci: string,

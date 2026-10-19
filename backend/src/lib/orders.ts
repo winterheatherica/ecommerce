@@ -58,6 +58,10 @@ const POLA_EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export const BATAS_RUPIAH = 2_000_000_000;
 
+export const MAKS_PER_UKURAN = 20;
+export const MAKS_UNIT_PER_PESANAN = 50;
+export const MAKS_BELUM_BAYAR = 3;
+
 export function hpSah(phone: string): boolean {
   return POLA_HP.test(bersihkanHp(phone));
 }

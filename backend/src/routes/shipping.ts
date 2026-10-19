@@ -6,6 +6,8 @@ import { ambilWilayah, cariWilayah, simpanWilayah } from "../db/wilayah";
 import { opsiUntuk } from "../lib/ongkir";
 import { pilihTerbaik } from "../lib/shipping";
 import { bacaKonfigOngkir, cariTujuan } from "../lib/rajaongkir";
+import { pakaiJatahRajaOngkir } from "../lib/jatah";
+import { blokPembeli } from "../lib/ratelimit";
 import {
   UMUR_WILAYAH_DETIK,
   ambilCache,
@@ -17,6 +19,8 @@ import {
 import type { Wilayah } from "../db/wilayah";
 
 const MIN_KATA = 3;
+const BATAS_WILAYAH = 8;
+const MAKS_BERAT_G = 30000;
 
 function wadah() {
   return env as unknown as Record<string, unknown>;
@@ -29,9 +33,9 @@ function koneksi() {
 export const shippingRoutes = new Elysia()
   .get(
     "/api/regions",
-    async ({ query }) => {
+    async ({ query, request }) => {
       const kata = (query.q ?? "").trim();
-      const batas = query.limit ?? 8;
+      const batas = BATAS_WILAYAH;
 
       if (kata.length < MIN_KATA) return { data: [], sumber: "kosong" };
 
@@ -55,6 +59,10 @@ export const shippingRoutes = new Elysia()
         const konfig = bacaKonfigOngkir(wadah());
 
         if (!konfig) return { data: [], sumber: "lokal" };
+
+        if (!(await pakaiJatahRajaOngkir(wadah(), blokPembeli(request, wadah())))) {
+          return { data: [], sumber: "dibatasi" };
+        }
 
         const hasil = await cariTujuan(konfig, kata, batas);
 
@@ -83,13 +91,12 @@ export const shippingRoutes = new Elysia()
     {
       query: t.Object({
         q: t.Optional(t.String({ maxLength: 80 })),
-        limit: t.Optional(t.Numeric({ minimum: 1, maximum: 30 })),
       }),
     },
   )
   .post(
     "/api/shipping/cost",
-    async ({ body, set }) => {
+    async ({ body, set, request }) => {
       const sql = koneksi();
 
       try {
@@ -103,7 +110,15 @@ export const shippingRoutes = new Elysia()
           };
         }
 
-        const hasil = await opsiUntuk(sql, wadah(), tujuan.id, body.weight_g);
+        const hasil = await opsiUntuk(sql, wadah(), tujuan.id, body.weight_g, () =>
+          pakaiJatahRajaOngkir(wadah(), blokPembeli(request, wadah())),
+        );
+
+        if (!hasil.ok && hasil.dibatasi) {
+          set.status = 429;
+          set.headers["retry-after"] = "3600";
+          return { error: "shipping_quota", message: hasil.pesan };
+        }
 
         if (!hasil.ok) {
           set.status = 502;
@@ -123,7 +138,7 @@ export const shippingRoutes = new Elysia()
     {
       body: t.Object({
         dest_id: t.String({ maxLength: 40 }),
-        weight_g: t.Integer({ minimum: 1, maximum: 50000 }),
+        weight_g: t.Integer({ minimum: 1, maximum: MAKS_BERAT_G }),
       }),
     },
   );

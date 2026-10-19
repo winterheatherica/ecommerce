@@ -27,7 +27,10 @@
     "RAJAONGKIR_KURIR": "jne:jnt",
     "COOKIE_DOMAIN": "menikstore.my.id",
     "DOKU_SANDBOX": "false",
-    "TURNSTILE_SITE_KEY": "0x4AAAAAAFbFY7ynPWwVpk1R"
+    "TURNSTILE_SITE_KEY": "0x4AAAAAAFbFY7ynPWwVpk1R",
+    "RAJAONGKIR_JATAH_HARIAN": "80",
+    "RAJAONGKIR_JATAH_PER_IP": "30",
+    "MAKS_PESANAN_PER_IP": "10"
   },
   "triggers": {
     "crons": ["*/15 * * * *"]

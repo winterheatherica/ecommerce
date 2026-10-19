@@ -35,13 +35,16 @@ afterAll(async () => {
   await sql.end();
 });
 
+let urutan = 0;
+
 async function buat(): Promise<string> {
+  urutan += 1;
   const hasil = await buatPesanan(
     sql,
     {
       customer_name: "Rina Kartika",
-      phone: "0812-3456-7890",
-      email: "rina@contoh.test",
+      phone: `0812345${10000 + urutan}`,
+      email: `rina${urutan}@contoh.test`,
       address: "Jl. Cihampelas No. 42, Bandung",
       dest_id: "50001",
       courier: "JNE",

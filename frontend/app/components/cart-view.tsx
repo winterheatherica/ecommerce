@@ -6,11 +6,14 @@ import Image from "next/image";
 import { useEffect } from "react";
 
 import {
+  MAKS_PER_PESANAN,
+  MAKS_PER_UKURAN,
   buangYangTidakDijual,
   hapusDariKeranjang,
   ubahQty,
   useKeranjang,
 } from "@/app/lib/keranjang";
+import { WA_URL } from "@/app/data/kontak";
 import { beratKirim } from "@/app/lib/paket";
 import {
   cariVarian,
@@ -43,6 +46,8 @@ export default function CartView({ produk }: { produk: Produk[] }) {
   const totalItem = baris.reduce((s, b) => s + b.qty, 0);
   const beratTotal = baris.reduce((s, b) => s + beratKirim(b.varian) * b.qty, 0);
   const adaMelebihiStok = baris.some((b) => b.qty > b.varian.stok);
+  const terlaluBanyak = totalItem > MAKS_PER_PESANAN;
+  const tertahan = adaMelebihiStok || terlaluBanyak;
 
   if (baris.length === 0) {
     return (
@@ -139,7 +144,7 @@ export default function CartView({ produk }: { produk: Produk[] }) {
                         <button
                           type="button"
                           onClick={() => ubahQty(varian.slug, qty + 1, varian.stok)}
-                          disabled={qty >= varian.stok}
+                          disabled={qty >= Math.min(varian.stok, MAKS_PER_UKURAN)}
                           aria-label={`Tambah ${produk.nama}`}
                           className="px-3 py-2 leading-none text-stone-600 transition-colors hover:text-brand-600 disabled:cursor-not-allowed disabled:text-stone-300"
                         >
@@ -188,11 +193,22 @@ export default function CartView({ produk }: { produk: Produk[] }) {
               </div>
             </dl>
 
+            {terlaluBanyak && (
+              <p className="mt-6 text-sm leading-relaxed text-red-600">
+                Maksimal {MAKS_PER_PESANAN} barang dalam satu pesanan. Kurangi
+                jumlahnya, atau{" "}
+                <a href={WA_URL} className="underline underline-offset-2">
+                  pesan lewat WhatsApp
+                </a>{" "}
+                untuk pembelian lebih banyak.
+              </p>
+            )}
+
             <Link
               href="/checkout"
-              aria-disabled={adaMelebihiStok}
+              aria-disabled={tertahan}
               className={`mt-8 block border px-8 py-3.5 text-center font-mono text-[13px] tracking-[0.22em] indent-[0.22em] uppercase transition-colors ${
-                adaMelebihiStok
+                tertahan
                   ? "pointer-events-none border-stone-300 bg-stone-300 text-white"
                   : "border-brand-500 bg-brand-500 text-white hover:border-brand-600 hover:bg-brand-600"
               }`}

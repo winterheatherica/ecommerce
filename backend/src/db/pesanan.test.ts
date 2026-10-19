@@ -103,6 +103,7 @@ describe("buatPesanan", () => {
   });
 
   it("menolak kalau stok kurang dan tidak menyentuh stok sama sekali", async () => {
+    await sql`update product_variants set stock = 5 where slug = ${KUCING}`;
     const sebelum = await stok(KUCING);
     const hasil = await buatPesanan(
       sql,
@@ -371,11 +372,16 @@ describe("buatPesanan", () => {
   it("menolak nilai pesanan yang melampaui batas integer, stok kembali utuh", async () => {
     await sql`
       update product_variants set price = 100000000, stock = 99
-      where slug = ${KUCING}
+      where slug in (${KUCING}, ${NYAMUK})
     `;
     const hasil = await buatPesanan(
       sql,
-      permintaan({ items: [{ slug: KUCING, qty: 99 }] }),
+      permintaan({
+        items: [
+          { slug: KUCING, qty: 20 },
+          { slug: NYAMUK, qty: 1 },
+        ],
+      }),
       UMUR_JAM,
       cariOngkir,
     );
@@ -384,6 +390,7 @@ describe("buatPesanan", () => {
     if (hasil.ok) return;
     expect(hasil.badan.error).toBe("order_too_large");
     expect(await stok(KUCING)).toBe(99);
+    expect(await stok(NYAMUK)).toBe(99);
   });
 
   it("menyertakan label kecamatan hasil join", async () => {

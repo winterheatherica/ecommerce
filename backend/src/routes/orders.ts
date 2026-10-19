@@ -16,11 +16,13 @@ import { opsiUntuk } from "../lib/ongkir";
 import {
   BADAN_PADAT,
   ambilPembatas,
+  blokPembeli,
   ipPembeli,
   kunciIp,
   lolos,
   zonaToko,
 } from "../lib/ratelimit";
+import { catatPesananBaru, masihBolehPesan } from "../lib/jatah";
 import { BADAN_CAPTCHA, bacaKonfigTurnstile, periksaTurnstile } from "../lib/turnstile";
 
 function wadahEnv() {
@@ -77,6 +79,17 @@ export const orderRoutes = new Elysia({ prefix: "/api/orders" })
         return BADAN_PADAT;
       }
 
+      const blok = blokPembeli(request, wadah);
+      if (!(await masihBolehPesan(wadah, blok))) {
+        set.status = 429;
+        set.headers["retry-after"] = "3600";
+        return {
+          error: "too_many_orders",
+          message:
+            "Terlalu banyak pesanan dari jaringan ini dalam beberapa jam terakhir. Coba lagi nanti, atau hubungi kami lewat WhatsApp.",
+        };
+      }
+
       const turnstile = bacaKonfigTurnstile(wadah);
       if (turnstile) {
         const ip = ipPembeli(request, zonaToko(wadah));
@@ -111,6 +124,8 @@ export const orderRoutes = new Elysia({ prefix: "/api/orders" })
           set.status = hasil.status;
           return hasil.badan;
         }
+
+        await catatPesananBaru(wadah, blok);
 
         set.status = 201;
         return {

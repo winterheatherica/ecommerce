@@ -39,12 +39,62 @@ export function ipPembeli(request: Request, zona: string | null): string {
   return POLA_IP.test(diteruskan) ? diteruskan : ip;
 }
 
+function heksIPv4(teks: string): string[] | null {
+  const bagian = teks.split(".").map(Number);
+  if (bagian.length !== 4 || bagian.some((n) => !Number.isInteger(n) || n < 0 || n > 255)) {
+    return null;
+  }
+  return [((bagian[0] << 8) | bagian[1]).toString(16), ((bagian[2] << 8) | bagian[3]).toString(16)];
+}
+
+function delapanGrup(ip: string): string[] | null {
+  const dua = ip.split("::");
+  if (dua.length > 2) return null;
+
+  const pecah = (t: string) => (t ? t.split(":") : []);
+  const kiri = pecah(dua[0]);
+  const kanan = dua.length === 2 ? pecah(dua[1]) : [];
+  const semua = [...kiri, ...kanan];
+
+  const akhir = semua.at(-1);
+  if (akhir?.includes(".")) {
+    const ekor = heksIPv4(akhir);
+    if (!ekor) return null;
+    (kanan.length > 0 ? kanan : kiri).splice(-1, 1, ...ekor);
+  }
+
+  const kosong = 8 - kiri.length - kanan.length;
+  if (dua.length === 2 ? kosong < 1 : kosong !== 0) return null;
+
+  const grup = [...kiri, ...Array(Math.max(kosong, 0)).fill("0"), ...kanan];
+  return grup.every((g) => /^[0-9a-f]{1,4}$/.test(g)) ? grup : null;
+}
+
+export function blokIp(ip: string): string {
+  const s = ip.trim().toLowerCase().split("%")[0];
+  if (!s.includes(":")) return s;
+
+  const grup = delapanGrup(s);
+  if (!grup) return s;
+
+  const angka = grup.map((g) => parseInt(g, 16));
+  if (angka.slice(0, 5).every((n) => n === 0) && angka[5] === 0xffff) {
+    return [angka[6] >> 8, angka[6] & 255, angka[7] >> 8, angka[7] & 255].join(".");
+  }
+
+  return `${angka.slice(0, 4).map((n) => n.toString(16)).join(":")}::/64`;
+}
+
+export function blokPembeli(request: Request, env: Record<string, unknown> = {}): string {
+  return blokIp(ipPembeli(request, zonaToko(env)));
+}
+
 export function kunciIp(
   request: Request,
   awalan: string,
   env: Record<string, unknown> = {},
 ): string {
-  return `${awalan}:${ipPembeli(request, zonaToko(env))}`;
+  return `${awalan}:${blokPembeli(request, env)}`;
 }
 
 export function ambilPembatas(

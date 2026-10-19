@@ -58,6 +58,7 @@ describe("kunciIp", () => {
 describe("kunciIp untuk request yang diteruskan server toko", () => {
   const ENV = { STOREFRONT_URL: "https://menikstore.my.id" };
   const WORKERS = "2a06:98c0:3600::103";
+  const BLOK_WORKERS = "2a06:98c0:3600:0::/64";
 
   it("memakai IP pembeli asli kalau datang dari Worker toko", () => {
     const r = permintaan({
@@ -83,7 +84,7 @@ describe("kunciIp untuk request yang diteruskan server toko", () => {
       "x-toko-ip": "36.71.20.5",
     });
 
-    expect(kunciIp(r, "umum", ENV)).toBe(`umum:${WORKERS}`);
+    expect(kunciIp(r, "umum", ENV)).toBe(`umum:${BLOK_WORKERS}`);
   });
 
   it("mengabaikan x-toko-ip kalau pengirimnya bukan alamat Workers", () => {
@@ -103,7 +104,7 @@ describe("kunciIp untuk request yang diteruskan server toko", () => {
       "x-toko-ip": "1.2.3.4; drop table",
     });
 
-    expect(kunciIp(r, "umum", ENV)).toBe(`umum:${WORKERS}`);
+    expect(kunciIp(r, "umum", ENV)).toBe(`umum:${BLOK_WORKERS}`);
   });
 });
 
