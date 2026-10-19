@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 import AdminPromoEditor from "@/app/components/admin-promo-editor";
+import AdminReviews from "@/app/components/admin-reviews";
 import AdminShopeeRating from "@/app/components/admin-shopee-rating";
 import AdminVariantEditor from "@/app/components/admin-variant-editor";
 import { buatProdukBaru, simpanProduk } from "@/app/lib/api-client";
@@ -312,6 +313,7 @@ export default function AdminProductForm({ awal }: Props) {
       {ubahMode && awal && <AdminVariantEditor produk={awal} />}
       {ubahMode && awal && <AdminPromoEditor produk={awal} />}
       {ubahMode && awal && <AdminShopeeRating produk={awal} />}
+      {ubahMode && awal && <AdminReviews produk={awal} />}
     </div>
   );
 }

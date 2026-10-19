@@ -13,6 +13,8 @@ import {
   simpanProdukBaru,
 } from "../db/produk";
 import { perbaruiVarian, tambahVarian } from "../db/varian";
+import { periksaUlasanShopee } from "../lib/ulasan";
+import { tambahUlasanShopee, ubahTampilUlasan } from "../db/ulasan";
 import {
   batalkanPesanan,
   cariPesanan,
@@ -534,5 +536,65 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
           t.Union([t.Integer({ minimum: 0, maximum: 100000000 }), t.Null()]),
         ),
       }),
+    },
+  )
+  .post(
+    "/variants/:slug/reviews",
+    async ({ params, body, set }) => {
+      const periksa = periksaUlasanShopee(body);
+
+      if (!periksa.ok) {
+        set.status = periksa.status;
+        return periksa.badan;
+      }
+
+      const sql = koneksi();
+
+      try {
+        const ulasan = await tambahUlasanShopee(sql, params.slug, periksa.bersih);
+
+        if (!ulasan) {
+          set.status = 404;
+          return { error: "not_found", message: "Varian tidak ditemukan" };
+        }
+
+        set.status = 201;
+        return ulasan;
+      } finally {
+        await tutup(sql);
+      }
+    },
+    {
+      params: t.Object({ slug: t.String({ maxLength: 120 }) }),
+      body: t.Object({
+        rating: t.Integer({ minimum: 1, maximum: 5 }),
+        author_name: t.String({ minLength: 1, maxLength: 60 }),
+        body: t.Optional(t.Union([t.String({ maxLength: 3000 }), t.Null()])),
+        follow_up: t.Optional(t.Union([t.String({ maxLength: 3000 }), t.Null()])),
+        reviewed_at: t.String({ maxLength: 40 }),
+      }),
+    },
+  )
+  .patch(
+    "/reviews/:id",
+    async ({ params, body, set }) => {
+      const sql = koneksi();
+
+      try {
+        const ulasan = await ubahTampilUlasan(sql, params.id, body.is_hidden);
+
+        if (!ulasan) {
+          set.status = 404;
+          return { error: "not_found", message: "Ulasan tidak ditemukan" };
+        }
+
+        return ulasan;
+      } finally {
+        await tutup(sql);
+      }
+    },
+    {
+      params: t.Object({ id: t.Numeric({ minimum: 1 }) }),
+      body: t.Object({ is_hidden: t.Boolean() }),
     },
   );

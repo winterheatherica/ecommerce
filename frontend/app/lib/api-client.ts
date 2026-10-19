@@ -347,3 +347,31 @@ export async function sapuPesanan(): Promise<number> {
   const isi = (await res.json()) as { swept: number };
   return isi.swept;
 }
+
+export type UlasanShopeeBaru = {
+  rating: number;
+  author_name: string;
+  body?: string | null;
+  follow_up?: string | null;
+  reviewed_at: string;
+};
+
+export async function tambahUlasanShopee(varianSlug: string, isi: UlasanShopeeBaru): Promise<void> {
+  const res = await fetch(`/api/admin/variants/${encodeURIComponent(varianSlug)}/reviews`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(isi),
+  });
+
+  await pastikanOk(res);
+}
+
+export async function ubahTampilUlasan(id: number, sembunyi: boolean): Promise<void> {
+  const res = await fetch(`/api/admin/reviews/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ is_hidden: sembunyi }),
+  });
+
+  await pastikanOk(res);
+}

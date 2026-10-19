@@ -60,6 +60,20 @@ export type ShopeeVarian = {
 
 export type RingkasanRating = { rata: number; jumlah: number };
 
+export type Ulasan = {
+  id: number;
+  sumber: "shopee" | "web";
+  bintang: number;
+  nama: string;
+  teks: string | null;
+  susulan: string | null;
+  susulanPada: string | null;
+  pada: string;
+  ukuran: string;
+  ukuranSlug: string;
+  tersembunyi?: boolean;
+};
+
 export type Produk = {
   slug: string;
   nama: string;
@@ -75,6 +89,7 @@ export type Produk = {
   gambar?: string;
   varian: Varian[];
   ratingShopee?: RingkasanRating | null;
+  ulasan?: Ulasan[];
 };
 
 export type PasanganVarian = { produk: Produk; varian: Varian };

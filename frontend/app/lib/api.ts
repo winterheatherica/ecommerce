@@ -66,6 +66,21 @@ type ProdukAPI = {
   variants?: VarianAPI[];
   shopee_rating?: number | null;
   shopee_rating_count?: number;
+  reviews?: UlasanAPI[];
+};
+
+type UlasanAPI = {
+  id: number;
+  source: "shopee" | "web";
+  rating: number;
+  author_name: string;
+  body: string | null;
+  follow_up: string | null;
+  follow_up_at: string | null;
+  reviewed_at: string;
+  variant_slug: string;
+  variant_label: string;
+  is_hidden?: boolean;
 };
 
 type DaftarAPI = {
@@ -137,6 +152,19 @@ function petakan(p: ProdukAPI): Produk {
       p.shopee_rating != null && (p.shopee_rating_count ?? 0) > 0
         ? { rata: p.shopee_rating, jumlah: p.shopee_rating_count ?? 0 }
         : null,
+    ulasan: p.reviews?.map((r) => ({
+      id: r.id,
+      sumber: r.source,
+      bintang: r.rating,
+      nama: r.author_name,
+      teks: r.body,
+      susulan: r.follow_up,
+      susulanPada: r.follow_up_at,
+      pada: r.reviewed_at,
+      ukuran: r.variant_label,
+      ukuranSlug: r.variant_slug,
+      tersembunyi: r.is_hidden,
+    })),
   };
 }
 

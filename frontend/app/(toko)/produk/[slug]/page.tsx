@@ -9,6 +9,7 @@ import JsonLd from "@/app/components/json-ld";
 import { PUNYA_GAMBAR, urlGambarBagi } from "@/app/data/gambar";
 import ProductBuyBox from "@/app/components/product-buy-box";
 import ProductCard from "@/app/components/product-card";
+import ProductReviews from "@/app/components/product-reviews";
 import { ambilProduk, ambilSatuProduk } from "@/app/lib/api";
 import { uraiCaraPakai } from "@/app/lib/cara-pakai";
 import { angkaRating, jumlahLengkap, perTerbaru, tanggalRating } from "@/app/lib/rating";
@@ -235,6 +236,17 @@ export default async function DetailProdukPage({ params }: Props) {
           </dl>
         </div>
       </div>
+
+      {produk.ulasan && produk.ulasan.length > 0 && (
+        <ProductReviews
+          ulasan={produk.ulasan}
+          tampilkanUkuran={produk.varian.length > 1}
+          linkShopee={linkTunggal}
+          linkPerUkuran={Object.fromEntries(
+            produk.varian.map((v) => [v.slug, v.shopee?.url ?? null]),
+          )}
+        />
+      )}
 
       <Suspense fallback={<KerangkaSerupa />}>
         <ProdukSerupa kategori={produk.kategori} slug={produk.slug} />

@@ -1,6 +1,7 @@
 import { bentrokUnik, type Kueri, type Sql } from "../lib/db";
 import type { PerubahanBersih, ProdukBersih } from "../lib/products";
 import { LABEL_TUNGGAL } from "../lib/variants";
+import { ulasanAdmin, ulasanPublik, type BarisUlasan, type BarisUlasanAdmin } from "./ulasan";
 
 export type KolomShopee = {
   shopee_url: string | null;
@@ -61,11 +62,13 @@ export type BarisProduk = RingkasanShopee & {
 
 export type BarisProdukDetail = BarisProduk & {
   usage_instructions: string | null;
+  reviews: BarisUlasan[];
 };
 
 export type BarisProdukAdmin = Omit<BarisProduk, "variants"> & {
   variants: BarisVarianLengkap[];
   usage_instructions: string | null;
+  reviews?: BarisUlasanAdmin[];
 };
 
 export type FilterProduk = {
@@ -226,7 +229,7 @@ export async function satuProduk(
   slug: string,
 ): Promise<BarisProdukDetail | undefined> {
   const [produk] = await sql<BarisProdukDetail[]>`
-    select ${kolom(sql)}, usage_instructions
+    select ${kolom(sql)}, usage_instructions, ${ulasanPublik(sql)}
     from products
     where slug = ${slug} and is_active
     limit 1
@@ -264,7 +267,7 @@ export async function satuProdukAdmin(
   slug: string,
 ): Promise<BarisProdukAdmin | undefined> {
   const [produk] = await sql<BarisProdukAdmin[]>`
-    select ${kolomAdmin(sql)}
+    select ${kolomAdmin(sql)}, ${ulasanAdmin(sql)}
     from products
     where slug = ${slug}
     limit 1
