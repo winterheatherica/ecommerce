@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { bacaKonfigTurnstile, periksaTurnstile } from "./turnstile";
+import { bacaKonfigTurnstile, periksaTurnstile, turnstileWajib } from "./turnstile";
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -59,5 +59,14 @@ describe("periksaTurnstile", () => {
     }));
 
     expect(await periksaTurnstile("rahasia", "token-1", null)).toBe(false);
+  });
+});
+
+describe("turnstileWajib", () => {
+  it("wajib di produksi yang memakai https, tidak wajib di lokal", () => {
+    expect(turnstileWajib({ STOREFRONT_URL: "https://menikstore.my.id" })).toBe(true);
+    expect(turnstileWajib({ STOREFRONT_URL: "  https://menikstore.my.id  " })).toBe(true);
+    expect(turnstileWajib({ STOREFRONT_URL: "http://localhost:3000" })).toBe(false);
+    expect(turnstileWajib({})).toBe(false);
   });
 });

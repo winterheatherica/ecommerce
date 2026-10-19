@@ -16,7 +16,7 @@ import {
   tokenAcak,
   tujuanAman,
 } from "../lib/sesi";
-import { bacaKonfigTurnstile, periksaTurnstile } from "../lib/turnstile";
+import { bacaKonfigTurnstile, periksaTurnstile, turnstileWajib } from "../lib/turnstile";
 import { buatSesiAdmin, hapusSesiAdmin } from "../db/admin";
 
 const HALAMAN_MASUK = "/masuk-admin";
@@ -54,6 +54,11 @@ export const adminMasukRoutes = new Elysia({ prefix: "/api/auth/admin" })
       }
 
       const turnstile = bacaKonfigTurnstile(wadah());
+      if (!turnstile && turnstileWajib(wadah())) {
+        console.error("[turnstile] kunci captcha tidak terpasang, login admin ditolak");
+        return gagal("captcha", next);
+      }
+
       if (turnstile) {
         const ip = ipPembeli(request, zonaToko(wadah()));
         const lulus = await periksaTurnstile(turnstile.secret, body["cf-turnstile-response"], ip);

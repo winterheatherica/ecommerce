@@ -17,6 +17,7 @@ import { sapuKedaluwarsa } from "./db/pesanan";
 import { periksaTertundaKeDoku } from "./db/pelunasan";
 import { sapuSesi } from "./db/akun";
 import { sapuSesiAdmin } from "./db/admin";
+import { sapuPeristiwaWebhook } from "./db/webhook";
 
 import { productRoutes } from "./routes/products";
 import { shippingRoutes } from "./routes/shipping";
@@ -73,6 +74,7 @@ const app = new Elysia({ adapter: CloudflareAdapter })
   .onAfterHandle(({ set }) => {
     set.headers["x-content-type-options"] = "nosniff";
     set.headers["referrer-policy"] = "no-referrer";
+    set.headers["strict-transport-security"] = "max-age=31536000; includeSubDomains";
   })
   .get("/api/health", () => ({
     status: "ok",
@@ -118,6 +120,13 @@ async function sapuTerjadwal(): Promise<void> {
     }
   } catch (e) {
     console.error("[cron] gagal menyapu pesanan kedaluwarsa", e);
+  }
+
+  try {
+    const peristiwa = await sapuPeristiwaWebhook(sql);
+    if (peristiwa > 0) console.log("[cron] catatan webhook lama dihapus", peristiwa);
+  } catch (e) {
+    console.error("[cron] gagal menghapus catatan webhook lama", e);
   }
 
   try {

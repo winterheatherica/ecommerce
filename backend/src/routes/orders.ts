@@ -23,7 +23,12 @@ import {
   zonaToko,
 } from "../lib/ratelimit";
 import { catatPesananBaru, masihBolehPesan } from "../lib/jatah";
-import { BADAN_CAPTCHA, bacaKonfigTurnstile, periksaTurnstile } from "../lib/turnstile";
+import {
+  BADAN_CAPTCHA,
+  bacaKonfigTurnstile,
+  periksaTurnstile,
+  turnstileWajib,
+} from "../lib/turnstile";
 
 function wadahEnv() {
   return env as unknown as Record<string, string>;
@@ -91,6 +96,15 @@ export const orderRoutes = new Elysia({ prefix: "/api/orders" })
       }
 
       const turnstile = bacaKonfigTurnstile(wadah);
+      if (!turnstile && turnstileWajib(wadah)) {
+        console.error("[turnstile] kunci captcha tidak terpasang, checkout ditolak");
+        set.status = 503;
+        return {
+          error: "captcha_unconfigured",
+          message: "Checkout sedang gangguan. Untuk sementara, pesan lewat WhatsApp ya.",
+        };
+      }
+
       if (turnstile) {
         const ip = ipPembeli(request, zonaToko(wadah));
         if (!(await periksaTurnstile(turnstile.secret, body.turnstile_token, ip))) {

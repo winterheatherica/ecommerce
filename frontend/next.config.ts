@@ -21,10 +21,11 @@ function alamatApi(): string {
 }
 
 const ASAL_API = new URL(alamatApi()).origin;
+const MODE_DEV = process.env.NODE_ENV !== "production";
 
 const CSP = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://challenges.cloudflare.com",
+  `script-src 'self' 'unsafe-inline'${MODE_DEV ? " 'unsafe-eval'" : ""} https://challenges.cloudflare.com`,
   "frame-src https://challenges.cloudflare.com",
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob: https://res.cloudinary.com",
@@ -57,6 +58,10 @@ const nextConfig: NextConfig = {
           { key: "referrer-policy", value: "strict-origin-when-cross-origin" },
           { key: "x-frame-options", value: "DENY" },
           { key: "content-security-policy", value: CSP },
+          {
+            key: "strict-transport-security",
+            value: "max-age=31536000; includeSubDomains",
+          },
           {
             key: "permissions-policy",
             value: "camera=(), microphone=(), geolocation=()",

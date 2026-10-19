@@ -9,6 +9,11 @@ export const BADAN_CAPTCHA = {
     "Verifikasi keamanan gagal. Tekan tombolnya sekali lagi, atau muat ulang halaman kalau masih gagal.",
 };
 
+export function turnstileWajib(env: Record<string, unknown>): boolean {
+  const toko = env.STOREFRONT_URL;
+  return typeof toko === "string" && toko.trim().startsWith("https://");
+}
+
 export function bacaKonfigTurnstile(env: Record<string, unknown>): KonfigTurnstile | null {
   const siteKey = env.TURNSTILE_SITE_KEY;
   const secret = env.TURNSTILE_SECRET_KEY;
