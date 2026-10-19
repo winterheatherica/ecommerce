@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import AdminNav from "@/app/components/admin-nav";
+import { urlKeluarAdmin } from "@/app/lib/akun";
 
 export const metadata: Metadata = {
   title: "Admin",
@@ -15,7 +16,7 @@ export default function AdminLayout({
   return (
     <div className="flex min-h-full flex-col bg-stone-50 lg:flex-row print:block print:bg-white">
       <div className="contents print:hidden">
-        <AdminNav />
+        <AdminNav urlKeluar={urlKeluarAdmin()} />
       </div>
       <main className="flex-1 px-6 py-10 lg:px-10 print:p-0">{children}</main>
     </div>

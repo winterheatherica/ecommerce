@@ -1,14 +1,6 @@
-export type HasilPenjaga =
-  | { lolos: true }
-  | { lolos: false; status: number; badan: { error: string; message: string } };
-
-const DITOLAK: HasilPenjaga = {
-  lolos: false,
-  status: 401,
-  badan: {
-    error: "unauthorized",
-    message: "Endpoint admin butuh autentikasi",
-  },
+export const BADAN_ADMIN_DITOLAK = {
+  error: "unauthorized",
+  message: "Endpoint admin butuh autentikasi",
 };
 
 export function samaAman(a: string, b: string): boolean {
@@ -22,41 +14,29 @@ export function samaAman(a: string, b: string): boolean {
   return beda === 0;
 }
 
-export function bacaBasic(header: string | undefined): string | undefined {
-  if (!header) return undefined;
-
-  const cocok = header.match(/^Basic\s+(.+)$/i);
-  if (!cocok) return undefined;
-
-  try {
-    return atob(cocok[1].trim());
-  } catch {
-    return undefined;
-  }
+export function bypassAdmin(env: Record<string, unknown>): boolean {
+  return env.ADMIN_DEV_BYPASS === "true";
 }
 
-export function periksaAdmin(
+export function kredensialAdminCocok(
   env: Record<string, unknown>,
-  header?: string,
-): HasilPenjaga {
-  if (env.ADMIN_DEV_BYPASS === "true") return { lolos: true };
-
-  const pengguna = env.ADMIN_USER;
-  const sandi = env.ADMIN_PASSWORD;
+  pengguna: string,
+  sandi: string,
+): boolean {
+  const benarPengguna = env.ADMIN_USER;
+  const benarSandi = env.ADMIN_PASSWORD;
 
   if (
-    typeof pengguna !== "string" ||
-    typeof sandi !== "string" ||
-    !pengguna.trim() ||
-    !sandi.trim()
+    typeof benarPengguna !== "string" ||
+    typeof benarSandi !== "string" ||
+    !benarPengguna.trim() ||
+    !benarSandi.trim()
   ) {
-    return DITOLAK;
+    return false;
   }
 
-  const dikirim = bacaBasic(header);
-  if (!dikirim) return DITOLAK;
+  const cocokPengguna = samaAman(pengguna.trim(), benarPengguna.trim());
+  const cocokSandi = samaAman(sandi, benarSandi.trim());
 
-  const diharapkan = `${pengguna.trim()}:${sandi.trim()}`;
-
-  return samaAman(dikirim, diharapkan) ? { lolos: true } : DITOLAK;
+  return cocokPengguna && cocokSandi;
 }

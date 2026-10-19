@@ -65,7 +65,7 @@ const isiSeed = SEED.map(bacaMigrasi);
 export async function bersihkan(sql: Sql): Promise<void> {
   await sql
     .unsafe(
-      "truncate order_items, orders, sessions, users, product_variants, products restart identity cascade",
+      "truncate order_items, orders, sessions, admin_sessions, users, product_variants, products restart identity cascade",
     )
     .simple();
 

@@ -9,7 +9,7 @@ const menu = [
   { href: "/admin/produk", label: "Produk" },
 ];
 
-export default function AdminNav() {
+export default function AdminNav({ urlKeluar }: { urlKeluar: string }) {
   const pathname = usePathname();
 
   const aktif = (href: string) =>
@@ -17,7 +17,7 @@ export default function AdminNav() {
 
   return (
     <aside className="border-b border-ink/10 bg-white lg:w-60 lg:shrink-0 lg:border-r lg:border-b-0">
-      <div className="flex items-center justify-between gap-4 px-6 py-6 lg:block">
+      <div className="grid grid-cols-[1fr_auto] items-center gap-x-4 gap-y-4 px-6 py-6 lg:block">
         <div>
           <p className="font-mono text-xs tracking-[0.28em] text-ink uppercase">
             Menik Store
@@ -27,7 +27,7 @@ export default function AdminNav() {
           </p>
         </div>
 
-        <nav className="flex gap-1 lg:mt-8 lg:flex-col">
+        <nav className="col-span-2 -mx-3 flex gap-1 lg:mx-0 lg:mt-8 lg:flex-col">
           {menu.map((m) => (
             <a
               key={m.href}
@@ -43,6 +43,15 @@ export default function AdminNav() {
             </a>
           ))}
         </nav>
+
+        <form method="post" action={urlKeluar} className="col-start-2 row-start-1 lg:mt-6">
+          <button
+            type="submit"
+            className="-mr-3 px-3 py-2 text-left text-sm text-stone-500 transition-colors hover:bg-red-50 hover:text-red-700 lg:-mx-3 lg:w-[calc(100%+1.5rem)]"
+          >
+            Keluar
+          </button>
+        </form>
       </div>
 
       <div className="hidden px-6 pb-6 lg:block">

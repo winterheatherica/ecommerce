@@ -5,6 +5,8 @@ import { alamatToko, asalApi } from "../lib/alamat";
 import { buatKoneksi, tutup } from "../lib/db";
 import { ambilPesanan, buatPesanan, cariPesanan, simpanPembayaran } from "../db/pesanan";
 import { periksaKeDoku } from "../db/pelunasan";
+import { adminDariCookie } from "../db/admin";
+import { COOKIE_ADMIN, bacaCookie } from "../lib/sesi";
 import { BADAN_PERLU_MASUK, aksesPesanan, untukPublik } from "../lib/privasi-pesanan";
 import { penggunaDariCookie } from "../db/akun";
 import { JALUR_NOTIFIKASI, bacaKonfig, menitBayar } from "../lib/doku";
@@ -36,15 +38,18 @@ export const orderRoutes = new Elysia({ prefix: "/api/orders" })
           return { error: "not_found", message: "Pesanan tidak ditemukan" };
         }
 
-        const pengguna = await penggunaDariCookie(sql, headers.cookie);
-        const akses = aksesPesanan(pesanan.user_id, pengguna?.id ?? null);
+        const olehAdmin = bacaCookie(headers.cookie, COOKIE_ADMIN)
+          ? await adminDariCookie(sql, headers.cookie)
+          : false;
+        const pengguna = olehAdmin ? undefined : await penggunaDariCookie(sql, headers.cookie);
+        const akses = olehAdmin ? "penuh" : aksesPesanan(pesanan.user_id, pengguna?.id ?? null);
 
         if (akses === "tolak") {
           set.status = 401;
           return BADAN_PERLU_MASUK;
         }
 
-        return untukPublik(pesanan, akses);
+        return { ...untukPublik(pesanan, akses), dilihat_admin: olehAdmin };
       } finally {
         await tutup(sql);
       }

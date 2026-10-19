@@ -1,4 +1,6 @@
 export const COOKIE_SESI = "sid";
+export const COOKIE_ADMIN = "adm";
+export const UMUR_SESI_ADMIN_JAM = 12;
 export const UMUR_SESI_HARI = 30;
 
 export function base64url(bita: Uint8Array): string {

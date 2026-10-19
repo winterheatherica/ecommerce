@@ -4,6 +4,7 @@ import type { StatusPesanan } from "@/app/data/status-pesanan";
 import { kepalaPengunjung } from "@/app/lib/pengunjung";
 
 const COOKIE_SESI = "sid";
+const COOKIE_ADMIN = "adm";
 
 export function alamatApi(): string {
   return (process.env.API_URL ?? "http://localhost:8787").replace(/\/+$/, "");
@@ -19,6 +20,20 @@ export function urlKeluar(): string {
 
 export async function adaSesi(): Promise<boolean> {
   return Boolean((await cookies()).get(COOKIE_SESI)?.value);
+}
+
+export async function kepalaCookie(): Promise<Record<string, string>> {
+  const toko = await cookies();
+  const isi = [COOKIE_SESI, COOKIE_ADMIN].flatMap((nama) => {
+    const nilai = toko.get(nama)?.value;
+    return nilai ? [`${nama}=${nilai}`] : [];
+  });
+
+  return isi.length > 0 ? { Cookie: isi.join("; ") } : {};
+}
+
+export function urlKeluarAdmin(): string {
+  return `${alamatApi()}/api/auth/admin/logout`;
 }
 
 export async function kepalaSesi(): Promise<Record<string, string> | null> {

@@ -22,6 +22,7 @@ describe("database tes", () => {
     `;
 
     expect(baris.map((b) => b.tablename)).toEqual([
+      "admin_sessions",
       "order_items",
       "orders",
       "product_images",

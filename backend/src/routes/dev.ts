@@ -1,21 +1,26 @@
 import { env } from "cloudflare:workers";
 import { Elysia, t } from "elysia";
 
-import { periksaAdmin } from "../lib/auth";
+import { bypassAdmin } from "../lib/auth";
+import { adminDariCookie } from "../db/admin";
 import { buatKoneksi, tutup } from "../lib/db";
 import { tandaiTerbayar } from "../db/pesanan";
 
 export const devRoutes = new Elysia({ prefix: "/api/dev" })
-  .onBeforeHandle(({ set, headers }) => {
-    const hasil = periksaAdmin(
-      env as unknown as Record<string, unknown>,
-      headers.authorization,
-    );
+  .onBeforeHandle(async ({ set, headers }) => {
+    const wadah = env as unknown as Record<string, unknown>;
+    if (bypassAdmin(wadah)) return;
 
-    if (!hasil.lolos) {
-      set.status = 404;
-      return { error: "not_found", message: "Endpoint tidak ditemukan" };
+    const sql = buatKoneksi(wadah);
+
+    try {
+      if (await adminDariCookie(sql, headers.cookie)) return;
+    } finally {
+      await tutup(sql);
     }
+
+    set.status = 404;
+    return { error: "not_found", message: "Endpoint tidak ditemukan" };
   })
   .post(
     "/pay/:orderNo",

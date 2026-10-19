@@ -15,6 +15,7 @@ import { bacaKonfig } from "./lib/doku";
 import { sapuKedaluwarsa } from "./db/pesanan";
 import { periksaTertundaKeDoku } from "./db/pelunasan";
 import { sapuSesi } from "./db/akun";
+import { sapuSesiAdmin } from "./db/admin";
 
 import { productRoutes } from "./routes/products";
 import { shippingRoutes } from "./routes/shipping";
@@ -24,6 +25,7 @@ import { webhookRoutes } from "./routes/webhooks";
 import { adminRoutes } from "./routes/admin";
 import { devRoutes } from "./routes/dev";
 import { akunRoutes } from "./routes/akun";
+import { adminMasukRoutes } from "./routes/admin-masuk";
 
 const app = new Elysia({ adapter: CloudflareAdapter })
   .onRequest(async ({ request, set }) => {
@@ -83,6 +85,7 @@ const app = new Elysia({ adapter: CloudflareAdapter })
   .use(adminRoutes)
   .use(devRoutes)
   .use(akunRoutes)
+  .use(adminMasukRoutes)
   .compile();
 
 async function sapuTerjadwal(): Promise<void> {
@@ -115,6 +118,9 @@ async function sapuTerjadwal(): Promise<void> {
   try {
     const sesi = await sapuSesi(sql);
     if (sesi > 0) console.log("[cron] sesi kedaluwarsa dihapus", sesi);
+
+    const sesiAdmin = await sapuSesiAdmin(sql);
+    if (sesiAdmin > 0) console.log("[cron] sesi admin kedaluwarsa dihapus", sesiAdmin);
   } catch (e) {
     console.error("[cron] gagal menyapu sesi", e);
   } finally {

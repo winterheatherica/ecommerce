@@ -1,7 +1,8 @@
 import { env } from "cloudflare:workers";
 import { Elysia, t } from "elysia";
 
-import { periksaAdmin } from "../lib/auth";
+import { BADAN_ADMIN_DITOLAK, bypassAdmin } from "../lib/auth";
+import { adminDariCookie } from "../db/admin";
 import { buatKoneksi, tutup } from "../lib/db";
 import { periksaPerubahan, periksaProdukBaru } from "../lib/products";
 import { periksaPerubahanVarian, periksaVarianBaru } from "../lib/variants";
@@ -58,16 +59,20 @@ function koneksi() {
 }
 
 export const adminRoutes = new Elysia({ prefix: "/api/admin" })
-  .onBeforeHandle(({ set, headers }) => {
-    const hasil = periksaAdmin(
-      env as unknown as Record<string, unknown>,
-      headers.authorization,
-    );
+  .onBeforeHandle(async ({ set, headers }) => {
+    const wadah = env as unknown as Record<string, unknown>;
+    if (bypassAdmin(wadah)) return;
 
-    if (!hasil.lolos) {
-      set.status = hasil.status;
-      return hasil.badan;
+    const sql = buatKoneksi(wadah);
+
+    try {
+      if (await adminDariCookie(sql, headers.cookie)) return;
+    } finally {
+      await tutup(sql);
     }
+
+    set.status = 401;
+    return BADAN_ADMIN_DITOLAK;
   })
   .get(
     "/orders",

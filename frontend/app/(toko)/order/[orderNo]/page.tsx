@@ -119,6 +119,11 @@ export default async function StatusPesananPage({ params }: Props) {
       <p className="mt-3 text-sm text-stone-500">
         Dibuat {tanggal(pesanan.created_at)} WIB
       </p>
+      {pesanan.dilihat_admin && (
+        <p className="mt-3 inline-block border border-amber-300 bg-amber-50 px-3 py-1 font-mono text-[11px] tracking-[0.16em] indent-[0.16em] text-amber-800 uppercase">
+          Dilihat sebagai admin
+        </p>
+      )}
 
       {batal ? (
         <div className="mt-10 border border-stone-300 bg-stone-100 px-6 py-8">

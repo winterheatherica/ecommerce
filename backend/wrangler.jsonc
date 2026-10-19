@@ -26,7 +26,8 @@
     "UMUR_PESANAN_JAM": "6",
     "RAJAONGKIR_KURIR": "jne:jnt",
     "COOKIE_DOMAIN": "menikstore.my.id",
-    "DOKU_SANDBOX": "false"
+    "DOKU_SANDBOX": "false",
+    "TURNSTILE_SITE_KEY": "0x4AAAAAAFbFY7ynPWwVpk1R"
   },
   "triggers": {
     "crons": ["*/15 * * * *"]

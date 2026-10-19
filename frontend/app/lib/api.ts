@@ -1,9 +1,11 @@
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 import { cache } from "react";
 
 import { PUNYA_GAMBAR, urlGambar } from "@/app/data/gambar";
 import type { Kategori, Produk, StatusPromo, Varian } from "@/app/data/produk";
 import type { StatusPesanan } from "@/app/data/status-pesanan";
-import { kepalaSesi } from "@/app/lib/akun";
+import { kepalaCookie } from "@/app/lib/akun";
 import { kepalaPengunjung } from "@/app/lib/pengunjung";
 import { dimensiPaket } from "@/app/lib/paket";
 
@@ -11,13 +13,15 @@ function basis(): string {
   return process.env.API_URL ?? "http://localhost:8787";
 }
 
-function kepalaAdmin(): HeadersInit {
-  const pengguna = process.env.ADMIN_USER?.trim();
-  const sandi = process.env.ADMIN_PASSWORD?.trim();
+async function ambilAdmin(alamat: string): Promise<Response> {
+  const token = (await cookies()).get("adm")?.value;
+  const res = await fetch(alamat, {
+    cache: "no-store",
+    headers: { ...(await kepalaPengunjung()), ...(token ? { Cookie: `adm=${token}` } : {}) },
+  });
 
-  if (!pengguna || !sandi) return {};
-
-  return { Authorization: `Basic ${btoa(`${pengguna}:${sandi}`)}` };
+  if (res.status === 401) redirect("/masuk-admin?galat=kedaluwarsa");
+  return res;
 }
 
 type VarianAPI = {
@@ -235,6 +239,7 @@ export type Pesanan = {
   shipped_at: string | null;
   items: ItemPesanan[];
   samar?: boolean;
+  dilihat_admin?: boolean;
 };
 
 export type HasilPesanan =
@@ -247,7 +252,7 @@ export async function ambilPesanan(orderNo: string): Promise<HasilPesanan> {
     `${basis()}/api/orders/${encodeURIComponent(orderNo)}`,
     {
       cache: "no-store",
-      headers: { ...(await kepalaPengunjung()), ...((await kepalaSesi()) ?? {}) },
+      headers: { ...(await kepalaPengunjung()), ...(await kepalaCookie()) },
     },
   );
 
@@ -262,10 +267,7 @@ export async function ambilPesanan(orderNo: string): Promise<HasilPesanan> {
 }
 
 export async function ambilPesananAdmin(orderNo: string): Promise<Pesanan | null> {
-  const res = await fetch(
-    `${basis()}/api/admin/orders/${encodeURIComponent(orderNo)}`,
-    { cache: "no-store", headers: kepalaAdmin() },
-  );
+  const res = await ambilAdmin(`${basis()}/api/admin/orders/${encodeURIComponent(orderNo)}`);
 
   if (res.status === 404) return null;
 
@@ -283,10 +285,7 @@ export async function ambilDaftarPesanan(
   if (status) q.set("status", status);
 
   const sisa = q.toString();
-  const res = await fetch(`${basis()}/api/admin/orders${sisa ? `?${sisa}` : ""}`, {
-    cache: "no-store",
-    headers: kepalaAdmin(),
-  });
+  const res = await ambilAdmin(`${basis()}/api/admin/orders${sisa ? `?${sisa}` : ""}`);
 
   if (!res.ok) {
     throw new Error(`Gagal mengambil daftar pesanan (${res.status})`);
@@ -307,10 +306,7 @@ export async function ambilProdukAdmin(): Promise<Produk[]> {
       limit: String(BATAS_ADMIN),
       offset: String(offset),
     });
-    const res = await fetch(`${basis()}/api/admin/products?${q}`, {
-      cache: "no-store",
-      headers: kepalaAdmin(),
-    });
+    const res = await ambilAdmin(`${basis()}/api/admin/products?${q}`);
 
     if (!res.ok) {
       throw new Error(`Gagal mengambil produk admin (${res.status})`);
@@ -330,10 +326,7 @@ export async function ambilProdukAdmin(): Promise<Produk[]> {
 export async function ambilSatuProdukAdmin(
   slug: string,
 ): Promise<Produk | null> {
-  const res = await fetch(
-    `${basis()}/api/admin/products/${encodeURIComponent(slug)}`,
-    { cache: "no-store", headers: kepalaAdmin() },
-  );
+  const res = await ambilAdmin(`${basis()}/api/admin/products/${encodeURIComponent(slug)}`);
 
   if (res.status === 404) return null;
 
