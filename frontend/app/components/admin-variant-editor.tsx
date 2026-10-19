@@ -241,7 +241,7 @@ export default function AdminVariantEditor({ produk }: { produk: Produk }) {
                   <AdminDimensionBox
                     nilai={v.paketDimensi ?? null}
                     label={`Dimensi paket ukuran ${v.label}`}
-                    kelas={v.paketDimensi ? "w-28 border-ink/15" : "w-28 border-amber-300 bg-amber-50"}
+                    kelas="w-28 border-ink/15"
                     mati={menyimpan === v.slug}
                     onSimpan={(d) =>
                       void simpan(
@@ -293,10 +293,10 @@ export default function AdminVariantEditor({ produk }: { produk: Produk }) {
         , total stok aktif {aktif.reduce((s, v) => s + v.stok, 0)}.
       </p>
       <p className="mt-2 text-sm leading-relaxed text-stone-500">
-        Berat dan dimensi paket dicetak di label kirim dan dijumlahkan sesuai
-        banyaknya barang. Berat paket yang kosong otomatis memakai berat
-        produk, di label maupun untuk ongkir. Dimensi yang kosong (kuning)
-        dikosongkan di label untuk ditulis tangan.
+        Berat paket dicetak di label kirim dan dijumlahkan sesuai banyaknya
+        barang. Berat paket yang kosong otomatis memakai berat produk, di label
+        maupun untuk ongkir. Dimensi paket cuma catatan dan tidak dicetak di
+        label.
       </p>
 
       {bukaTambah ? (

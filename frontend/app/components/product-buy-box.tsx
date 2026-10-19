@@ -6,6 +6,7 @@ import { useState } from "react";
 
 import HargaCoret from "@/app/components/harga-coret";
 import { tambahKeKeranjang } from "@/app/lib/keranjang";
+import { angkaRating, jumlahLengkap } from "@/app/lib/rating";
 import { tanggalWib } from "@/app/lib/waktu-wib";
 import { rupiah, type Produk, type Varian } from "@/app/data/produk";
 
@@ -27,6 +28,8 @@ export default function ProductBuyBox({ produk }: { produk: Produk }) {
   const hargaNormal = dipilih ? dipilih.hargaNormal : produk.hargaNormal;
   const habis = stok === 0;
   const maksimal = Math.max(1, stok);
+  const shopee = banyakUkuran ? (dipilih?.shopee ?? null) : null;
+  const adaPenilaian = (shopee?.jumlah ?? 0) > 0 && shopee?.rata != null;
 
   const ubah = (delta: number) => {
     setQty((n) => Math.min(maksimal, Math.max(1, n + delta)));
@@ -81,6 +84,33 @@ export default function ProductBuyBox({ produk }: { produk: Produk }) {
           );
         })}
       </div>
+
+      {dipilih && shopee && (shopee.url || adaPenilaian) && (
+        <p className="mt-4 flex flex-wrap items-baseline gap-x-2 gap-y-1 text-sm text-stone-600">
+          {adaPenilaian ? (
+            <>
+              <span>Ukuran {dipilih.label}:</span>
+              <span aria-hidden="true" className="text-amber-500">
+                &#9733;
+              </span>
+              <span className="font-semibold text-ink">{angkaRating(shopee.rata ?? 0)}</span>
+              <span>dari {jumlahLengkap(shopee.jumlah ?? 0)} penilaian</span>
+            </>
+          ) : (
+            <span>Ukuran {dipilih.label} belum punya penilaian di Shopee</span>
+          )}
+          {shopee.url && (
+            <a
+              href={shopee.url}
+              target="_blank"
+              rel="noopener nofollow"
+              className="border-b border-stone-400 font-mono text-[12px] tracking-[0.14em] text-ink uppercase transition-colors hover:border-brand-600 hover:text-brand-600"
+            >
+              Lihat di Shopee &#8599;
+            </a>
+          )}
+        </p>
+      )}
     </fieldset>
   );
 

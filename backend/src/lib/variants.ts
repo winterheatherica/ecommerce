@@ -42,9 +42,33 @@ export type PerubahanVarian = {
   package_length_cm?: number | null;
   package_width_cm?: number | null;
   package_height_cm?: number | null;
+  shopee_url?: string | null;
+  shopee_rating?: number | null;
+  shopee_rating_count?: number | null;
 };
 
 export type PerubahanVarianBersih = PerubahanVarian;
+
+const POLA_URL_SHOPEE = /^https:\/\/shopee\.co\.id\/\S+$/;
+
+const GALAT_URL_SHOPEE: Gagal = {
+  status: 422,
+  badan: {
+    error: "invalid_shopee_url",
+    message: "Link Shopee harus diawali https://shopee.co.id/ dan maksimal 300 karakter",
+    field: "shopee",
+  },
+};
+
+const GALAT_RATING_SHOPEE: Gagal = {
+  status: 422,
+  badan: {
+    error: "shopee_rating_inconsistent",
+    message:
+      "Rating Shopee wajib diisi (1 sampai 5) kalau jumlah penilaiannya lebih dari 0, dan dikosongkan kalau belum ada penilaian",
+    field: "shopee",
+  },
+};
 
 const KOLOM_PAKET = [
   "package_weight_g",
@@ -160,6 +184,31 @@ export function periksaPerubahanVarian(
 
   for (const kolom of KOLOM_PAKET) {
     if (p[kolom] !== undefined) bersih[kolom] = p[kolom];
+  }
+
+  if (p.shopee_url !== undefined) {
+    const url = p.shopee_url?.trim() || null;
+    if (url !== null && (url.length > 300 || !POLA_URL_SHOPEE.test(url))) {
+      return { ok: false, ...GALAT_URL_SHOPEE };
+    }
+    bersih.shopee_url = url;
+  }
+
+  if (p.shopee_rating !== undefined) {
+    const rating = p.shopee_rating;
+    if (rating !== null && !(rating >= 1 && rating <= 5)) {
+      return { ok: false, ...GALAT_RATING_SHOPEE };
+    }
+    bersih.shopee_rating = rating === null ? null : Math.round(rating * 100) / 100;
+  }
+
+  if (p.shopee_rating_count !== undefined) bersih.shopee_rating_count = p.shopee_rating_count;
+
+  if (bersih.shopee_rating !== undefined && bersih.shopee_rating_count !== undefined) {
+    const adaPenilaian = (bersih.shopee_rating_count ?? 0) > 0;
+    if (adaPenilaian !== (bersih.shopee_rating !== null)) {
+      return { ok: false, ...GALAT_RATING_SHOPEE };
+    }
   }
 
   for (const kolom of ["promo_starts_at", "promo_ends_at"] as const) {

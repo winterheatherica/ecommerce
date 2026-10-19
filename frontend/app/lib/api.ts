@@ -44,6 +44,10 @@ type VarianAPI = {
   package_length_cm?: number | null;
   package_width_cm?: number | null;
   package_height_cm?: number | null;
+  shopee_url?: string | null;
+  shopee_rating?: number | null;
+  shopee_rating_count?: number | null;
+  shopee_rating_at?: string | null;
 };
 
 type ProdukAPI = {
@@ -60,6 +64,8 @@ type ProdukAPI = {
   sold_per_month: number;
   sort_order: number;
   variants?: VarianAPI[];
+  shopee_rating?: number | null;
+  shopee_rating_count?: number;
 };
 
 type DaftarAPI = {
@@ -83,6 +89,15 @@ function petakan(p: ProdukAPI): Produk {
     aktif: v.is_active,
     paketBeratG: v.package_weight_g ?? null,
     paketDimensi: dimensiPaket(v),
+    shopee:
+      v.shopee_url || v.shopee_rating_count != null
+        ? {
+            url: v.shopee_url ?? null,
+            rata: v.shopee_rating ?? null,
+            jumlah: v.shopee_rating_count ?? null,
+            per: v.shopee_rating_at ?? null,
+          }
+        : null,
     promo:
       v.promo_show_period === undefined
         ? undefined
@@ -118,6 +133,10 @@ function petakan(p: ProdukAPI): Produk {
     unggulan: p.is_featured,
     gambar: berfoto,
     varian,
+    ratingShopee:
+      p.shopee_rating != null && (p.shopee_rating_count ?? 0) > 0
+        ? { rata: p.shopee_rating, jumlah: p.shopee_rating_count ?? 0 }
+        : null,
   };
 }
 

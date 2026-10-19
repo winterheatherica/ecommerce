@@ -11,6 +11,7 @@ import ProductBuyBox from "@/app/components/product-buy-box";
 import ProductCard from "@/app/components/product-card";
 import { ambilProduk, ambilSatuProduk } from "@/app/lib/api";
 import { uraiCaraPakai } from "@/app/lib/cara-pakai";
+import { angkaRating, jumlahLengkap, perTerbaru, tanggalRating } from "@/app/lib/rating";
 import {
   kategoriJudul,
   kategoriLabel,
@@ -57,6 +58,10 @@ export default async function DetailProdukPage({ params }: Props) {
 
   const habis = produk.stok === 0;
   const caraPakai = uraiCaraPakai(produk.caraPakai);
+  const rating = produk.ratingShopee;
+  const ukuranDinilai = produk.varian.filter((v) => (v.shopee?.jumlah ?? 0) > 0).length;
+  const linkTunggal = produk.varian.length === 1 ? (produk.varian[0].shopee?.url ?? null) : null;
+  const perShopee = perTerbaru(produk.varian);
 
   return (
     <div className="mx-auto w-full max-w-6xl px-6 pt-32 pb-24">
@@ -121,6 +126,36 @@ export default async function DetailProdukPage({ params }: Props) {
           <h1 className="mt-4 text-3xl leading-tight font-semibold tracking-tight text-ink sm:text-4xl">
             {produk.nama}
           </h1>
+
+          {rating && (
+            <div className="mt-4">
+              <p className="flex flex-wrap items-baseline gap-x-2 gap-y-1 text-sm text-stone-600">
+                <span aria-hidden="true" className="text-base text-amber-500">
+                  &#9733;
+                </span>
+                <span className="font-semibold text-ink">{angkaRating(rating.rata)}</span>
+                <span>
+                  {jumlahLengkap(rating.jumlah)} penilaian di Shopee
+                  {ukuranDinilai > 1 ? `, gabungan ${ukuranDinilai} ukuran` : ""}
+                </span>
+                {linkTunggal && (
+                  <a
+                    href={linkTunggal}
+                    target="_blank"
+                    rel="noopener nofollow"
+                    className="border-b border-stone-400 font-mono text-[12px] tracking-[0.14em] text-ink uppercase transition-colors hover:border-brand-600 hover:text-brand-600"
+                  >
+                    Lihat di Shopee &#8599;
+                  </a>
+                )}
+              </p>
+              {perShopee && (
+                <p className="mt-1 text-xs text-stone-400">
+                  Angka dari Shopee per {tanggalRating(perShopee)}
+                </p>
+              )}
+            </div>
+          )}
 
           <p className="mt-6">
             <HargaCoret

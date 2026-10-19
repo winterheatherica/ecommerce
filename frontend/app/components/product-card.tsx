@@ -3,6 +3,7 @@ import HargaCoret from "@/app/components/harga-coret";
 import Link from "next/link";
 
 import type { Produk } from "../data/produk";
+import { angkaRating, jumlahSingkat } from "../lib/rating";
 
 export default function ProductCard({ produk }: { produk: Produk }) {
   const habis = produk.stok === 0;
@@ -34,6 +35,18 @@ export default function ProductCard({ produk }: { produk: Produk }) {
       <p className="mt-4 line-clamp-2 text-sm leading-relaxed text-ink transition-colors group-hover:text-brand-600">
         {produk.nama}
       </p>
+
+      {produk.ratingShopee && (
+        <p className="mt-1.5 flex flex-wrap items-baseline gap-x-1.5 font-mono text-[12px] text-stone-500">
+          <span className="sr-only">Rating di Shopee</span>
+          <span aria-hidden="true" className="text-amber-500">
+            &#9733;
+          </span>
+          <span className="text-ink">{angkaRating(produk.ratingShopee.rata)}</span>
+          <span>({jumlahSingkat(produk.ratingShopee.jumlah)})</span>
+          <span>di Shopee</span>
+        </p>
+      )}
 
       <div className="mt-auto flex flex-col gap-1 pt-3 sm:flex-row sm:items-baseline sm:justify-between sm:gap-3">
         <HargaCoret

@@ -243,6 +243,9 @@ export type PerubahanVarian = {
   package_length_cm?: number | null;
   package_width_cm?: number | null;
   package_height_cm?: number | null;
+  shopee_url?: string | null;
+  shopee_rating?: number | null;
+  shopee_rating_count?: number | null;
 };
 
 export type VarianBaru = {

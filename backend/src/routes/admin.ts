@@ -477,6 +477,25 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
           };
         }
 
+        if (!hasil.ok && hasil.alasan === "shopee_url_invalid") {
+          set.status = 422;
+          return {
+            error: "invalid_shopee_url",
+            message: "Link Shopee harus diawali https://shopee.co.id/ dan maksimal 300 karakter",
+            field: "shopee",
+          };
+        }
+
+        if (!hasil.ok && hasil.alasan === "shopee_rating_inconsistent") {
+          set.status = 422;
+          return {
+            error: "shopee_rating_inconsistent",
+            message:
+              "Rating Shopee wajib diisi (1 sampai 5) kalau jumlah penilaiannya lebih dari 0, dan dikosongkan kalau belum ada penilaian",
+            field: "shopee",
+          };
+        }
+
         if (!hasil.ok) {
           set.status = 404;
           return { error: "not_found", message: "Varian tidak ditemukan" };
@@ -509,6 +528,11 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
         package_length_cm: t.Optional(t.Union([t.Integer({ minimum: 1, maximum: 300 }), t.Null()])),
         package_width_cm: t.Optional(t.Union([t.Integer({ minimum: 1, maximum: 300 }), t.Null()])),
         package_height_cm: t.Optional(t.Union([t.Integer({ minimum: 1, maximum: 300 }), t.Null()])),
+        shopee_url: t.Optional(t.Union([t.String({ maxLength: 300 }), t.Null()])),
+        shopee_rating: t.Optional(t.Union([t.Number({ minimum: 1, maximum: 5 }), t.Null()])),
+        shopee_rating_count: t.Optional(
+          t.Union([t.Integer({ minimum: 0, maximum: 100000000 }), t.Null()]),
+        ),
       }),
     },
   );

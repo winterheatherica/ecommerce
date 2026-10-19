@@ -198,3 +198,43 @@ describe("isian promo", () => {
     });
   });
 });
+
+describe("rating Shopee", () => {
+  it("menerima link shopee.co.id, membuang spasi tepi, dan isian kosong berarti dikosongkan", () => {
+    const hasil = periksaPerubahanVarian({
+      shopee_url: "  https://shopee.co.id/product/72015932/2214610486  ",
+    });
+    expect(hasil.ok && hasil.bersih.shopee_url).toBe(
+      "https://shopee.co.id/product/72015932/2214610486",
+    );
+
+    const kosong = periksaPerubahanVarian({ shopee_url: "   " });
+    expect(kosong.ok && kosong.bersih.shopee_url).toBeNull();
+  });
+
+  it("menolak link selain shopee.co.id, termasuk tautan pendek, http, dan domain tiruan", () => {
+    for (const url of [
+      "http://shopee.co.id/product/1/2",
+      "https://shopee.com/product/1/2",
+      "https://id.shp.ee/abc123",
+      "https://shopee.co.id.palsu.com/product/1/2",
+      "https://shopee.co.id/",
+      "https://shopee.co.id/ada spasi",
+    ]) {
+      expect(periksaPerubahanVarian({ shopee_url: url }).ok, url).toBe(false);
+    }
+  });
+
+  it("rating dibulatkan dua angka di belakang koma", () => {
+    const hasil = periksaPerubahanVarian({ shopee_rating: 4.7576, shopee_rating_count: 656 });
+    expect(hasil.ok && hasil.bersih.shopee_rating).toBe(4.76);
+  });
+
+  it("penilaian di atas 0 wajib punya rating, dan rating tanpa penilaian ditolak", () => {
+    expect(periksaPerubahanVarian({ shopee_rating: null, shopee_rating_count: 10 }).ok).toBe(false);
+    expect(periksaPerubahanVarian({ shopee_rating: 4.5, shopee_rating_count: 0 }).ok).toBe(false);
+    expect(periksaPerubahanVarian({ shopee_rating: 0.5 }).ok).toBe(false);
+    expect(periksaPerubahanVarian({ shopee_rating: 5.5 }).ok).toBe(false);
+    expect(periksaPerubahanVarian({ shopee_rating: null, shopee_rating_count: 0 }).ok).toBe(true);
+  });
+});

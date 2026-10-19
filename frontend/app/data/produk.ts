@@ -46,9 +46,19 @@ export type Varian = {
   promo?: PromoAdmin;
   paketBeratG?: number | null;
   paketDimensi?: DimensiPaket | null;
+  shopee?: ShopeeVarian | null;
 };
 
 export type DimensiPaket = { p: number; l: number; t: number };
+
+export type ShopeeVarian = {
+  url: string | null;
+  rata: number | null;
+  jumlah: number | null;
+  per: string | null;
+};
+
+export type RingkasanRating = { rata: number; jumlah: number };
 
 export type Produk = {
   slug: string;
@@ -64,6 +74,7 @@ export type Produk = {
   unggulan: boolean;
   gambar?: string;
   varian: Varian[];
+  ratingShopee?: RingkasanRating | null;
 };
 
 export type PasanganVarian = { produk: Produk; varian: Varian };

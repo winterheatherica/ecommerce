@@ -22,6 +22,10 @@ export type BarisVarianAdmin = {
   package_length_cm: number | null;
   package_width_cm: number | null;
   package_height_cm: number | null;
+  shopee_url: string | null;
+  shopee_rating: number | null;
+  shopee_rating_count: number | null;
+  shopee_rating_at: string | null;
 };
 
 const kolomPaket = (sql: Kueri) => sql`
@@ -29,6 +33,13 @@ const kolomPaket = (sql: Kueri) => sql`
   package_length_cm,
   package_width_cm,
   package_height_cm
+`;
+
+const kolomShopee = (sql: Kueri) => sql`
+  shopee_url,
+  shopee_rating::float8 as shopee_rating,
+  shopee_rating_count,
+  shopee_rating_at
 `;
 
 const kolomPromo = (sql: Kueri) => sql`
@@ -51,7 +62,8 @@ const kolom = (sql: Kueri) => sql`
   v.sort_order,
   v.is_active,
   ${kolomPromo(sql)},
-  ${kolomPaket(sql)}
+  ${kolomPaket(sql)},
+  ${kolomShopee(sql)}
 `;
 
 type AlasanBentrok = "slug_taken" | "sku_taken";
@@ -87,7 +99,9 @@ export type HasilUbahVarian =
         | "sku_taken"
         | "promo_not_cheaper"
         | "promo_period_reversed"
-        | "package_dimensions_incomplete";
+        | "package_dimensions_incomplete"
+        | "shopee_url_invalid"
+        | "shopee_rating_inconsistent";
     };
 
 export async function perbaruiVarian(
@@ -95,6 +109,8 @@ export async function perbaruiVarian(
   slug: string,
   b: PerubahanVarianBersih,
 ): Promise<HasilUbahVarian> {
+  const ratingBerubah = b.shopee_rating !== undefined || b.shopee_rating_count !== undefined;
+
   try {
     const varian =
       Object.keys(b).length === 0
@@ -102,7 +118,9 @@ export async function perbaruiVarian(
         : (
             await sql<BarisVarianAdmin[]>`
               update product_variants v
-              set ${sql(b as Record<string, never>)}, updated_at = now()
+              set ${sql(b as Record<string, never>)},
+                  updated_at = now()
+                  ${ratingBerubah ? sql`, shopee_rating_at = now()` : sql``}
               where v.slug = ${slug}
               returning ${kolom(sql)}
             `
@@ -123,6 +141,12 @@ export async function perbaruiVarian(
     }
     if (cek === "product_variants_dimensi_lengkap") {
       return { ok: false, alasan: "package_dimensions_incomplete" };
+    }
+    if (cek === "product_variants_shopee_url") {
+      return { ok: false, alasan: "shopee_url_invalid" };
+    }
+    if (cek === "product_variants_shopee_rating") {
+      return { ok: false, alasan: "shopee_rating_inconsistent" };
     }
 
     throw e;
@@ -172,7 +196,8 @@ export async function tambahVarian(
         sort_order,
         is_active,
         ${kolomPromo(sql)},
-        ${kolomPaket(sql)}
+        ${kolomPaket(sql)},
+        ${kolomShopee(sql)}
     `;
 
     if (!varian) return { ok: false, alasan: "not_found" };
