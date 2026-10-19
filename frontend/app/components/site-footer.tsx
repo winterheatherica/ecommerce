@@ -63,7 +63,7 @@ export default function SiteFooter() {
             <div className="mt-8 flex flex-wrap items-center gap-x-8 gap-y-6">
               <a
                 href={WA_URL}
-                className="inline-block border border-ink px-8 py-3.5 font-mono text-[13px] tracking-[0.22em] text-ink uppercase transition-colors hover:bg-ink hover:text-white"
+                className="inline-block border border-ink px-8 py-3.5 font-mono text-[13px] tracking-[0.22em] indent-[0.22em] text-ink uppercase transition-colors hover:bg-ink hover:text-white"
               >
                 Chat WhatsApp
               </a>
@@ -191,7 +191,7 @@ export default function SiteFooter() {
               {pembayaran.map((p) => (
                 <li
                   key={p}
-                  className="border border-white/15 px-2.5 py-1 font-mono text-[12px] tracking-[0.12em] text-white/50 uppercase"
+                  className="border border-white/15 px-2.5 py-1 font-mono text-[12px] tracking-[0.12em] indent-[0.12em] text-white/50 uppercase"
                 >
                   {p}
                 </li>

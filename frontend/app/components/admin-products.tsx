@@ -89,7 +89,7 @@ export default function AdminProducts({ awal }: { awal: Produk[] }) {
         <h1 className="text-2xl font-semibold tracking-tight text-ink">Produk</h1>
         <Link
           href="/admin/produk/baru"
-          className="border border-brand-500 bg-brand-500 px-5 py-2.5 font-mono text-[13px] tracking-[0.18em] text-white uppercase transition-colors hover:border-brand-600 hover:bg-brand-600"
+          className="border border-brand-500 bg-brand-500 px-5 py-2.5 font-mono text-[13px] tracking-[0.18em] indent-[0.18em] text-white uppercase transition-colors hover:border-brand-600 hover:bg-brand-600"
         >
           + Tambah produk
         </Link>
@@ -197,7 +197,7 @@ export default function AdminProducts({ awal }: { awal: Produk[] }) {
                         onClick={() => void toggleUnggulan(p.slug, !p.unggulan)}
                         aria-pressed={p.unggulan}
                         disabled={menyimpan === p.slug}
-                        className={`border px-3 py-1.5 font-mono text-[12px] tracking-[0.16em] uppercase transition-colors ${
+                        className={`border px-3 py-1.5 font-mono text-[12px] tracking-[0.16em] indent-[0.16em] uppercase transition-colors ${
                           p.unggulan
                             ? "border-brand-500 bg-brand-500 text-white"
                             : "border-ink/15 text-stone-500 hover:border-brand-400 hover:text-brand-600"

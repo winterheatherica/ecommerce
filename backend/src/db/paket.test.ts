@@ -118,6 +118,41 @@ describe("paket di varian", () => {
     expect(await paket(KUCING)).toEqual({ g: 150, p: null, l: null, t: null });
   });
 
+  it("ongkir dan berat pesanan memakai berat paket, atau berat produk kalau paketnya belum diatur", async () => {
+    await pecahUkuran(sql, KUCING, [ukuran("uji-gel-80g", "80 g", 80), ukuran("uji-gel-50g", "50 g", 50)]);
+    await sql`update product_variants set package_weight_g = 150 where slug = 'uji-gel-80g'`;
+
+    const beratDitanya: number[] = [];
+    const catatOngkir: CariOngkir = async (_tujuan, berat) => {
+      beratDitanya.push(berat);
+      return ONGKIR;
+    };
+
+    const hasil = await buatPesanan(
+      sql,
+      {
+        customer_name: "Rina Kartika",
+        phone: "0812-3456-7890",
+        email: "rina@contoh.test",
+        address: "Jl. Cihampelas No. 42, Bandung",
+        dest_id: "50001",
+        courier: "JNE",
+        service: "REG",
+        items: [
+          { slug: "uji-gel-80g", qty: 2 },
+          { slug: "uji-gel-50g", qty: 1 },
+        ],
+      },
+      1,
+      catatOngkir,
+    );
+
+    expect(hasil.ok).toBe(true);
+    if (!hasil.ok) return;
+    expect(beratDitanya).toEqual([350]);
+    expect(hasil.pesanan.weight_g).toBe(350);
+  });
+
   it("item pesanan membawa paket dari variannya, supaya label bisa menjumlahkan", async () => {
     await perbaruiVarian(sql, KUCING, {
       package_weight_g: 150,

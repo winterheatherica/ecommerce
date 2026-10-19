@@ -23,13 +23,13 @@ export default function NotFound() {
           <div className="mt-8 flex flex-wrap gap-4">
             <Link
               href="/produk"
-              className="inline-block border border-ink px-8 py-3.5 font-mono text-[13px] tracking-[0.22em] text-ink uppercase transition-colors hover:bg-ink hover:text-white"
+              className="inline-block border border-ink px-8 py-3.5 font-mono text-[13px] tracking-[0.22em] indent-[0.22em] text-ink uppercase transition-colors hover:bg-ink hover:text-white"
             >
               Lihat produk
             </Link>
             <Link
               href="/order"
-              className="inline-block border border-ink px-8 py-3.5 font-mono text-[13px] tracking-[0.22em] text-ink uppercase transition-colors hover:bg-ink hover:text-white"
+              className="inline-block border border-ink px-8 py-3.5 font-mono text-[13px] tracking-[0.22em] indent-[0.22em] text-ink uppercase transition-colors hover:bg-ink hover:text-white"
             >
               Lacak pesanan
             </Link>

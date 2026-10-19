@@ -11,6 +11,7 @@ import {
   ubahQty,
   useKeranjang,
 } from "@/app/lib/keranjang";
+import { beratKirim } from "@/app/lib/paket";
 import {
   cariVarian,
   namaDenganUkuran,
@@ -40,7 +41,7 @@ export default function CartView({ produk }: { produk: Produk[] }) {
 
   const subtotal = baris.reduce((s, b) => s + b.varian.harga * b.qty, 0);
   const totalItem = baris.reduce((s, b) => s + b.qty, 0);
-  const beratTotal = baris.reduce((s, b) => s + b.varian.beratG * b.qty, 0);
+  const beratTotal = baris.reduce((s, b) => s + beratKirim(b.varian) * b.qty, 0);
   const adaMelebihiStok = baris.some((b) => b.qty > b.varian.stok);
 
   if (baris.length === 0) {
@@ -58,7 +59,7 @@ export default function CartView({ produk }: { produk: Produk[] }) {
         </p>
         <Link
           href="/produk"
-          className="mt-8 inline-block border border-ink px-8 py-3.5 font-mono text-[13px] tracking-[0.22em] text-ink uppercase transition-colors hover:bg-ink hover:text-white"
+          className="mt-8 inline-block border border-ink px-8 py-3.5 font-mono text-[13px] tracking-[0.22em] indent-[0.22em] text-ink uppercase transition-colors hover:bg-ink hover:text-white"
         >
           Lihat produk
         </Link>
@@ -150,7 +151,7 @@ export default function CartView({ produk }: { produk: Produk[] }) {
                         type="button"
                         onClick={() => hapusDariKeranjang(varian.slug)}
                         aria-label={`Hapus ${produk.nama} dari keranjang`}
-                        className="inline-flex items-center border border-red-300 bg-red-50 pr-3 pl-[calc(0.75rem_+_0.18em)] font-mono text-[12px] tracking-[0.18em] text-red-700 uppercase transition-colors hover:border-red-600 hover:bg-red-600 hover:text-white"
+                        className="inline-flex items-center border border-red-300 bg-red-50 px-3 font-mono text-[12px] tracking-[0.18em] indent-[0.18em] text-red-700 uppercase transition-colors hover:border-red-600 hover:bg-red-600 hover:text-white"
                       >
                         Hapus
                       </button>
@@ -178,7 +179,7 @@ export default function CartView({ produk }: { produk: Produk[] }) {
                 <dd className="font-mono text-ink">{rupiah(subtotal)}</dd>
               </div>
               <div className="flex justify-between">
-                <dt className="text-stone-600">Berat total</dt>
+                <dt className="text-stone-600">Berat kirim</dt>
                 <dd className="font-mono text-ink">{beratTotal} g</dd>
               </div>
               <div className="flex justify-between border-t border-ink/10 pt-3">
@@ -190,7 +191,7 @@ export default function CartView({ produk }: { produk: Produk[] }) {
             <Link
               href="/checkout"
               aria-disabled={adaMelebihiStok}
-              className={`mt-8 block border px-8 py-3.5 text-center font-mono text-[13px] tracking-[0.22em] uppercase transition-colors ${
+              className={`mt-8 block border px-8 py-3.5 text-center font-mono text-[13px] tracking-[0.22em] indent-[0.22em] uppercase transition-colors ${
                 adaMelebihiStok
                   ? "pointer-events-none border-stone-300 bg-stone-300 text-white"
                   : "border-brand-500 bg-brand-500 text-white hover:border-brand-600 hover:bg-brand-600"

@@ -46,7 +46,13 @@ export default function ShippingLabel({ pesanan }: { pesanan: Pesanan }) {
   const kurir = NAMA_KURIR[pesanan.courier.toUpperCase()] ?? pesanan.courier;
   const totalQty = pesanan.items.reduce((s, i) => s + i.qty, 0);
   const paket = ringkasPaket(pesanan.items);
-  const banyakJenis = (paket.dimensi?.length ?? 0) > 1;
+  const barisDimensi = [
+    ...paket.dimensi,
+    ...(paket.tanpaDimensi > 0
+      ? [{ teks: "____ × ____ × ____ cm", qty: paket.tanpaDimensi }]
+      : []),
+  ];
+  const banyakJenis = barisDimensi.length > 1;
 
   const kertas = useRef<HTMLElement>(null);
   const [batas, setBatas] = useState(MAKS_BARIS);
@@ -125,27 +131,21 @@ export default function ShippingLabel({ pesanan }: { pesanan: Pesanan }) {
         <div>
           <p className={kecil}>Berat paket</p>
           <p className="mt-[1mm] text-[12pt] leading-none font-black">
-            {paket.beratG !== null ? beratRapi(paket.beratG) : "______ g"}
+            {beratRapi(paket.beratG)}
           </p>
         </div>
         <div className="min-w-0 border-l-[0.3mm] border-black pl-[3mm]">
           <p className={kecil}>Dimensi paket (p × l × t)</p>
-          {paket.dimensi ? (
-            <ul className="mt-[1mm] text-[9pt] leading-snug font-bold">
-              {paket.dimensi.map((d) => (
-                <li key={d.teks}>
-                  {d.teks}
-                  {(banyakJenis || d.qty > 1) && (
-                    <span className="font-normal"> · {d.qty} barang</span>
-                  )}
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="mt-[1mm] text-[10pt] leading-none font-bold">
-              ____ × ____ × ____ cm
-            </p>
-          )}
+          <ul className="mt-[1mm] text-[9pt] leading-snug font-bold">
+            {barisDimensi.map((d) => (
+              <li key={d.teks}>
+                {d.teks}
+                {(banyakJenis || d.qty > 1) && (
+                  <span className="font-normal"> · {d.qty} barang</span>
+                )}
+              </li>
+            ))}
+          </ul>
         </div>
       </section>
 

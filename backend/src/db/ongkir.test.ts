@@ -3,6 +3,7 @@ import { afterAll, beforeEach, describe, expect, it } from "vitest";
 import type { Sql } from "../lib/db";
 import { koneksiTes } from "../test/db";
 import { ambilTarifTersimpan, simpanTarif } from "./ongkir";
+import { opsiUntuk } from "../lib/ongkir";
 import type { OpsiOngkir } from "../lib/shipping";
 
 const sql: Sql = koneksiTes();
@@ -59,5 +60,22 @@ describe("simpan dan ambil tarif", () => {
     await sql`update shipping_quotes set fetched_at = now() - interval '30 hours'`;
 
     expect(await ambilTarifTersimpan(sql, "17683", 150, "jne", 24)).toBeUndefined();
+  });
+});
+
+describe("opsi yang ditawarkan ke pembeli", () => {
+  it("trucking JNE tidak pernah ditawarkan, termasuk dari tarif yang sudah tersimpan", async () => {
+    await simpanTarif(sql, "17683", 70, "jne:jnt", [
+      { courier: "JNE", service: "CTC", cost: 10000, etd: "1 hari" },
+      { courier: "JNT", service: "EZ", cost: 10000, etd: "-" },
+      { courier: "JNE", service: "JTR", cost: 40000, etd: "3 hari" },
+      { courier: "JNE", service: "JTR<130", cost: 300000, etd: "3 hari" },
+    ]);
+
+    const hasil = await opsiUntuk(sql, { RAJAONGKIR_KURIR: "jne:jnt" }, "17683", 70);
+
+    expect(hasil.ok).toBe(true);
+    if (!hasil.ok) return;
+    expect(hasil.opsi.map((o) => o.service)).toEqual(["CTC", "EZ"]);
   });
 });

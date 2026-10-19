@@ -9,6 +9,7 @@ export type BarisVarian = {
   regular_price: number | null;
   promo_visible_until: string | null;
   weight_g: number;
+  package_weight_g: number | null;
   stock: number;
 };
 
@@ -95,6 +96,7 @@ const kolom = (sql: Kueri) => sql`
           then v.promo_ends_at
         end,
         'weight_g', v.weight_g,
+        'package_weight_g', v.package_weight_g,
         'stock', v.stock
       ) order by v.sort_order, v.price
     )

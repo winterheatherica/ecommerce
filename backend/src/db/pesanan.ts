@@ -19,6 +19,7 @@ export type ItemPesanan = {
   qty: number;
   price_snapshot: number;
   list_price_snapshot: number | null;
+  weight_g: number | null;
   package_weight_g: number | null;
   package_length_cm: number | null;
   package_width_cm: number | null;
@@ -121,6 +122,7 @@ const pilih = (sql: Sql) => sql`
           'qty', i.qty,
           'price_snapshot', i.price_snapshot,
           'list_price_snapshot', i.list_price_snapshot,
+          'weight_g', v.weight_g,
           'package_weight_g', v.package_weight_g,
           'package_length_cm', v.package_length_cm,
           'package_width_cm', v.package_width_cm,
@@ -313,7 +315,7 @@ async function kurangiStok(
       case
         when promo_aktif(v.promo_price, v.promo_starts_at, v.promo_ends_at) then v.price
       end as list_price,
-      v.weight_g
+      coalesce(v.package_weight_g, v.weight_g) as weight_g
   `;
 
   if (produk) return produk;
@@ -401,7 +403,7 @@ export async function buatPesanan(
   const diminta = gabungkanItem(req.items);
 
   const praProduk = await sql<{ slug: string; weight_g: number }[]>`
-    select v.slug, v.weight_g
+    select v.slug, coalesce(v.package_weight_g, v.weight_g) as weight_g
     from product_variants v
     join products p on p.id = v.product_id
     where v.is_active and p.is_active

@@ -58,7 +58,7 @@ export default function SiteHeader({ masuk = false }: { masuk?: boolean }) {
           : "border-ink/10 bg-white/90 shadow-sm backdrop-blur-md",
       ].join(" ")}
     >
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
+      <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-6">
         <Link
           href="/"
           className={`${sentuh} shrink-0 font-mono text-xs tracking-[0.12em] whitespace-nowrap text-ink uppercase sm:text-sm sm:tracking-[0.35em]`}
@@ -66,7 +66,7 @@ export default function SiteHeader({ masuk = false }: { masuk?: boolean }) {
           Menik Store
         </Link>
 
-        <nav className="flex shrink-0 items-center gap-4 font-mono text-[13px] tracking-[0.16em] text-ink/70 uppercase sm:gap-8 sm:tracking-[0.22em]">
+        <nav className="flex shrink-0 items-center gap-3 font-mono text-[13px] tracking-[0.16em] text-ink/70 uppercase sm:gap-8 sm:tracking-[0.22em]">
           <Link
             href="/"
             aria-label="Beranda"
@@ -99,7 +99,7 @@ export default function SiteHeader({ masuk = false }: { masuk?: boolean }) {
           <Link
             href="/faq"
             aria-current={aktif("/faq") ? "page" : undefined}
-            className={kelasNav("/faq")}
+            className={`hidden min-[360px]:block ${kelasNav("/faq")}`}
           >
             FAQ
           </Link>
@@ -158,9 +158,25 @@ export default function SiteHeader({ masuk = false }: { masuk?: boolean }) {
           </Link>
           <a
             href="#kontak"
+            aria-label="WhatsApp"
+            title="WhatsApp"
             className={`${sentuh} font-semibold text-ink transition-colors hover:text-brand-600`}
           >
-            WhatsApp
+            <svg
+              className="h-[18px] w-[18px] sm:hidden"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={1.6}
+              aria-hidden="true"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M12 20.25c4.97 0 9-3.69 9-8.25s-4.03-8.25-9-8.25S3 7.44 3 12c0 2.1.86 4.02 2.27 5.48.43.45.74 1.04.59 1.64a4.48 4.48 0 0 1-.92 1.79A5.97 5.97 0 0 0 6 21c1.28 0 2.47-.4 3.45-1.09.81.22 1.67.34 2.55.34Z"
+              />
+            </svg>
+            <span className="hidden sm:inline">WhatsApp</span>
           </a>
         </nav>
       </div>

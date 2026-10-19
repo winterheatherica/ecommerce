@@ -294,14 +294,14 @@ export default function AdminProductForm({ awal }: Props) {
           <button
             type="submit"
             disabled={menyimpan}
-            className="border border-brand-500 bg-brand-500 px-8 py-3 font-mono text-[13px] tracking-[0.2em] text-white uppercase transition-colors hover:border-brand-600 hover:bg-brand-600 disabled:cursor-not-allowed disabled:border-stone-300 disabled:bg-stone-300"
+            className="border border-brand-500 bg-brand-500 px-8 py-3 font-mono text-[13px] tracking-[0.2em] indent-[0.2em] text-white uppercase transition-colors hover:border-brand-600 hover:bg-brand-600 disabled:cursor-not-allowed disabled:border-stone-300 disabled:bg-stone-300"
           >
             {menyimpan ? "Menyimpan..." : ubahMode ? "Simpan perubahan" : "Tambah produk"}
           </button>
 
           <Link
             href="/admin/produk"
-            className="border border-ink/15 px-8 py-3 font-mono text-[13px] tracking-[0.2em] text-stone-600 uppercase transition-colors hover:border-ink hover:text-ink"
+            className="border border-ink/15 px-8 py-3 font-mono text-[13px] tracking-[0.2em] indent-[0.2em] text-stone-600 uppercase transition-colors hover:border-ink hover:text-ink"
           >
             Batal
           </Link>

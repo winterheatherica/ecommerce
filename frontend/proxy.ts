@@ -23,7 +23,32 @@ function mintaMasuk(pesan: string): NextResponse {
   });
 }
 
+function denganIpPembeli(request: NextRequest): NextResponse {
+  const kepala = new Headers(request.headers);
+  const ip = request.headers.get("cf-connecting-ip");
+
+  if (ip) kepala.set("x-toko-ip", ip);
+  else kepala.delete("x-toko-ip");
+
+  return NextResponse.next({ request: { headers: kepala } });
+}
+
+function butuhAdmin(jalur: string): boolean {
+  return jalur.startsWith("/admin") || jalur.startsWith("/api/admin");
+}
+
 export default function proxy(request: NextRequest) {
+  const jalur = request.nextUrl.pathname;
+
+  if (butuhAdmin(jalur)) {
+    const tolak = periksaAdmin(request);
+    if (tolak) return tolak;
+  }
+
+  return jalur.startsWith("/api/") ? denganIpPembeli(request) : NextResponse.next();
+}
+
+function periksaAdmin(request: NextRequest): NextResponse | null {
   const pengguna = process.env.ADMIN_USER?.trim();
   const sandi = process.env.ADMIN_PASSWORD?.trim();
 
@@ -51,9 +76,9 @@ export default function proxy(request: NextRequest) {
     return mintaMasuk("Pengguna atau sandi salah.");
   }
 
-  return NextResponse.next();
+  return null;
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/api/admin/:path*"],
+  matcher: ["/admin/:path*", "/api/:path*"],
 };

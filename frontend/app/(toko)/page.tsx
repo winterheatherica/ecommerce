@@ -59,7 +59,7 @@ export default async function Home() {
             <div className="mt-10 flex flex-wrap items-center gap-x-8 gap-y-4">
               <a
                 href="#produk"
-                className="border border-ink px-8 py-3.5 font-mono text-[11px] tracking-[0.22em] text-ink uppercase transition-colors hover:bg-ink hover:text-white lg:border-white lg:text-white lg:hover:bg-white lg:hover:text-brand-700"
+                className="border border-ink px-8 py-3.5 font-mono text-[11px] tracking-[0.22em] indent-[0.22em] text-ink uppercase transition-colors hover:bg-ink hover:text-white lg:border-white lg:text-white lg:hover:bg-white lg:hover:text-brand-700"
               >
                 Lihat Produk
               </a>

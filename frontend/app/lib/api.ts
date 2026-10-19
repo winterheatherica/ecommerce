@@ -4,6 +4,7 @@ import { PUNYA_GAMBAR, urlGambar } from "@/app/data/gambar";
 import type { Kategori, Produk, StatusPromo, Varian } from "@/app/data/produk";
 import type { StatusPesanan } from "@/app/data/status-pesanan";
 import { kepalaSesi } from "@/app/lib/akun";
+import { kepalaPengunjung } from "@/app/lib/pengunjung";
 import { dimensiPaket } from "@/app/lib/paket";
 
 function basis(): string {
@@ -130,7 +131,7 @@ export async function ambilProduk(opsi: OpsiDaftar = {}): Promise<Produk[]> {
 
   const sisa = q.toString();
   const alamat = `${basis()}/api/products${sisa ? `?${sisa}` : ""}`;
-  const res = await fetch(alamat, { cache: "no-store" });
+  const res = await fetch(alamat, { cache: "no-store", headers: await kepalaPengunjung() });
 
   if (!res.ok) {
     throw new Error(
@@ -154,7 +155,7 @@ export async function ambilSemuaProduk(): Promise<Produk[]> {
       offset: String(offset),
     });
     const alamat = `${basis()}/api/products?${q}`;
-    const res = await fetch(alamat, { cache: "no-store" });
+    const res = await fetch(alamat, { cache: "no-store", headers: await kepalaPengunjung() });
 
     if (!res.ok) {
       throw new Error(
@@ -177,7 +178,7 @@ export const ambilSatuProduk = cache(async function ambilSatuProduk(
   slug: string,
 ): Promise<Produk | null> {
   const alamat = `${basis()}/api/products/${encodeURIComponent(slug)}`;
-  const res = await fetch(alamat, { cache: "no-store" });
+  const res = await fetch(alamat, { cache: "no-store", headers: await kepalaPengunjung() });
 
   if (res.status === 404) return null;
 
@@ -244,7 +245,10 @@ export type HasilPesanan =
 export async function ambilPesanan(orderNo: string): Promise<HasilPesanan> {
   const res = await fetch(
     `${basis()}/api/orders/${encodeURIComponent(orderNo)}`,
-    { cache: "no-store", headers: (await kepalaSesi()) ?? {} },
+    {
+      cache: "no-store",
+      headers: { ...(await kepalaPengunjung()), ...((await kepalaSesi()) ?? {}) },
+    },
   );
 
   if (res.status === 404) return { status: "tidak_ada" };

@@ -229,12 +229,8 @@ export default function AdminVariantEditor({ produk }: { produk: Produk }) {
                     nilai={v.paketBeratG ?? null}
                     min={1}
                     label={`Berat paket ukuran ${v.label}`}
-                    placeholder="belum"
-                    kelas={
-                      v.paketBeratG
-                        ? "w-24 border-ink/15 bg-white text-ink"
-                        : "w-24 border-amber-300 bg-amber-50 text-ink"
-                    }
+                    placeholder={String(v.beratG)}
+                    kelas="w-24 border-ink/15 bg-white text-ink"
                     mati={menyimpan === v.slug}
                     onSimpan={(angka) =>
                       void simpan(v.slug, { paketBeratG: angka }, { package_weight_g: angka })
@@ -277,7 +273,7 @@ export default function AdminVariantEditor({ produk }: { produk: Produk }) {
                     type="button"
                     onClick={() => ubahAktif(v)}
                     disabled={menyimpan === v.slug}
-                    className={`border px-3 py-1.5 font-mono text-[12px] tracking-[0.16em] uppercase transition-colors ${
+                    className={`border px-3 py-1.5 font-mono text-[12px] tracking-[0.16em] indent-[0.16em] uppercase transition-colors ${
                       v.aktif === false
                         ? "border-ink/15 text-stone-500 hover:border-brand-400 hover:text-brand-600"
                         : "border-brand-500 bg-brand-500 text-white"
@@ -298,8 +294,9 @@ export default function AdminVariantEditor({ produk }: { produk: Produk }) {
       </p>
       <p className="mt-2 text-sm leading-relaxed text-stone-500">
         Berat dan dimensi paket dicetak di label kirim dan dijumlahkan sesuai
-        banyaknya barang. Kolom kuning artinya belum diisi, jadi di label nanti
-        dikosongkan untuk ditulis tangan.
+        banyaknya barang. Berat paket yang kosong otomatis memakai berat
+        produk, di label maupun untuk ongkir. Dimensi yang kosong (kuning)
+        dikosongkan di label untuk ditulis tangan.
       </p>
 
       {bukaTambah ? (
@@ -398,14 +395,14 @@ export default function AdminVariantEditor({ produk }: { produk: Produk }) {
             <button
               type="submit"
               disabled={menambah}
-              className="border border-brand-500 bg-brand-500 px-6 py-2.5 font-mono text-[13px] tracking-[0.2em] text-white uppercase transition-colors hover:border-brand-600 hover:bg-brand-600 disabled:cursor-not-allowed disabled:border-stone-300 disabled:bg-stone-300"
+              className="border border-brand-500 bg-brand-500 px-6 py-2.5 font-mono text-[13px] tracking-[0.2em] indent-[0.2em] text-white uppercase transition-colors hover:border-brand-600 hover:bg-brand-600 disabled:cursor-not-allowed disabled:border-stone-300 disabled:bg-stone-300"
             >
               {menambah ? "Menambah..." : "Tambah ukuran"}
             </button>
             <button
               type="button"
               onClick={() => setBukaTambah(false)}
-              className="border border-ink/15 px-6 py-2.5 font-mono text-[13px] tracking-[0.2em] text-stone-600 uppercase transition-colors hover:border-ink hover:text-ink"
+              className="border border-ink/15 px-6 py-2.5 font-mono text-[13px] tracking-[0.2em] indent-[0.2em] text-stone-600 uppercase transition-colors hover:border-ink hover:text-ink"
             >
               Batal
             </button>
@@ -415,7 +412,7 @@ export default function AdminVariantEditor({ produk }: { produk: Produk }) {
         <button
           type="button"
           onClick={() => setBukaTambah(true)}
-          className="mt-8 border border-ink/15 px-6 py-2.5 font-mono text-[13px] tracking-[0.2em] text-stone-600 uppercase transition-colors hover:border-brand-400 hover:text-brand-600"
+          className="mt-8 border border-ink/15 px-6 py-2.5 font-mono text-[13px] tracking-[0.2em] indent-[0.2em] text-stone-600 uppercase transition-colors hover:border-brand-400 hover:text-brand-600"
         >
           + Tambah ukuran
         </button>

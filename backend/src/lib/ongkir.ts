@@ -4,6 +4,7 @@ import { bacaKonfigOngkir, hitungOngkir } from "./rajaongkir";
 import {
   UMUR_TARIF_JAM,
   kurirDipakai,
+  layakDitawarkan,
   petakanOpsi,
   type OpsiOngkir,
 } from "./shipping";
@@ -28,7 +29,9 @@ export async function opsiUntuk(
     UMUR_TARIF_JAM,
   );
 
-  if (tersimpan) return { ok: true, opsi: tersimpan, sumber: "tersimpan" };
+  if (tersimpan) {
+    return { ok: true, opsi: tersimpan.filter(layakDitawarkan), sumber: "tersimpan" };
+  }
 
   const konfig = bacaKonfigOngkir(env);
 
@@ -46,5 +49,5 @@ export async function opsiUntuk(
   const opsi = petakanOpsi(hasil.data);
   await simpanTarif(sql, destId, weightG, kurir, opsi);
 
-  return { ok: true, opsi, sumber: "rajaongkir" };
+  return { ok: true, opsi: opsi.filter(layakDitawarkan), sumber: "rajaongkir" };
 }

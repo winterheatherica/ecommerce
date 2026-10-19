@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { kiloBulat } from "../db/ongkir";
 import {
+  layakDitawarkan,
   KURIR_BAWAAN,
   cariOpsi,
   kurirDipakai,
@@ -161,5 +162,21 @@ describe("pilihTerbaik", () => {
 
   it("membiarkan daftar pendek apa adanya", () => {
     expect(pilihTerbaik(banyak.slice(0, 3))).toHaveLength(3);
+  });
+});
+
+describe("layakDitawarkan", () => {
+  const opsi = (service: string) => ({ courier: "JNE", service, cost: 10000, etd: "1 hari" });
+
+  it("menyembunyikan semua varian trucking JNE", () => {
+    for (const s of ["JTR", "JTR<130", "JTR>130", "JTR>200", "jtr250"]) {
+      expect(layakDitawarkan(opsi(s)), s).toBe(false);
+    }
+  });
+
+  it("layanan paket biasa tetap ditawarkan", () => {
+    for (const s of ["REG", "CTC", "YES", "CTCYES", "SPS", "OKE", "EZ"]) {
+      expect(layakDitawarkan(opsi(s)), s).toBe(true);
+    }
   });
 });

@@ -27,7 +27,7 @@ export default function CopyButton({
       type="button"
       onClick={salin}
       aria-label={`Salin ${label}`}
-      className={`shrink-0 border px-2 py-1 font-mono text-[12px] tracking-[0.14em] uppercase transition-colors ${
+      className={`shrink-0 border px-2 py-1 font-mono text-[12px] tracking-[0.14em] indent-[0.14em] uppercase transition-colors ${
         keadaan === "sukses"
           ? "border-emerald-600 text-emerald-700"
           : keadaan === "gagal"

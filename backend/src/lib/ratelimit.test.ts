@@ -55,6 +55,58 @@ describe("kunciIp", () => {
   });
 });
 
+describe("kunciIp untuk request yang diteruskan server toko", () => {
+  const ENV = { STOREFRONT_URL: "https://menikstore.my.id" };
+  const WORKERS = "2a06:98c0:3600::103";
+
+  it("memakai IP pembeli asli kalau datang dari Worker toko", () => {
+    const r = permintaan({
+      "cf-worker": "menikstore.my.id",
+      "cf-connecting-ip": WORKERS,
+      "x-toko-ip": "36.71.20.5",
+    });
+
+    expect(kunciIp(r, "umum", ENV)).toBe("umum:36.71.20.5");
+  });
+
+  it("dua pembeli lewat toko tidak lagi berbagi kuota", () => {
+    const a = permintaan({ "cf-worker": "menikstore.my.id", "cf-connecting-ip": WORKERS, "x-toko-ip": "36.71.20.5" });
+    const b = permintaan({ "cf-worker": "menikstore.my.id", "cf-connecting-ip": WORKERS, "x-toko-ip": "2001:db8::7" });
+
+    expect(kunciIp(a, "pesanan", ENV)).not.toBe(kunciIp(b, "pesanan", ENV));
+  });
+
+  it("mengabaikan x-toko-ip dari Worker milik orang lain", () => {
+    const r = permintaan({
+      "cf-worker": "toko-lain.example",
+      "cf-connecting-ip": WORKERS,
+      "x-toko-ip": "36.71.20.5",
+    });
+
+    expect(kunciIp(r, "umum", ENV)).toBe(`umum:${WORKERS}`);
+  });
+
+  it("mengabaikan x-toko-ip kalau pengirimnya bukan alamat Workers", () => {
+    const r = permintaan({
+      "cf-worker": "menikstore.my.id",
+      "cf-connecting-ip": "203.0.113.9",
+      "x-toko-ip": "36.71.20.5",
+    });
+
+    expect(kunciIp(r, "umum", ENV)).toBe("umum:203.0.113.9");
+  });
+
+  it("mengabaikan x-toko-ip yang bentuknya bukan alamat IP", () => {
+    const r = permintaan({
+      "cf-worker": "menikstore.my.id",
+      "cf-connecting-ip": WORKERS,
+      "x-toko-ip": "1.2.3.4; drop table",
+    });
+
+    expect(kunciIp(r, "umum", ENV)).toBe(`umum:${WORKERS}`);
+  });
+});
+
 describe("ambilPembatas", () => {
   it("mengembalikan binding yang punya limit()", () => {
     const palsu = { limit: async () => ({ success: true }) };

@@ -7,13 +7,22 @@ type KolomPaket = {
   package_height_cm?: number | null;
 };
 
-type ItemBerpaket = KolomPaket & { name_snapshot: string; qty: number };
+type ItemBerpaket = KolomPaket & {
+  name_snapshot: string;
+  qty: number;
+  weight_g?: number | null;
+};
 
 export type RingkasanPaket = {
-  beratG: number | null;
-  dimensi: { teks: string; qty: number }[] | null;
-  belumLengkap: string[];
+  beratG: number;
+  dimensi: { teks: string; qty: number }[];
+  tanpaDimensi: number;
+  produkTanpaDimensi: string[];
 };
+
+export function beratKirim(v: { beratG: number; paketBeratG?: number | null }): number {
+  return v.paketBeratG ?? v.beratG;
+}
 
 export function dimensiPaket(k: KolomPaket): DimensiPaket | null {
   const { package_length_cm: p, package_width_cm: l, package_height_cm: t } = k;
@@ -26,27 +35,28 @@ export function teksDimensi(d: DimensiPaket): string {
 
 export function ringkasPaket(items: ItemBerpaket[]): RingkasanPaket {
   let berat = 0;
+  let tanpaDimensi = 0;
   const kelompok = new Map<string, number>();
-  const belumLengkap: string[] = [];
+  const produkTanpaDimensi: string[] = [];
 
   for (const it of items) {
+    berat += (it.package_weight_g ?? it.weight_g ?? 0) * it.qty;
+
     const d = dimensiPaket(it);
 
-    if (!it.package_weight_g || !d) {
-      belumLengkap.push(it.name_snapshot);
-      continue;
+    if (d) {
+      const teks = teksDimensi(d);
+      kelompok.set(teks, (kelompok.get(teks) ?? 0) + it.qty);
+    } else {
+      tanpaDimensi += it.qty;
+      produkTanpaDimensi.push(it.name_snapshot);
     }
-
-    berat += it.package_weight_g * it.qty;
-    const teks = teksDimensi(d);
-    kelompok.set(teks, (kelompok.get(teks) ?? 0) + it.qty);
   }
-
-  if (belumLengkap.length > 0) return { beratG: null, dimensi: null, belumLengkap };
 
   return {
     beratG: berat,
     dimensi: [...kelompok].map(([teks, qty]) => ({ teks, qty })),
-    belumLengkap,
+    tanpaDimensi,
+    produkTanpaDimensi,
   };
 }

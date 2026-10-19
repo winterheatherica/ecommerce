@@ -8,6 +8,7 @@ import PaymentCheck from "@/app/components/payment-check";
 import ReorderButton from "@/app/components/reorder-button";
 import { urlMasukGoogle } from "@/app/lib/akun";
 import { ambilPesanan, ambilSemuaProduk } from "@/app/lib/api";
+import { namaKurir, namaLayanan } from "@/app/lib/kurir";
 import { rupiah } from "@/app/data/produk";
 import { statusLabel, type StatusPesanan } from "@/app/data/status-pesanan";
 
@@ -163,14 +164,14 @@ export default async function StatusPesananPage({ params }: Props) {
 
                 {sekarang && l.status === "SHIPPED" && pesanan.tracking_number && (
                   <p className="mt-3 inline-block border border-brand-200 bg-brand-50 px-4 py-2 font-mono text-sm text-brand-700">
-                    {pesanan.courier} &middot; {pesanan.tracking_number}
+                    {namaKurir(pesanan.courier)} &middot; {pesanan.tracking_number}
                   </p>
                 )}
 
                 {sekarang && l.status === "PENDING" && (
                   <Link
                     href={`/bayar/${pesanan.order_no}`}
-                    className="mt-4 inline-block border border-brand-500 bg-brand-500 px-8 py-3 font-mono text-[13px] tracking-[0.22em] text-white uppercase transition-colors hover:border-brand-600 hover:bg-brand-600"
+                    className="mt-4 inline-block border border-brand-500 bg-brand-500 px-8 py-3 font-mono text-[13px] tracking-[0.22em] indent-[0.22em] text-white uppercase transition-colors hover:border-brand-600 hover:bg-brand-600"
                   >
                     Bayar sekarang
                   </Link>
@@ -223,7 +224,7 @@ export default async function StatusPesananPage({ params }: Props) {
             </p>
           )}
           <p className="mt-3 font-mono text-xs text-stone-500">
-            {pesanan.courier} {pesanan.service} &middot; {pesanan.weight_g} g
+            {namaLayanan(pesanan.courier, pesanan.service)} &middot; {pesanan.weight_g} g
             {pesanan.etd && pesanan.etd !== "-" ? ` · estimasi ${pesanan.etd}` : ""}
           </p>
           {pesanan.notes && (

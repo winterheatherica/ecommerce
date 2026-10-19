@@ -99,7 +99,7 @@ export default function ProductBuyBox({ produk }: { produk: Produk }) {
           </p>
           <a
             href={WA_URL}
-            className="mt-6 inline-block border border-ink px-8 py-3.5 font-mono text-[13px] tracking-[0.22em] text-ink uppercase transition-colors hover:bg-ink hover:text-white"
+            className="mt-6 inline-block border border-ink px-8 py-3.5 font-mono text-[13px] tracking-[0.22em] indent-[0.22em] text-ink uppercase transition-colors hover:bg-ink hover:text-white"
           >
             Tanya stok
           </a>
@@ -140,7 +140,7 @@ export default function ProductBuyBox({ produk }: { produk: Produk }) {
         <button
           type="button"
           onClick={tambah}
-          className="flex-1 border border-brand-500 bg-brand-500 px-8 py-3.5 font-mono text-[13px] tracking-[0.22em] text-white uppercase transition-colors hover:border-brand-600 hover:bg-brand-600 sm:flex-none"
+          className="flex-1 border border-brand-500 bg-brand-500 px-8 py-3.5 font-mono text-[13px] tracking-[0.22em] indent-[0.22em] text-white uppercase transition-colors hover:border-brand-600 hover:bg-brand-600 sm:flex-none"
         >
           Tambah ke keranjang
         </button>

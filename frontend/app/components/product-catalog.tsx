@@ -147,7 +147,7 @@ export default function ProductCatalog({
         <button
           type="button"
           onClick={() => pilihGrup("")}
-          className={`border px-4 py-2 font-mono text-[13px] tracking-[0.18em] uppercase transition-colors ${
+          className={`border px-4 py-2 font-mono text-[13px] tracking-[0.18em] indent-[0.18em] uppercase transition-colors ${
             grup === ""
               ? "border-brand-500 bg-brand-500 text-white"
               : "border-ink/15 text-stone-600 hover:border-brand-400 hover:bg-brand-50 hover:text-brand-600"
@@ -161,7 +161,7 @@ export default function ProductCatalog({
             key={g}
             type="button"
             onClick={() => pilihGrup(g)}
-            className={`border px-4 py-2 font-mono text-[13px] tracking-[0.18em] uppercase transition-colors ${
+            className={`border px-4 py-2 font-mono text-[13px] tracking-[0.18em] indent-[0.18em] uppercase transition-colors ${
               grup === g
                 ? "border-brand-500 bg-brand-500 text-white"
                 : "border-ink/15 text-stone-600 hover:border-brand-400 hover:bg-brand-50 hover:text-brand-600"
@@ -177,7 +177,7 @@ export default function ProductCatalog({
           <button
             type="button"
             onClick={() => pilihKategori("")}
-            className={`border px-3 py-1.5 font-mono text-[12px] tracking-[0.16em] uppercase transition-colors ${
+            className={`border px-3 py-1.5 font-mono text-[12px] tracking-[0.16em] indent-[0.16em] uppercase transition-colors ${
               kategori === ""
                 ? "border-ink bg-ink text-white"
                 : "border-ink/15 text-stone-600 hover:border-brand-500 hover:text-brand-600"
@@ -195,7 +195,7 @@ export default function ProductCatalog({
                 key={k}
                 type="button"
                 onClick={() => pilihKategori(k)}
-                className={`border px-3 py-1.5 font-mono text-[12px] tracking-[0.16em] uppercase transition-colors ${
+                className={`border px-3 py-1.5 font-mono text-[12px] tracking-[0.16em] indent-[0.16em] uppercase transition-colors ${
                   kategori === k
                     ? "border-ink bg-ink text-white"
                     : "border-ink/15 text-stone-600 hover:border-brand-500 hover:text-brand-600"
@@ -232,7 +232,7 @@ export default function ProductCatalog({
             <button
               type="button"
               onClick={reset}
-              className="mt-8 border border-ink px-8 py-3 font-mono text-[13px] tracking-[0.22em] text-ink uppercase transition-colors hover:bg-ink hover:text-white"
+              className="mt-8 border border-ink px-8 py-3 font-mono text-[13px] tracking-[0.22em] indent-[0.22em] text-ink uppercase transition-colors hover:bg-ink hover:text-white"
             >
               Hapus saringan
             </button>

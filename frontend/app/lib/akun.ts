@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 
 import type { StatusPesanan } from "@/app/data/status-pesanan";
+import { kepalaPengunjung } from "@/app/lib/pengunjung";
 
 const COOKIE_SESI = "sid";
 
@@ -44,7 +45,7 @@ export async function ambilAkun(): Promise<Akun | null> {
 
   const res = await fetch(`${alamatApi()}/api/auth/me`, {
     cache: "no-store",
-    headers: kepala,
+    headers: { ...(await kepalaPengunjung()), ...kepala },
   });
 
   if (res.status === 401) return null;
@@ -68,7 +69,7 @@ export async function ambilRiwayat(): Promise<RingkasanPesanan[] | null> {
 
   const res = await fetch(`${alamatApi()}/api/account/orders`, {
     cache: "no-store",
-    headers: kepala,
+    headers: { ...(await kepalaPengunjung()), ...kepala },
   });
 
   if (res.status === 401) return null;

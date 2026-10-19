@@ -52,6 +52,12 @@ export function cariOpsi(
   );
 }
 
+const LAYANAN_KARGO = /^JTR/i;
+
+export function layakDitawarkan(o: OpsiOngkir): boolean {
+  return !LAYANAN_KARGO.test(o.service);
+}
+
 export function pilihTerbaik(daftar: OpsiOngkir[], maks = MAKS_OPSI): OpsiOngkir[] {
   return daftar.slice(0, maks);
 }

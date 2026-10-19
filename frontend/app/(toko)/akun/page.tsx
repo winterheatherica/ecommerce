@@ -51,7 +51,7 @@ export default async function AkunPage() {
         <form method="post" action={urlKeluar()}>
           <button
             type="submit"
-            className="border border-ink/15 px-5 py-2.5 font-mono text-[12px] tracking-[0.18em] text-stone-600 uppercase transition-colors hover:border-ink hover:text-ink"
+            className="border border-ink/15 px-5 py-2.5 font-mono text-[12px] tracking-[0.18em] indent-[0.18em] text-stone-600 uppercase transition-colors hover:border-ink hover:text-ink"
           >
             Keluar
           </button>
@@ -71,7 +71,7 @@ export default async function AkunPage() {
           </p>
           <Link
             href="/produk"
-            className="mt-6 inline-block border border-ink px-6 py-3 font-mono text-[12px] tracking-[0.2em] text-ink uppercase transition-colors hover:bg-ink hover:text-white"
+            className="mt-6 inline-block border border-ink px-6 py-3 font-mono text-[12px] tracking-[0.2em] indent-[0.2em] text-ink uppercase transition-colors hover:bg-ink hover:text-white"
           >
             Lihat produk
           </Link>

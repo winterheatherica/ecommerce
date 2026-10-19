@@ -8,13 +8,43 @@ export function bebasDariBatas(pathname: string): boolean {
   return JALUR_BEBAS.some((j) => pathname.startsWith(j));
 }
 
-export function kunciIp(request: Request, awalan: string): string {
+const POLA_IP_WORKERS = /^2a06:98c[0-7]:/i;
+const POLA_IP = /^[0-9a-f:.]{2,45}$/i;
+
+export function zonaToko(env: Record<string, unknown>): string | null {
+  const alamat = env.STOREFRONT_URL;
+  if (typeof alamat !== "string") return null;
+
+  try {
+    return new URL(alamat).hostname;
+  } catch {
+    return null;
+  }
+}
+
+export function ipPembeli(request: Request, zona: string | null): string {
   const ip =
     request.headers.get("cf-connecting-ip") ??
     request.headers.get("x-real-ip") ??
     "tanpa-ip";
 
-  return `${awalan}:${ip}`;
+  const dariToko =
+    zona !== null &&
+    request.headers.get("cf-worker") === zona &&
+    POLA_IP_WORKERS.test(ip);
+
+  if (!dariToko) return ip;
+
+  const diteruskan = request.headers.get("x-toko-ip")?.trim() ?? "";
+  return POLA_IP.test(diteruskan) ? diteruskan : ip;
+}
+
+export function kunciIp(
+  request: Request,
+  awalan: string,
+  env: Record<string, unknown> = {},
+): string {
+  return `${awalan}:${ipPembeli(request, zonaToko(env))}`;
 }
 
 export function ambilPembatas(

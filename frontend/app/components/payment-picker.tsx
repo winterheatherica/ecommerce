@@ -105,7 +105,7 @@ export default function PaymentPicker({ orderNo, total }: Props) {
           </p>
           <a
             href={waPesan(pesan)}
-            className="mt-7 inline-block border border-brand-500 bg-brand-500 px-8 py-4 font-mono text-[13px] tracking-[0.22em] text-white uppercase transition-colors hover:border-brand-600 hover:bg-brand-600"
+            className="mt-7 inline-block border border-brand-500 bg-brand-500 px-8 py-4 font-mono text-[13px] tracking-[0.22em] indent-[0.22em] text-white uppercase transition-colors hover:border-brand-600 hover:bg-brand-600"
           >
             Lanjutkan di WhatsApp
           </a>
@@ -161,7 +161,7 @@ export default function PaymentPicker({ orderNo, total }: Props) {
         type="button"
         onClick={bayar}
         disabled={memproses}
-        className="mt-10 w-full border border-brand-500 bg-brand-500 px-8 py-4 font-mono text-[13px] tracking-[0.22em] text-white uppercase transition-colors hover:border-brand-600 hover:bg-brand-600 disabled:cursor-not-allowed disabled:border-stone-300 disabled:bg-stone-300 sm:w-auto"
+        className="mt-10 w-full border border-brand-500 bg-brand-500 px-8 py-4 font-mono text-[13px] tracking-[0.22em] indent-[0.22em] text-white uppercase transition-colors hover:border-brand-600 hover:bg-brand-600 disabled:cursor-not-allowed disabled:border-stone-300 disabled:bg-stone-300 sm:w-auto"
       >
         {memproses ? "Menyiapkan..." : `Bayar ${rupiah(total)}`}
       </button>

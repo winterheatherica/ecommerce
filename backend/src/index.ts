@@ -34,7 +34,7 @@ const app = new Elysia({ adapter: CloudflareAdapter })
     const wadah = env as unknown as Record<string, unknown>;
     const pembatas = ambilPembatas(wadah, "UMUM_LIMIT");
 
-    if (!(await lolos(pembatas, kunciIp(request, "umum")))) {
+    if (!(await lolos(pembatas, kunciIp(request, "umum", wadah)))) {
       set.status = 429;
       set.headers["retry-after"] = "60";
       return BADAN_PADAT;

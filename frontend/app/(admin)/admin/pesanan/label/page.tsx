@@ -39,7 +39,7 @@ export default async function CetakLabelPage({ searchParams }: Props) {
   }
 
   const tanpaPaket = [
-    ...new Set(pesanan.flatMap((p) => ringkasPaket(p.items).belumLengkap)),
+    ...new Set(pesanan.flatMap((p) => ringkasPaket(p.items).produkTanpaDimensi)),
   ];
 
   return (
@@ -85,8 +85,9 @@ export default async function CetakLabelPage({ searchParams }: Props) {
         {tanpaPaket.length > 0 && (
           <div className="mt-4 border border-amber-300 bg-amber-50 px-4 py-3 text-sm leading-relaxed text-amber-900">
             <p>
-              Berat atau dimensi paket belum diatur untuk produk ini, jadi
-              kolomnya di label dibiarkan kosong untuk ditulis tangan:
+              Dimensi paket belum diatur untuk produk ini, jadi dimensinya di
+              label dikosongkan untuk ditulis tangan. Beratnya tetap terisi,
+              memakai berat produk kalau berat paketnya kosong:
             </p>
             <ul className="mt-2 list-disc pl-5">
               {tanpaPaket.map((nama) => (

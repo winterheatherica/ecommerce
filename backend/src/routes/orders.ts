@@ -63,7 +63,7 @@ export const orderRoutes = new Elysia({ prefix: "/api/orders" })
         "PESANAN_LIMIT",
       );
 
-      if (!(await lolos(pembatas, kunciIp(request, "pesanan")))) {
+      if (!(await lolos(pembatas, kunciIp(request, "pesanan", wadah)))) {
         set.status = 429;
         set.headers["retry-after"] = "60";
         return BADAN_PADAT;
@@ -136,7 +136,7 @@ export const orderRoutes = new Elysia({ prefix: "/api/orders" })
         "PESANAN_LIMIT",
       );
 
-      if (!(await lolos(pembatas, kunciIp(request, "bayar")))) {
+      if (!(await lolos(pembatas, kunciIp(request, "bayar", wadah)))) {
         set.status = 429;
         set.headers["retry-after"] = "60";
         return BADAN_PADAT;

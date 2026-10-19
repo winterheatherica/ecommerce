@@ -7,6 +7,8 @@ import { useRouter } from "next/navigation";
 import GoogleButton from "@/app/components/google-button";
 import type { Akun } from "@/app/lib/akun";
 import { kosongkanKeranjang, useKeranjang } from "@/app/lib/keranjang";
+import { namaLayanan } from "@/app/lib/kurir";
+import { beratKirim } from "@/app/lib/paket";
 import {
   ambilOngkir,
   buatPesanan,
@@ -78,7 +80,7 @@ export default function CheckoutForm({ produk, akun, urlMasuk }: Props) {
     (s, b) => s + ((b.varian.hargaNormal ?? b.varian.harga) - b.varian.harga) * b.qty,
     0,
   );
-  const beratTotal = baris.reduce((s, b) => s + b.varian.beratG * b.qty, 0);
+  const beratTotal = baris.reduce((s, b) => s + beratKirim(b.varian) * b.qty, 0);
 
   const kataBersih = kataWilayah.trim();
   const saran = tujuan || kataBersih.length < 2 ? [] : saranMentah;
@@ -194,7 +196,7 @@ export default function CheckoutForm({ produk, akun, urlMasuk }: Props) {
         </p>
         <Link
           href="/produk"
-          className="mt-8 inline-block border border-ink px-8 py-3.5 font-mono text-[13px] tracking-[0.22em] text-ink uppercase transition-colors hover:bg-ink hover:text-white"
+          className="mt-8 inline-block border border-ink px-8 py-3.5 font-mono text-[13px] tracking-[0.22em] indent-[0.22em] text-ink uppercase transition-colors hover:bg-ink hover:text-white"
         >
           Lihat produk
         </Link>
@@ -410,7 +412,7 @@ export default function CheckoutForm({ produk, akun, urlMasuk }: Props) {
                       >
                         <span>
                           <span className="text-sm font-medium text-ink">
-                            {o.courier} {o.service}
+                            {namaLayanan(o.courier, o.service)}
                           </span>
                           {o.etd !== "-" && (
                             <span className="mt-0.5 block font-mono text-[13px] text-stone-500">
@@ -473,7 +475,7 @@ export default function CheckoutForm({ produk, akun, urlMasuk }: Props) {
             <button
               type="submit"
               disabled={mengirim}
-              className="mt-8 w-full border border-brand-500 bg-brand-500 px-8 py-3.5 font-mono text-[13px] tracking-[0.22em] text-white uppercase transition-colors hover:border-brand-600 hover:bg-brand-600 disabled:cursor-not-allowed disabled:border-stone-300 disabled:bg-stone-300"
+              className="mt-8 w-full border border-brand-500 bg-brand-500 px-8 py-3.5 font-mono text-[13px] tracking-[0.22em] indent-[0.22em] text-white uppercase transition-colors hover:border-brand-600 hover:bg-brand-600 disabled:cursor-not-allowed disabled:border-stone-300 disabled:bg-stone-300"
             >
               {mengirim ? "Memproses..." : "Lanjut ke pembayaran"}
             </button>

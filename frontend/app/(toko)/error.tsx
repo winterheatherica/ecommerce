@@ -28,10 +28,10 @@ export default function TokoError({
       </p>
 
       <div className="mt-8 flex flex-wrap gap-4">
-        <button type="button" onClick={reset} className="inline-block border border-ink px-8 py-3.5 font-mono text-[13px] tracking-[0.22em] text-ink uppercase transition-colors hover:bg-ink hover:text-white">
+        <button type="button" onClick={reset} className="inline-block border border-ink px-8 py-3.5 font-mono text-[13px] tracking-[0.22em] indent-[0.22em] text-ink uppercase transition-colors hover:bg-ink hover:text-white">
           Coba lagi
         </button>
-        <Link href="/" className="inline-block border border-ink px-8 py-3.5 font-mono text-[13px] tracking-[0.22em] text-ink uppercase transition-colors hover:bg-ink hover:text-white">
+        <Link href="/" className="inline-block border border-ink px-8 py-3.5 font-mono text-[13px] tracking-[0.22em] indent-[0.22em] text-ink uppercase transition-colors hover:bg-ink hover:text-white">
           Ke beranda
         </Link>
       </div>
