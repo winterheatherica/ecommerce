@@ -18,6 +18,8 @@ import { periksaTertundaKeDoku } from "./db/pelunasan";
 import { sapuSesi } from "./db/akun";
 import { sapuSesiAdmin } from "./db/admin";
 import { sapuPeristiwaWebhook } from "./db/webhook";
+import { lacakTerjadwal, pelacak, selesaikanOtomatis } from "./db/lacak";
+import { pakaiJatahLacak } from "./lib/jatah";
 
 import { productRoutes } from "./routes/products";
 import { shippingRoutes } from "./routes/shipping";
@@ -120,6 +122,24 @@ async function sapuTerjadwal(): Promise<void> {
     }
   } catch (e) {
     console.error("[cron] gagal menyapu pesanan kedaluwarsa", e);
+  }
+
+  const lacak = pelacak(wadah);
+
+  if (lacak) {
+    try {
+      const hasil = await lacakTerjadwal(sql, lacak, () => pakaiJatahLacak(wadah));
+      if (hasil.diperbarui + hasil.gagal + hasil.dibatasi > 0) console.log("[cron] lacak resi", hasil);
+    } catch (e) {
+      console.error("[cron] gagal melacak resi", e);
+    }
+  }
+
+  try {
+    const selesai = await selesaikanOtomatis(sql);
+    if (selesai.length > 0) console.log("[cron] pesanan otomatis selesai", selesai);
+  } catch (e) {
+    console.error("[cron] gagal menyelesaikan pesanan otomatis", e);
   }
 
   try {

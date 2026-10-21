@@ -13,6 +13,7 @@ import {
   type StatusPesanan,
 } from "../lib/orders";
 import { cariOpsi, type OpsiOngkir } from "../lib/shipping";
+import type { Lacak } from "../lib/lacak";
 
 export type ItemPesanan = {
   product_id: number;
@@ -55,20 +56,26 @@ export type Pesanan = {
   expires_at: string | null;
   payment_method: string | null;
   tracking_number: string | null;
+  tracking: Lacak | null;
+  tracking_checked_at: string | null;
+  tracking_error: string | null;
   created_at: string;
   paid_at: string | null;
   shipped_at: string | null;
+  delivered_at: string | null;
   items: ItemPesanan[];
 };
 
 type BarisMentah = Omit<
   Pesanan,
-  "expires_at" | "created_at" | "paid_at" | "shipped_at"
+  "expires_at" | "created_at" | "paid_at" | "shipped_at" | "delivered_at" | "tracking_checked_at"
 > & {
   expires_at: Date | null;
   created_at: Date;
   paid_at: Date | null;
   shipped_at: Date | null;
+  delivered_at: Date | null;
+  tracking_checked_at: Date | null;
 };
 
 function keIso(nilai: Date | null): string | null {
@@ -82,6 +89,8 @@ function petakan(b: BarisMentah): Pesanan {
     created_at: keIso(b.created_at) as string,
     paid_at: keIso(b.paid_at),
     shipped_at: keIso(b.shipped_at),
+    delivered_at: keIso(b.delivered_at),
+    tracking_checked_at: keIso(b.tracking_checked_at),
   };
 }
 
@@ -111,9 +120,13 @@ const pilih = (sql: Sql) => sql`
   o.expires_at,
   o.payment_method,
   o.tracking_number,
+  o.tracking,
+  o.tracking_checked_at,
+  o.tracking_error,
   o.created_at,
   o.paid_at,
   o.shipped_at,
+  o.delivered_at,
   coalesce(
     (
       select json_agg(
@@ -645,6 +658,26 @@ export async function tandaiDikirim(
         shipped_at = now()
     where upper(order_no) = upper(${orderNo.trim()})
       and status = 'PAID'
+    returning order_no
+  `;
+
+  return hasilUbah(sql, orderNo, diubah);
+}
+
+export async function ubahResi(
+  sql: Sql,
+  orderNo: string,
+  trackingNumber: string,
+): Promise<HasilUbahStatus> {
+  const [diubah] = await sql<{ order_no: string }[]>`
+    update orders
+    set tracking_number = ${trackingNumber.trim()},
+        tracking = null,
+        tracking_checked_at = null,
+        tracking_error = null,
+        delivered_at = null
+    where upper(order_no) = upper(${orderNo.trim()})
+      and status = 'SHIPPED'
     returning order_no
   `;
 

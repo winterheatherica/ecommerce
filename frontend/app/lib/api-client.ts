@@ -164,6 +164,25 @@ export async function tandaiDikirim(
   }
 }
 
+export async function gantiResi(
+  orderNo: string,
+  trackingNumber: string,
+): Promise<void> {
+  const res = await fetch(
+    `/api/admin/orders/${encodeURIComponent(orderNo)}/tracking`,
+    {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ tracking_number: trackingNumber }),
+    },
+  );
+
+  if (!res.ok) {
+    const galat = (await res.json().catch(() => ({}))) as { message?: string };
+    throw new Error(galat.message ?? `Gagal mengganti resi (${res.status})`);
+  }
+}
+
 export async function tandaiSelesai(orderNo: string): Promise<void> {
   const res = await fetch(
     `/api/admin/orders/${encodeURIComponent(orderNo)}/deliver`,

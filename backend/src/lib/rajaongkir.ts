@@ -41,6 +41,26 @@ export type OpsiRO = {
   etd: string;
 };
 
+export type ManifestRO = {
+  manifest_code?: string | null;
+  manifest_description?: string | null;
+  manifest_date?: string | null;
+  manifest_time?: string | null;
+  city_name?: string | null;
+};
+
+export type LacakRO = {
+  delivered?: boolean | string | null;
+  summary?: { status?: string | null } | null;
+  delivery_status?: {
+    status?: string | null;
+    pod_receiver?: string | null;
+    pod_date?: string | null;
+    pod_time?: string | null;
+  } | null;
+  manifest?: ManifestRO[] | null;
+};
+
 export type HasilRO<T> =
   | { ok: true; data: T }
   | { ok: false; status: number; pesan: string };
@@ -67,16 +87,17 @@ const BATAS_MS = 8000;
 async function panggil<T>(
   url: string,
   init: RequestInit,
+  batasMs: number = BATAS_MS,
 ): Promise<HasilRO<T>> {
   try {
     const res = await fetch(url, {
       ...init,
-      signal: AbortSignal.timeout(BATAS_MS),
+      signal: AbortSignal.timeout(batasMs),
     });
 
     return baca<T>(res);
   } catch (e) {
-    console.error("[rajaongkir] tidak merespons", url, e);
+    console.error("[rajaongkir] tidak merespons", new URL(url).pathname, e);
 
     return {
       ok: false,
@@ -124,4 +145,29 @@ export async function hitungOngkir(
     },
     body: form,
   });
+}
+
+const BATAS_LACAK_MS = 5000;
+
+export async function lacakResi(
+  konfig: KonfigOngkir,
+  awb: string,
+  courier: string,
+  hpAkhir: string | null,
+): Promise<HasilRO<LacakRO>> {
+  const isian = new URLSearchParams({ awb: awb.trim(), courier });
+  if (hpAkhir) isian.set("last_phone_number", hpAkhir);
+
+  return panggil<LacakRO>(
+    `${DASAR}/track/waybill?${isian}`,
+    {
+      method: "POST",
+      headers: {
+        key: konfig.apiKey,
+        "content-type": "application/x-www-form-urlencoded",
+      },
+      body: isian,
+    },
+    BATAS_LACAK_MS,
+  );
 }

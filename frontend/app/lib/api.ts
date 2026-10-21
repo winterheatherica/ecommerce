@@ -279,12 +279,31 @@ export type Pesanan = {
   expires_at: string | null;
   payment_method: string | null;
   tracking_number: string | null;
+  tracking: Lacak | null;
+  tracking_checked_at: string | null;
+  tracking_error?: string | null;
   created_at: string;
   paid_at: string | null;
   shipped_at: string | null;
+  delivered_at: string | null;
   items: ItemPesanan[];
   samar?: boolean;
   dilihat_admin?: boolean;
+};
+
+export type PeristiwaLacak = {
+  at: string | null;
+  description: string;
+  city: string | null;
+};
+
+export type Lacak = {
+  delivered: boolean;
+  receiver: string | null;
+  delivered_at: string | null;
+  status: string | null;
+  events: PeristiwaLacak[];
+  fetched_at: string;
 };
 
 export type HasilPesanan =

@@ -93,6 +93,7 @@ export type RingkasanPesanan = {
   item_count: number;
   created_at: string;
   tracking_number: string | null;
+  delivered_at: string | null;
 };
 
 export async function pesananPengguna(
@@ -100,21 +101,31 @@ export async function pesananPengguna(
   userId: number,
   batas = 50,
 ): Promise<RingkasanPesanan[]> {
-  const baris = await sql<(Omit<RingkasanPesanan, "created_at"> & { created_at: Date })[]>`
+  const baris = await sql<
+    (Omit<RingkasanPesanan, "created_at" | "delivered_at"> & {
+      created_at: Date;
+      delivered_at: Date | null;
+    })[]
+  >`
     select
       o.order_no,
       o.status,
       o.total,
       coalesce((select sum(i.qty) from order_items i where i.order_id = o.id), 0)::int as item_count,
       o.created_at,
-      o.tracking_number
+      o.tracking_number,
+      o.delivered_at
     from orders o
     where o.user_id = ${userId}
     order by o.created_at desc
     limit ${batas}
   `;
 
-  return baris.map((b) => ({ ...b, created_at: b.created_at.toISOString() }));
+  return baris.map((b) => ({
+    ...b,
+    created_at: b.created_at.toISOString(),
+    delivered_at: b.delivered_at ? b.delivered_at.toISOString() : null,
+  }));
 }
 
 export type AlamatTerakhir = {

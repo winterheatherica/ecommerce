@@ -2,6 +2,7 @@ import { bacaHitungan, bacaKonfigRedis, tambahHitungan } from "./redis";
 
 export const JATAH_RAJAONGKIR_HARIAN = 80;
 export const JATAH_RAJAONGKIR_PER_IP = 30;
+export const JATAH_LACAK_HARIAN = 20;
 export const MAKS_PESANAN_PER_IP = 10;
 
 const DETIK_HARI = 24 * 3600;
@@ -39,6 +40,22 @@ export async function pakaiJatahRajaOngkir(
   const semua = await tambahHitungan(redis, `jatah:rajaongkir:${hari}`, 2 * DETIK_HARI);
   if (semua !== null && semua > angkaEnv(env, "RAJAONGKIR_JATAH_HARIAN", JATAH_RAJAONGKIR_HARIAN)) {
     console.warn("[rajaongkir] jatah harian habis", semua);
+    return false;
+  }
+
+  return true;
+}
+
+export async function pakaiJatahLacak(
+  env: Record<string, unknown>,
+  sekarang: Date = new Date(),
+): Promise<boolean> {
+  const redis = bacaKonfigRedis(env);
+  if (!redis) return true;
+
+  const n = await tambahHitungan(redis, `jatah:lacak:${tanggalWib(sekarang)}`, 2 * DETIK_HARI);
+  if (n !== null && n > angkaEnv(env, "RAJAONGKIR_JATAH_LACAK", JATAH_LACAK_HARIAN)) {
+    console.warn("[lacak] jatah harian habis", n);
     return false;
   }
 

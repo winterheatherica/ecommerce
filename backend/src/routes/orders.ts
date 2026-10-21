@@ -5,6 +5,7 @@ import { alamatToko, asalApi } from "../lib/alamat";
 import { buatKoneksi, tutup } from "../lib/db";
 import { ambilPesanan, buatPesanan, cariPesanan, simpanPembayaran } from "../db/pesanan";
 import { periksaKeDoku } from "../db/pelunasan";
+import { segarkanLacak } from "../db/lacak";
 import { adminDariCookie } from "../db/admin";
 import { COOKIE_ADMIN, bacaCookie } from "../lib/sesi";
 import { BADAN_PERLU_MASUK, aksesPesanan, untukPublik } from "../lib/privasi-pesanan";
@@ -59,7 +60,9 @@ export const orderRoutes = new Elysia({ prefix: "/api/orders" })
           return BADAN_PERLU_MASUK;
         }
 
-        return { ...untukPublik(pesanan, akses), dilihat_admin: olehAdmin };
+        const segar = await segarkanLacak(sql, wadahEnv(), pesanan);
+
+        return { ...untukPublik(segar, akses), dilihat_admin: olehAdmin };
       } finally {
         await tutup(sql);
       }

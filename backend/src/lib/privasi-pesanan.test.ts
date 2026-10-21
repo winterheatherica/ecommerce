@@ -1,7 +1,14 @@
 import { describe, expect, it } from "vitest";
 
 import type { Pesanan } from "../db/pesanan";
-import { aksesPesanan, samarkanHp, samarkanNama, untukPublik } from "./privasi-pesanan";
+import type { Lacak } from "./lacak";
+import {
+  aksesPesanan,
+  samarkanHp,
+  samarkanLacak,
+  samarkanNama,
+  untukPublik,
+} from "./privasi-pesanan";
 
 function pesanan(ubah: Partial<Pesanan> = {}): Pesanan {
   return {
@@ -30,13 +37,37 @@ function pesanan(ubah: Partial<Pesanan> = {}): Pesanan {
     expires_at: null,
     payment_method: "BNI Virtual Account",
     tracking_number: null,
+    tracking: null,
+    tracking_checked_at: null,
+    tracking_error: null,
     created_at: "2026-10-19T03:00:00.000Z",
     paid_at: "2026-10-19T03:05:00.000Z",
     shipped_at: null,
+    delivered_at: null,
     items: [],
     ...ubah,
   };
 }
+
+const LACAK_SAMPAI: Lacak = {
+  delivered: true,
+  receiver: "RAFII ANINDITO",
+  delivered_at: "2026-10-21T08:40:00.000Z",
+  status: "DELIVERED",
+  events: [
+    {
+      at: "2026-10-21T08:40:00.000Z",
+      description: "DELIVERED TO [RAFII ANINDITO | 21-10-2026 15:40 | JAKARTA ]",
+      city: "JAKARTA",
+    },
+    {
+      at: "2026-10-20T20:53:00.000Z",
+      description: "WITH DELIVERY COURIER [CIPAYUNG ,JAKARTA TIMUR]",
+      city: "JAKARTA",
+    },
+  ],
+  fetched_at: "2026-10-21T09:00:00.000Z",
+};
 
 describe("aksesPesanan", () => {
   it("pesanan tamu selalu tampil tersamar, siapa pun yang membuka", () => {
@@ -103,5 +134,56 @@ describe("untukPublik", () => {
       address: "Jl. Buni RT 01/04 No. 24",
       notes: "Titip di pos satpam",
     });
+  });
+
+  it("pesan galat lacak tidak ikut keluar, siapa pun yang membuka", () => {
+    for (const akses of ["samar", "penuh"] as const) {
+      const hasil = untukPublik(pesanan({ tracking_error: "AWB not found" }), akses);
+      expect("tracking_error" in hasil, akses).toBe(false);
+    }
+  });
+
+  it("versi tersamar ikut menyamarkan nama penerima di riwayat kurir", () => {
+    const hasil = untukPublik(pesanan({ status: "SHIPPED", tracking: LACAK_SAMPAI }), "samar");
+
+    expect(hasil.tracking?.receiver).toBe("RAFII A.");
+    expect(hasil.tracking?.events[0].description).toBe(
+      "DELIVERED TO [RAFII A. | 21-10-2026 15:40 | JAKARTA ]",
+    );
+    expect(JSON.stringify(hasil.tracking)).not.toContain("ANINDITO");
+  });
+
+  it("pemilik melihat riwayat kurir apa adanya", () => {
+    const hasil = untukPublik(
+      pesanan({ user_id: 3, status: "SHIPPED", tracking: LACAK_SAMPAI }),
+      "penuh",
+    );
+
+    expect(hasil.tracking).toEqual(LACAK_SAMPAI);
+  });
+});
+
+describe("samarkanLacak", () => {
+  it("menyamarkan nama pembeli juga, meski ditulis kurir dengan huruf dan spasi berbeda", () => {
+    const hasil = samarkanLacak(
+      {
+        ...LACAK_SAMPAI,
+        receiver: "SATPAM",
+        events: [{ at: null, description: "DITERIMA OLEH rafii  anindito (SATPAM)", city: null }],
+      },
+      ["SATPAM", "Rafii Anindito"],
+    );
+
+    expect(hasil.receiver).toBe("SATPAM");
+    expect(hasil.events[0].description).toBe("DITERIMA OLEH Rafii A. (SATPAM)");
+  });
+
+  it("nama yang terlalu pendek tidak dipakai sebagai pola", () => {
+    const hasil = samarkanLacak(
+      { ...LACAK_SAMPAI, receiver: "AB", events: [{ at: null, description: "ABADI JAYA", city: null }] },
+      ["AB"],
+    );
+
+    expect(hasil.events[0].description).toBe("ABADI JAYA");
   });
 });

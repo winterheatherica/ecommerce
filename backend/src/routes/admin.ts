@@ -23,8 +23,10 @@ import {
   tandaiDikirim,
   tandaiSelesai,
   tandaiTerbayar,
+  ubahResi,
   type HasilUbahStatus,
 } from "../db/pesanan";
+import { segarkanLacak } from "../db/lacak";
 import type { StatusPesanan } from "../lib/orders";
 
 const STATUS = [
@@ -113,13 +115,42 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
           return { error: "not_found", message: "Pesanan tidak ditemukan" };
         }
 
-        return pesanan;
+        return await segarkanLacak(sql, env as unknown as Record<string, unknown>, pesanan);
       } finally {
         await tutup(sql);
       }
     },
     {
       params: t.Object({ orderNo: t.String({ maxLength: 40 }) }),
+    },
+  )
+  .patch(
+    "/orders/:orderNo/tracking",
+    async ({ params, body, set }) => {
+      const sql = koneksi();
+
+      try {
+        const hasil = await ubahResi(sql, params.orderNo, body.tracking_number);
+
+        if (!hasil.ok) {
+          const g = galatUbah(
+            hasil,
+            "Resi hanya bisa diubah selama pesanan berstatus SHIPPED",
+          );
+          set.status = g.status;
+          return g.badan;
+        }
+
+        return hasil.pesanan;
+      } finally {
+        await tutup(sql);
+      }
+    },
+    {
+      params: t.Object({ orderNo: t.String({ maxLength: 40 }) }),
+      body: t.Object({
+        tracking_number: t.String({ minLength: 4, maxLength: 60 }),
+      }),
     },
   )
   .patch(

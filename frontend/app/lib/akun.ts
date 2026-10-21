@@ -76,6 +76,7 @@ export type RingkasanPesanan = {
   item_count: number;
   created_at: string;
   tracking_number: string | null;
+  delivered_at?: string | null;
 };
 
 export async function ambilRiwayat(): Promise<RingkasanPesanan[] | null> {

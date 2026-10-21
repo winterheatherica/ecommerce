@@ -5,16 +5,58 @@ import { useRouter } from "next/navigation";
 
 import {
   batalkanPesanan,
+  gantiResi,
   tandaiDikirim,
   tandaiLunas,
   tandaiSelesai,
 } from "@/app/lib/api-client";
 import CopyButton from "./copy-button";
+import RiwayatKurir from "./riwayat-kurir";
 import type { Pesanan } from "@/app/lib/api";
 import { tautanWa } from "@/app/lib/wa";
 import { namaLayanan } from "@/app/lib/kurir";
+import {
+  barisRiwayat,
+  batasKomplain,
+  posisiTerakhir,
+  sejak,
+  tanpaPergerakan,
+  waktuKurir,
+} from "@/app/lib/lacak";
 import { rupiah } from "@/app/data/produk";
 import { statusLabel, statusWarna } from "@/app/data/status-pesanan";
+
+function ringkasLacak(p: Pesanan): { teks: string; warna: string } {
+  if (p.delivered_at) {
+    return {
+      teks: `Sampai ${waktuKurir(p.delivered_at)} · otomatis selesai ${waktuKurir(batasKomplain(p.delivered_at))}`,
+      warna: "text-emerald-700",
+    };
+  }
+
+  const posisi = p.tracking ? posisiTerakhir(p.tracking) : null;
+
+  if (tanpaPergerakan(p)) {
+    const sejakKapan = posisi?.at ?? p.shipped_at;
+    return {
+      teks: `Tidak ada pergerakan sejak ${sejakKapan ? waktuKurir(sejakKapan) : "dikirim"}. Cek ke kurir.`,
+      warna: "text-amber-700",
+    };
+  }
+
+  if (posisi) {
+    return {
+      teks: `Posisi terakhir: ${posisi.teks}${posisi.at ? ` · ${waktuKurir(posisi.at)}` : ""}`,
+      warna: "text-stone-500",
+    };
+  }
+
+  if (p.tracking_error) {
+    return { teks: `Lacak gagal: ${p.tracking_error}`, warna: "text-red-600" };
+  }
+
+  return { teks: "Belum ada data dari kurir", warna: "text-stone-400" };
+}
 
 const saringan: { nilai: string; label: string }[] = [
   { nilai: "", label: "Semua" },
@@ -110,7 +152,10 @@ export default function AdminOrders({ pesanan, status }: Props) {
     );
   };
 
-  const kirim = async (orderNo: string) => {
+  const simpanResi = async (
+    aksi: (nomor: string) => Promise<void>,
+    pesanGagal: string,
+  ) => {
     const nomor = resi.trim();
     if (!nomor) return;
 
@@ -118,16 +163,22 @@ export default function AdminOrders({ pesanan, status }: Props) {
     setGalat(null);
 
     try {
-      await tandaiDikirim(orderNo, nomor);
+      await aksi(nomor);
       setResi("");
       setDibuka(null);
       router.refresh();
     } catch (err) {
-      setGalat(err instanceof Error ? err.message : "Gagal menandai dikirim");
+      setGalat(err instanceof Error ? err.message : pesanGagal);
     } finally {
       setMemproses(false);
     }
   };
+
+  const kirim = (orderNo: string) =>
+    simpanResi((nomor) => tandaiDikirim(orderNo, nomor), "Gagal menandai dikirim");
+
+  const ganti = (orderNo: string) =>
+    simpanResi((nomor) => gantiResi(orderNo, nomor), "Gagal mengganti resi");
 
   return (
     <div className="mx-auto max-w-5xl">
@@ -180,6 +231,7 @@ export default function AdminOrders({ pesanan, status }: Props) {
 
         {pesanan.map((p) => {
           const terbuka = dibuka === p.order_no;
+          const ringkas = p.status === "SHIPPED" ? ringkasLacak(p) : null;
 
           return (
             <div key={p.order_no}>
@@ -206,6 +258,11 @@ export default function AdminOrders({ pesanan, status }: Props) {
                 >
                   {statusLabel[p.status]}
                 </span>
+                {ringkas && (
+                  <span className={`basis-full font-mono text-[12px] ${ringkas.warna}`}>
+                    {ringkas.teks}
+                  </span>
+                )}
               </button>
 
               {terbuka && (
@@ -335,6 +392,56 @@ export default function AdminOrders({ pesanan, status }: Props) {
 
                   {p.status === "SHIPPED" && (
                     <div className="mt-8 border-t border-ink/10 pt-6">
+                      <p className="font-mono text-[12px] tracking-[0.2em] text-stone-500 uppercase">
+                        Lacak kurir
+                      </p>
+                      <div className="mt-3 flex items-center gap-2">
+                        <p className="min-w-0 flex-1 font-mono text-sm break-all text-ink">
+                          {namaLayanan(p.courier, p.service)} &middot; {p.tracking_number}
+                        </p>
+                        {p.tracking_number && (
+                          <CopyButton nilai={p.tracking_number} label="nomor resi" />
+                        )}
+                      </div>
+                      {p.delivered_at && p.tracking?.receiver && (
+                        <p className="mt-1 text-sm text-stone-600">
+                          Diterima oleh {p.tracking.receiver}
+                        </p>
+                      )}
+                      {p.tracking_checked_at && (
+                        <p className="mt-1 text-xs text-stone-400">
+                          Dicek {sejak(p.tracking_checked_at)}
+                          {p.tracking_error && p.tracking ? ` · terakhir gagal: ${p.tracking_error}` : ""}
+                        </p>
+                      )}
+                      {p.tracking && <RiwayatKurir baris={barisRiwayat(p.tracking)} awal={3} />}
+
+                      <div className="mt-5 flex flex-wrap items-center gap-3">
+                        <input
+                          value={resi}
+                          onChange={(e) => setResi(e.target.value)}
+                          placeholder="Resi pengganti"
+                          aria-label="Resi pengganti"
+                          disabled={memproses}
+                          className="border border-ink/15 bg-white px-4 py-2.5 font-mono text-sm text-ink outline-none transition-colors placeholder:font-sans placeholder:text-stone-400 focus:border-brand-500 disabled:bg-stone-100"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => ganti(p.order_no)}
+                          disabled={!resi.trim() || memproses}
+                          className="border border-ink px-6 py-2.5 font-mono text-[13px] tracking-[0.18em] indent-[0.18em] text-ink uppercase transition-colors hover:bg-ink hover:text-white disabled:cursor-not-allowed disabled:border-stone-300 disabled:text-stone-300 disabled:hover:bg-transparent"
+                        >
+                          {memproses ? "Menyimpan..." : "Ganti resi"}
+                        </button>
+                        <span className="text-xs text-stone-500">
+                          Kalau resi tadi salah ketik. Riwayat lacak yang lama ikut dihapus.
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                  {p.status === "SHIPPED" && (
+                    <div className="mt-8 border-t border-ink/10 pt-6">
                       <div className="flex flex-wrap items-center gap-3">
                         <button
                           type="button"
@@ -358,7 +465,9 @@ export default function AdminOrders({ pesanan, status }: Props) {
                           {memproses ? "Menyimpan..." : "Tandai selesai"}
                         </button>
                         <span className="text-xs text-stone-500">
-                          Tekan setelah paket diterima pembeli.
+                          {p.delivered_at
+                            ? `Otomatis selesai ${waktuKurir(batasKomplain(p.delivered_at))}, 2 hari setelah paket diterima. Tekan kalau mau selesaikan sekarang.`
+                            : "Tekan setelah paket diterima pembeli. Kalau kurir mencatat paket sampai, pesanan selesai sendiri 2 hari kemudian."}
                         </span>
                       </div>
                     </div>
@@ -389,10 +498,19 @@ export default function AdminOrders({ pesanan, status }: Props) {
                     </div>
                   )}
 
-                  {p.tracking_number && (
-                    <p className="mt-8 border-t border-ink/10 pt-6 font-mono text-sm text-stone-600">
-                      Resi: <span className="text-ink">{p.tracking_number}</span>
-                    </p>
+                  {p.tracking_number && p.status !== "SHIPPED" && (
+                    <div className="mt-8 border-t border-ink/10 pt-6">
+                      <p className="font-mono text-sm text-stone-600">
+                        Resi: <span className="text-ink">{p.tracking_number}</span>
+                      </p>
+                      {p.delivered_at && (
+                        <p className="mt-1 text-sm text-stone-600">
+                          Diterima {waktuKurir(p.delivered_at)}
+                          {p.tracking?.receiver ? ` oleh ${p.tracking.receiver}` : ""}
+                        </p>
+                      )}
+                      {p.tracking && <RiwayatKurir baris={barisRiwayat(p.tracking)} awal={0} />}
+                    </div>
                   )}
                 </div>
               )}

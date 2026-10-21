@@ -94,9 +94,13 @@ export default async function AkunPage() {
                 </span>
                 <span className="font-mono text-sm text-ink">{rupiah(p.total)}</span>
                 <span
-                  className={`border px-2 py-0.5 font-mono text-[12px] tracking-[0.12em] uppercase ${statusWarna[p.status]}`}
+                  className={`border px-2 py-0.5 font-mono text-[12px] tracking-[0.12em] uppercase ${
+                    p.status === "SHIPPED" && p.delivered_at
+                      ? statusWarna.DELIVERED
+                      : statusWarna[p.status]
+                  }`}
                 >
-                  {LABEL_PEMBELI[p.status]}
+                  {p.status === "SHIPPED" && p.delivered_at ? "Sudah sampai" : LABEL_PEMBELI[p.status]}
                 </span>
               </Link>
             </li>

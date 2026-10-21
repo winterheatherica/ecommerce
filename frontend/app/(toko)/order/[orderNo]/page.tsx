@@ -3,12 +3,21 @@ import { WA_URL } from "@/app/data/kontak";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import CopyButton from "@/app/components/copy-button";
 import GoogleButton from "@/app/components/google-button";
 import PaymentCheck from "@/app/components/payment-check";
 import ReorderButton from "@/app/components/reorder-button";
+import RiwayatKurir from "@/app/components/riwayat-kurir";
 import { urlMasukGoogle } from "@/app/lib/akun";
-import { ambilPesanan, ambilSemuaProduk } from "@/app/lib/api";
+import { ambilPesanan, ambilSemuaProduk, type Pesanan } from "@/app/lib/api";
 import { namaKurir, namaLayanan } from "@/app/lib/kurir";
+import {
+  barisRiwayat,
+  batasKomplain,
+  posisiTerakhir,
+  sejak,
+  waktuKurir,
+} from "@/app/lib/lacak";
 import { rupiah } from "@/app/data/produk";
 import { statusLabel, type StatusPesanan } from "@/app/data/status-pesanan";
 
@@ -67,6 +76,85 @@ async function slugYangMasihDijual(): Promise<string[] | null> {
     console.error("[order] gagal memeriksa stok untuk pesan lagi", e);
     return null;
   }
+}
+
+function BagianKurir({ pesanan, aktif }: { pesanan: Pesanan; aktif: boolean }) {
+  const resi = pesanan.tracking_number;
+  if (!resi) return null;
+
+  const lacak = pesanan.tracking;
+  const sampai = pesanan.delivered_at;
+  const posisi = lacak ? posisiTerakhir(lacak) : null;
+
+  return (
+    <div className="mt-3">
+      <div className="flex flex-wrap items-center gap-2">
+        <p className="inline-block border border-brand-200 bg-brand-50 px-4 py-2 font-mono text-sm text-brand-700">
+          {namaKurir(pesanan.courier)} &middot; {resi}
+        </p>
+        <CopyButton nilai={resi} label="nomor resi" />
+      </div>
+
+      {aktif && sampai && (
+        <div className="mt-5 max-w-md border border-emerald-200 bg-emerald-50 px-5 py-4">
+          <p className="text-sm font-medium text-emerald-800">
+            Paket sudah sampai &middot; {waktuKurir(sampai)}
+          </p>
+          {lacak?.receiver && (
+            <p className="mt-1 text-sm text-emerald-800">Diterima oleh {lacak.receiver}</p>
+          )}
+          <p className="mt-3 text-sm leading-relaxed text-emerald-900/80">
+            Ada masalah? Kirim video unboxing ke{" "}
+            <a
+              href={WA_URL}
+              className="border-b border-emerald-700/40 font-medium text-emerald-900 transition-colors hover:border-emerald-900"
+            >
+              WhatsApp
+            </a>{" "}
+            sebelum {waktuKurir(batasKomplain(sampai))}.
+          </p>
+        </div>
+      )}
+
+      {aktif && !sampai && posisi && (
+        <div className="mt-5">
+          <p className="text-sm text-ink">
+            Posisi terakhir: <span className="font-medium">{posisi.teks}</span>
+            {posisi.at && <> &middot; {waktuKurir(posisi.at)}</>}
+          </p>
+          {lacak && (
+            <p className="mt-1 text-xs text-stone-500">Diperbarui {sejak(lacak.fetched_at)}</p>
+          )}
+        </div>
+      )}
+
+      {aktif && !sampai && !posisi && (
+        <p className="mt-5 max-w-md text-sm leading-relaxed text-stone-500">
+          Riwayat perjalanan belum tersedia. Biasanya muncul beberapa jam setelah
+          paket diserahkan ke kurir.
+        </p>
+      )}
+
+      {lacak && <RiwayatKurir baris={barisRiwayat(lacak)} awal={aktif && !sampai ? 3 : 0} />}
+    </div>
+  );
+}
+
+function catatanLangkah(
+  langkah: (typeof LANGKAH)[number],
+  pesanan: Pesanan,
+  sekarang: boolean,
+): string {
+  if (langkah.status === "SHIPPED" && sekarang && pesanan.delivered_at) {
+    return "Paket sudah sampai";
+  }
+
+  if (langkah.status === "DELIVERED" && sekarang && pesanan.delivered_at && pesanan.tracking?.delivered) {
+    const oleh = pesanan.tracking.receiver ? ` oleh ${pesanan.tracking.receiver}` : "";
+    return `Diterima${oleh} · ${waktuKurir(pesanan.delivered_at)}`;
+  }
+
+  return sekarang ? (langkah.catatanAktif ?? langkah.catatan) : langkah.catatan;
 }
 
 function PerluMasuk({ orderNo }: { orderNo: string }) {
@@ -164,13 +252,11 @@ export default async function StatusPesananPage({ params }: Props) {
                 <p
                   className={`mt-1.5 text-sm ${lewat ? "text-stone-600" : "text-stone-400"}`}
                 >
-                  {sekarang ? (l.catatanAktif ?? l.catatan) : l.catatan}
+                  {catatanLangkah(l, pesanan, sekarang)}
                 </p>
 
-                {sekarang && l.status === "SHIPPED" && pesanan.tracking_number && (
-                  <p className="mt-3 inline-block border border-brand-200 bg-brand-50 px-4 py-2 font-mono text-sm text-brand-700">
-                    {namaKurir(pesanan.courier)} &middot; {pesanan.tracking_number}
-                  </p>
+                {lewat && l.status === "SHIPPED" && (
+                  <BagianKurir pesanan={pesanan} aktif={sekarang} />
                 )}
 
                 {sekarang && l.status === "PENDING" && (
