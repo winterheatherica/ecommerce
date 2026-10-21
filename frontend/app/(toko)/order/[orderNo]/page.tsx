@@ -343,7 +343,17 @@ export default async function StatusPesananPage({ params }: Props) {
             {pesanan.items.map((it, i) => (
               <li key={`${it.slug}-${i}`} className="flex justify-between gap-4 text-sm">
                 <span className="text-stone-700">
-                  {it.qty}&times; {it.name_snapshot}
+                  {it.qty}&times;{" "}
+                  {it.product_active ? (
+                    <Link
+                      href={`/produk/${encodeURIComponent(it.slug)}`}
+                      className="border-b border-stone-300 transition-colors hover:border-brand-600 hover:text-brand-600"
+                    >
+                      {it.name_snapshot}
+                    </Link>
+                  ) : (
+                    it.name_snapshot
+                  )}
                 </span>
                 <span className="text-right font-mono whitespace-nowrap text-stone-500">
                   {it.list_price_snapshot && (

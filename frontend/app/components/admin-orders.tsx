@@ -330,7 +330,23 @@ export default function AdminOrders({ pesanan, status }: Props) {
                         {p.items.map((it, i) => (
                           <li key={`${it.slug}-${i}`} className="flex justify-between gap-4 text-sm">
                             <span className="text-stone-700">
-                              {it.qty}&times; {it.name_snapshot}
+                              {it.qty}&times;{" "}
+                              {it.product_active ? (
+                                <a
+                                  href={`/produk/${encodeURIComponent(it.slug)}`}
+                                  target="_blank"
+                                  rel="noopener"
+                                  title="Buka halaman produk seperti yang dilihat pembeli"
+                                  className="border-b border-stone-300 transition-colors hover:border-brand-600 hover:text-brand-600"
+                                >
+                                  {it.name_snapshot}
+                                </a>
+                              ) : (
+                                <>
+                                  {it.name_snapshot}{" "}
+                                  <span className="font-mono text-[11px] text-stone-400 uppercase">(produk nonaktif)</span>
+                                </>
+                              )}
                             </span>
                             <span className="font-mono whitespace-nowrap text-stone-500">
                               {rupiah(it.price_snapshot * it.qty)}

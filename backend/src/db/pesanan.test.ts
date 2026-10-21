@@ -456,6 +456,17 @@ describe("cariPesanan", () => {
     expect(await cariPesanan(sql, "MNK-TIDAKADA")).toBeUndefined();
   });
 
+  it("tiap barang membawa slug produk, slug varian, dan status aktif produknya untuk link ke halaman produk", async () => {
+    const pesanan = await buat();
+
+    expect(pesanan.items[0]).toMatchObject({ slug: KUCING, variant_slug: KUCING, product_active: true });
+
+    await sql`update products set is_active = false where slug = ${KUCING}`;
+    const lagi = await cariPesanan(sql, pesanan.order_no);
+
+    expect(lagi?.items[0].product_active).toBe(false);
+  });
+
   it("mengedaluwarsakan sendiri saat dibaca", async () => {
     const pesanan = await buat();
     await lewatkanBatas(pesanan.order_no);

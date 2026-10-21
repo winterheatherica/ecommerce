@@ -224,6 +224,7 @@ export const ambilSatuProduk = cache(async function ambilSatuProduk(
 export type ItemPesanan = {
   product_id: number;
   slug: string;
+  product_active?: boolean;
   variant_slug?: string | null;
   sku: string | null;
   name_snapshot: string;
