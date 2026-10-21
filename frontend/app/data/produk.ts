@@ -60,18 +60,31 @@ export type ShopeeVarian = {
 
 export type RingkasanRating = { rata: number; jumlah: number };
 
+export type SumberUlasan = "shopee" | "web" | "tokopedia";
+export type PresisiUlasan = "day" | "month" | "over_year";
+
 export type Ulasan = {
   id: number;
-  sumber: "shopee" | "web";
+  sumber: SumberUlasan;
   bintang: number;
   nama: string;
   teks: string | null;
   susulan: string | null;
   susulanPada: string | null;
   pada: string;
+  presisi: PresisiUlasan;
+  produkAsal: string | null;
+  urlAsal: string | null;
   ukuran: string;
   ukuranSlug: string;
   tersembunyi?: boolean;
+};
+
+export type RingkasanUlasan = {
+  total: number;
+  shopee: number;
+  tokopedia: number;
+  web: number;
 };
 
 export type Produk = {
@@ -86,10 +99,12 @@ export type Produk = {
   stok: number;
   terjualPerBulan: number;
   unggulan: boolean;
+  aktif?: boolean;
   gambar?: string;
   varian: Varian[];
   ratingShopee?: RingkasanRating | null;
   ulasan?: Ulasan[];
+  ringkasanUlasan?: RingkasanUlasan;
 };
 
 export type PasanganVarian = { produk: Produk; varian: Varian };
@@ -266,7 +281,7 @@ export const KATEGORI: Record<Kategori, InfoKategori> = {
     judul: "Aroma Rumah",
     judulSeo: "Lilin Aromaterapi dan Pewangi Rumah",
     ringkasan:
-      "Lilin aromaterapi dan pewangi untuk ruangan di rumah.",
+      "Lilin aromaterapi, minyak atsiri, dan pewangi untuk ruangan di rumah.",
   },
   paket: {
     grup: "paket",

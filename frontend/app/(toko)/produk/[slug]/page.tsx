@@ -239,7 +239,9 @@ export default async function DetailProdukPage({ params }: Props) {
 
       {produk.ulasan && produk.ulasan.length > 0 && (
         <ProductReviews
+          produkSlug={produk.slug}
           ulasan={produk.ulasan}
+          ringkasan={produk.ringkasanUlasan}
           tampilkanUkuran={produk.varian.length > 1}
           linkShopee={linkTunggal}
           linkPerUkuran={Object.fromEntries(

@@ -1,6 +1,7 @@
 "use client";
 
-import type { StatusPromo } from "@/app/data/produk";
+import type { StatusPromo, Ulasan } from "@/app/data/produk";
+import { petakanUlasan, type UlasanAPI } from "@/app/lib/ulasan";
 
 export type Wilayah = {
   id: string;
@@ -295,6 +296,7 @@ export type IsiProdukUbah = {
   category: string;
   sold_per_month: number;
   is_featured: boolean;
+  is_active: boolean;
   usage_instructions: string | null;
 };
 
@@ -367,15 +369,18 @@ export async function sapuPesanan(): Promise<number> {
   return isi.swept;
 }
 
-export type UlasanShopeeBaru = {
+export type UlasanImporBaru = {
+  source: "shopee" | "tokopedia";
   rating: number;
   author_name: string;
   body?: string | null;
   follow_up?: string | null;
   reviewed_at: string;
+  source_product?: string | null;
+  source_url?: string | null;
 };
 
-export async function tambahUlasanShopee(varianSlug: string, isi: UlasanShopeeBaru): Promise<void> {
+export async function tambahUlasanImpor(varianSlug: string, isi: UlasanImporBaru): Promise<Ulasan> {
   const res = await fetch(`/api/admin/variants/${encodeURIComponent(varianSlug)}/reviews`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -383,6 +388,7 @@ export async function tambahUlasanShopee(varianSlug: string, isi: UlasanShopeeBa
   });
 
   await pastikanOk(res);
+  return petakanUlasan((await res.json()) as UlasanAPI);
 }
 
 export async function ubahTampilUlasan(id: number, sembunyi: boolean): Promise<void> {

@@ -13,8 +13,13 @@ import {
   simpanProdukBaru,
 } from "../db/produk";
 import { perbaruiVarian, tambahVarian } from "../db/varian";
-import { periksaUlasanShopee } from "../lib/ulasan";
-import { tambahUlasanShopee, ubahTampilUlasan } from "../db/ulasan";
+import { periksaUlasanImpor } from "../lib/ulasan";
+import {
+  ULASAN_PER_HALAMAN,
+  halamanUlasan,
+  tambahUlasanImpor,
+  ubahTampilUlasan,
+} from "../db/ulasan";
 import {
   batalkanPesanan,
   cariPesanan,
@@ -572,7 +577,7 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
   .post(
     "/variants/:slug/reviews",
     async ({ params, body, set }) => {
-      const periksa = periksaUlasanShopee(body);
+      const periksa = periksaUlasanImpor(body);
 
       if (!periksa.ok) {
         set.status = periksa.status;
@@ -582,7 +587,7 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
       const sql = koneksi();
 
       try {
-        const ulasan = await tambahUlasanShopee(sql, params.slug, periksa.bersih);
+        const ulasan = await tambahUlasanImpor(sql, params.slug, periksa.bersih);
 
         if (!ulasan) {
           set.status = 404;
@@ -598,11 +603,39 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
     {
       params: t.Object({ slug: t.String({ maxLength: 120 }) }),
       body: t.Object({
+        source: t.Optional(t.Union([t.Literal("shopee"), t.Literal("tokopedia")])),
         rating: t.Integer({ minimum: 1, maximum: 5 }),
         author_name: t.String({ minLength: 1, maxLength: 60 }),
         body: t.Optional(t.Union([t.String({ maxLength: 3000 }), t.Null()])),
         follow_up: t.Optional(t.Union([t.String({ maxLength: 3000 }), t.Null()])),
         reviewed_at: t.String({ maxLength: 40 }),
+        source_product: t.Optional(t.Union([t.String({ maxLength: 200 }), t.Null()])),
+        source_url: t.Optional(t.Union([t.String({ maxLength: 400 }), t.Null()])),
+      }),
+    },
+  )
+  .get(
+    "/products/:slug/reviews",
+    async ({ params, query }) => {
+      const sql = koneksi();
+
+      try {
+        return {
+          data: await halamanUlasan(sql, params.slug, {
+            offset: query.offset ?? 0,
+            limit: query.limit ?? ULASAN_PER_HALAMAN,
+            admin: true,
+          }),
+        };
+      } finally {
+        await tutup(sql);
+      }
+    },
+    {
+      params: t.Object({ slug: t.String({ maxLength: 120 }) }),
+      query: t.Object({
+        offset: t.Optional(t.Numeric({ minimum: 0, maximum: 100000 })),
+        limit: t.Optional(t.Numeric({ minimum: 1, maximum: 100 })),
       }),
     },
   )

@@ -43,6 +43,7 @@ export default function AdminProductForm({ awal }: Props) {
   const [kategori, setKategori] = useState<Kategori>(awal?.kategori ?? "kucing");
   const [terjual, setTerjual] = useState(String(awal?.terjualPerBulan ?? 0));
   const [unggulan, setUnggulan] = useState(awal?.unggulan ?? false);
+  const [aktif, setAktif] = useState(awal?.aktif ?? true);
 
   const [galat, setGalat] = useState<string | null>(null);
   const [menyimpan, setMenyimpan] = useState(false);
@@ -80,6 +81,7 @@ export default function AdminProductForm({ awal }: Props) {
       category: kategori,
       sold_per_month: Number(terjual),
       is_featured: unggulan,
+      is_active: aktif,
       usage_instructions: caraPakai.trim() || null,
     };
 
@@ -283,6 +285,22 @@ export default function AdminProductForm({ awal }: Props) {
               className="h-4 w-4 accent-brand-500"
             />
             Tampilkan di &ldquo;Paling dicari&rdquo; pada beranda
+          </label>
+
+          <label className="flex items-start gap-3 text-sm text-ink">
+            <input
+              type="checkbox"
+              checked={aktif}
+              onChange={(e) => setAktif(e.target.checked)}
+              className="mt-0.5 h-4 w-4 accent-brand-500"
+            />
+            <span>
+              Tampilkan di toko
+              <span className="mt-1 block text-xs text-stone-500">
+                Kalau tidak dicentang, produk ini tersembunyi dari pembeli. Isi stok dan foto dulu sebelum
+                menampilkannya.
+              </span>
+            </span>
           </label>
         </fieldset>
 

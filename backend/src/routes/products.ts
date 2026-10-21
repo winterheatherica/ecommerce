@@ -3,6 +3,7 @@ import { Elysia, t } from "elysia";
 
 import { buatKoneksi, tutup } from "../lib/db";
 import { daftarProduk, satuProduk } from "../db/produk";
+import { ULASAN_PER_HALAMAN, halamanUlasan } from "../db/ulasan";
 
 const BATAS_BAWAAN = 24;
 
@@ -58,6 +59,33 @@ export const productRoutes = new Elysia({ prefix: "/api/products" })
     {
       params: t.Object({
         slug: t.String({ maxLength: 120 }),
+      }),
+    },
+  )
+  .get(
+    "/:slug/reviews",
+    async ({ params, query }) => {
+      const sql = buatKoneksi(env as unknown as Record<string, unknown>);
+
+      try {
+        const baris = await halamanUlasan(sql, params.slug, {
+          offset: query.offset ?? 0,
+          limit: query.limit ?? ULASAN_PER_HALAMAN,
+          admin: false,
+        });
+
+        return { data: baris.map(({ is_hidden: _abaikan, ...sisa }) => sisa) };
+      } finally {
+        await tutup(sql);
+      }
+    },
+    {
+      params: t.Object({
+        slug: t.String({ maxLength: 120 }),
+      }),
+      query: t.Object({
+        offset: t.Optional(t.Numeric({ minimum: 0, maximum: 100000 })),
+        limit: t.Optional(t.Numeric({ minimum: 1, maximum: ULASAN_PER_HALAMAN })),
       }),
     },
   );

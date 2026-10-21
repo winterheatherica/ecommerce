@@ -1,22 +1,34 @@
 import type { Gagal } from "./products";
 
-export type UlasanShopeeBaru = {
+export type SumberImpor = "shopee" | "tokopedia";
+
+export type UlasanImporBaru = {
+  source?: SumberImpor;
   rating: number;
   author_name: string;
   body?: string | null;
   follow_up?: string | null;
   reviewed_at: string;
+  source_product?: string | null;
+  source_url?: string | null;
 };
 
-export type UlasanShopeeBersih = {
+export type UlasanImporBersih = {
+  source: SumberImpor;
   rating: number;
   author_name: string;
   body: string | null;
   follow_up: string | null;
   reviewed_at: string;
+  source_product: string | null;
+  source_url: string | null;
 };
 
 const MAKS_TEKS = 3000;
+const MAKS_PRODUK_ASAL = 200;
+const POLA_URL_TOKOPEDIA = /^https:\/\/www\.tokopedia\.com\/\S+$/;
+
+export const PENGULAS_TANPA_NAMA = "Pembeli";
 
 function galat(error: string, message: string): Gagal {
   return { status: 422, badan: { error, message, field: "review" } };
@@ -24,6 +36,7 @@ function galat(error: string, message: string): Gagal {
 
 export function samarkanPengulas(nama: string): string {
   const s = nama.trim();
+  if (!s) return PENGULAS_TANPA_NAMA;
   if (s.includes("*")) return s;
   if (s.length <= 2) return `${s[0]}*`;
   return `${s[0]}*****${s.at(-1)}`;
@@ -34,10 +47,26 @@ function teksBersih(nilai: string | null | undefined): string | null {
   return s ? s : null;
 }
 
-export function periksaUlasanShopee(
-  d: UlasanShopeeBaru,
+export function periksaUlasanImpor(
+  d: UlasanImporBaru,
   sekarang: Date = new Date(),
-): { ok: true; bersih: UlasanShopeeBersih } | ({ ok: false } & Gagal) {
+): { ok: true; bersih: UlasanImporBersih } | ({ ok: false } & Gagal) {
+  const source = d.source ?? "shopee";
+
+  if (source !== "shopee" && source !== "tokopedia") {
+    return { ok: false, ...galat("invalid_source", "Sumber ulasan harus Shopee atau Tokopedia") };
+  }
+
+  const produkAsal = source === "tokopedia" ? teksBersih(d.source_product) : null;
+  const urlAsal = source === "tokopedia" ? teksBersih(d.source_url) : null;
+
+  if ((produkAsal?.length ?? 0) > MAKS_PRODUK_ASAL) {
+    return { ok: false, ...galat("source_product_too_long", "Nama produk di Tokopedia maksimal 200 karakter") };
+  }
+  if (urlAsal && (urlAsal.length > 400 || !POLA_URL_TOKOPEDIA.test(urlAsal))) {
+    return { ok: false, ...galat("invalid_source_url", "Link harus diawali https://www.tokopedia.com/") };
+  }
+
   if (!Number.isInteger(d.rating) || d.rating < 1 || d.rating > 5) {
     return { ok: false, ...galat("invalid_rating", "Bintang harus 1 sampai 5") };
   }
@@ -67,11 +96,14 @@ export function periksaUlasanShopee(
   return {
     ok: true,
     bersih: {
+      source,
       rating: d.rating,
       author_name: samarkanPengulas(nama),
       body,
       follow_up: followUp,
       reviewed_at: new Date(waktu).toISOString(),
+      source_product: produkAsal,
+      source_url: urlAsal,
     },
   };
 }

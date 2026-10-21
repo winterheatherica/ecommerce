@@ -1,7 +1,13 @@
 import { bentrokUnik, type Kueri, type Sql } from "../lib/db";
 import type { PerubahanBersih, ProdukBersih } from "../lib/products";
 import { LABEL_TUNGGAL } from "../lib/variants";
-import { ulasanAdmin, ulasanPublik, type BarisUlasan, type BarisUlasanAdmin } from "./ulasan";
+import {
+  ulasanAdmin,
+  ulasanPublik,
+  type BarisUlasan,
+  type BarisUlasanAdmin,
+  type RingkasanUlasan,
+} from "./ulasan";
 
 export type KolomShopee = {
   shopee_url: string | null;
@@ -63,12 +69,14 @@ export type BarisProduk = RingkasanShopee & {
 export type BarisProdukDetail = BarisProduk & {
   usage_instructions: string | null;
   reviews: BarisUlasan[];
+  reviews_summary: RingkasanUlasan;
 };
 
 export type BarisProdukAdmin = Omit<BarisProduk, "variants"> & {
   variants: BarisVarianLengkap[];
   usage_instructions: string | null;
   reviews?: BarisUlasanAdmin[];
+  reviews_summary?: RingkasanUlasan;
 };
 
 export type FilterProduk = {
