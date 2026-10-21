@@ -391,6 +391,32 @@ export async function tambahUlasanImpor(varianSlug: string, isi: UlasanImporBaru
   return petakanUlasan((await res.json()) as UlasanAPI);
 }
 
+export type UlasanSayaAPI = {
+  variant_slug: string;
+  rating: number;
+  body: string | null;
+  created_at: string;
+  updated_at: string | null;
+  editable_until: string;
+};
+
+export async function kirimUlasanPesanan(
+  orderNo: string,
+  variantSlug: string,
+  isi: { rating: number; body: string | null; turnstile_token?: string },
+  ubah: boolean,
+): Promise<UlasanSayaAPI> {
+  const dasar = `/api/orders/${encodeURIComponent(orderNo)}/reviews`;
+  const res = await fetch(ubah ? `${dasar}/${encodeURIComponent(variantSlug)}` : dasar, {
+    method: ubah ? "PATCH" : "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(ubah ? isi : { variant_slug: variantSlug, ...isi }),
+  });
+
+  await pastikanOk(res);
+  return (await res.json()) as UlasanSayaAPI;
+}
+
 export async function ubahTampilUlasan(id: number, sembunyi: boolean): Promise<void> {
   const res = await fetch(`/api/admin/reviews/${id}`, {
     method: "PATCH",

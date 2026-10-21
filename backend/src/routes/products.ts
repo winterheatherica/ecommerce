@@ -3,7 +3,16 @@ import { Elysia, t } from "elysia";
 
 import { buatKoneksi, tutup } from "../lib/db";
 import { daftarProduk, satuProduk } from "../db/produk";
-import { ULASAN_PER_HALAMAN, halamanUlasan } from "../db/ulasan";
+import { ULASAN_PER_HALAMAN, URUTAN_ULASAN, halamanUlasan } from "../db/ulasan";
+
+export const QUERY_ULASAN = t.Object({
+  offset: t.Optional(t.Numeric({ minimum: 0, maximum: 100000 })),
+  limit: t.Optional(t.Numeric({ minimum: 1, maximum: ULASAN_PER_HALAMAN })),
+  urut: t.Optional(t.Union(URUTAN_ULASAN.map((u) => t.Literal(u)))),
+  bintang: t.Optional(t.Numeric({ minimum: 1, maximum: 5, multipleOf: 1 })),
+  sumber: t.Optional(t.Union([t.Literal("shopee"), t.Literal("tokopedia"), t.Literal("web")])),
+  ukuran: t.Optional(t.String({ minLength: 1, maxLength: 120 })),
+});
 
 const BATAS_BAWAAN = 24;
 
@@ -68,13 +77,20 @@ export const productRoutes = new Elysia({ prefix: "/api/products" })
       const sql = buatKoneksi(env as unknown as Record<string, unknown>);
 
       try {
-        const baris = await halamanUlasan(sql, params.slug, {
+        const hasil = await halamanUlasan(sql, params.slug, {
           offset: query.offset ?? 0,
           limit: query.limit ?? ULASAN_PER_HALAMAN,
           admin: false,
+          urut: query.urut,
+          bintang: query.bintang,
+          sumber: query.sumber,
+          ukuran: query.ukuran,
         });
 
-        return { data: baris.map(({ is_hidden: _abaikan, ...sisa }) => sisa) };
+        return {
+          data: hasil.data.map(({ is_hidden: _abaikan, ...sisa }) => sisa),
+          total: hasil.total,
+        };
       } finally {
         await tutup(sql);
       }
@@ -83,9 +99,6 @@ export const productRoutes = new Elysia({ prefix: "/api/products" })
       params: t.Object({
         slug: t.String({ maxLength: 120 }),
       }),
-      query: t.Object({
-        offset: t.Optional(t.Numeric({ minimum: 0, maximum: 100000 })),
-        limit: t.Optional(t.Numeric({ minimum: 1, maximum: ULASAN_PER_HALAMAN })),
-      }),
+      query: QUERY_ULASAN,
     },
   );

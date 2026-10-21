@@ -60,9 +60,10 @@ export default function AdminReviews({ produk }: { produk: Produk }) {
     setGalat(null);
 
     try {
-      const baru = await ambilUlasanLanjutan(
+      const { data: baru } = await ambilUlasanLanjutan(
         `/api/admin/products/${encodeURIComponent(produk.slug)}/reviews`,
         daftar.length,
+        { urut: "terbaru", bintang: null, sumber: null, ukuran: null },
       );
       const sudah = new Set(daftar.map((u) => u.id));
       setDaftar([...daftar, ...baru.filter((u) => !sudah.has(u.id))]);

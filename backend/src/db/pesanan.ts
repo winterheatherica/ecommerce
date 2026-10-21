@@ -18,6 +18,7 @@ import type { Lacak } from "../lib/lacak";
 export type ItemPesanan = {
   product_id: number;
   slug: string;
+  variant_slug: string | null;
   sku: string | null;
   name_snapshot: string;
   qty: number;
@@ -133,6 +134,7 @@ const pilih = (sql: Sql) => sql`
         json_build_object(
           'product_id', i.product_id::int,
           'slug', p.slug,
+          'variant_slug', v.slug,
           'sku', v.sku,
           'name_snapshot', i.name_snapshot,
           'qty', i.qty,

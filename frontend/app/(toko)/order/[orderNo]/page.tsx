@@ -8,7 +8,9 @@ import GoogleButton from "@/app/components/google-button";
 import PaymentCheck from "@/app/components/payment-check";
 import ReorderButton from "@/app/components/reorder-button";
 import RiwayatKurir from "@/app/components/riwayat-kurir";
+import UlasanPesanan from "@/app/components/ulasan-pesanan";
 import { urlMasukGoogle } from "@/app/lib/akun";
+import { ambilKunciCaptcha } from "@/app/lib/captcha";
 import { ambilPesanan, ambilSemuaProduk, type Pesanan } from "@/app/lib/api";
 import { namaKurir, namaLayanan } from "@/app/lib/kurir";
 import {
@@ -196,6 +198,16 @@ export default async function StatusPesananPage({ params }: Props) {
   const bolehPesanLagi = batal || pesanan.status === "DELIVERED";
   const tersedia = bolehPesanLagi ? await slugYangMasihDijual() : null;
 
+  const pemilik = pesanan.bisa_ulas !== undefined;
+  const barangUlas = [
+    ...new Map(
+      pesanan.items
+        .filter((it) => it.variant_slug)
+        .map((it) => [it.variant_slug as string, { variantSlug: it.variant_slug as string, nama: it.name_snapshot }]),
+    ).values(),
+  ];
+  const kunciUlas = pesanan.bisa_ulas ? await ambilKunciCaptcha() : null;
+
   return (
     <div className="mx-auto w-full max-w-3xl px-6 pt-32 pb-24">
       <p className="font-mono text-[13px] tracking-[0.28em] text-accent-600 uppercase">
@@ -361,6 +373,21 @@ export default async function StatusPesananPage({ params }: Props) {
           </dl>
         </div>
       </div>
+
+      {pemilik && pesanan.bisa_ulas && barangUlas.length > 0 && (
+        <UlasanPesanan
+          orderNo={pesanan.order_no}
+          barang={barangUlas}
+          ulasanAwal={pesanan.ulasan_saya ?? []}
+          siteKey={kunciUlas}
+        />
+      )}
+
+      {pemilik && !pesanan.bisa_ulas && (pesanan.status === "PAID" || pesanan.status === "SHIPPED") && (
+        <p className="mt-12 border-t border-ink/10 pt-8 text-sm leading-relaxed text-stone-500">
+          Kamu bisa menulis ulasan untuk pesanan ini begitu paketnya diterima.
+        </p>
+      )}
 
       {pesanan.status === "DELIVERED" && (
         <div className="mt-12 border-t border-ink/10 pt-10">

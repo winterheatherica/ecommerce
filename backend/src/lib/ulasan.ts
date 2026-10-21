@@ -29,6 +29,10 @@ const MAKS_PRODUK_ASAL = 200;
 const POLA_URL_TOKOPEDIA = /^https:\/\/www\.tokopedia\.com\/\S+$/;
 
 export const PENGULAS_TANPA_NAMA = "Pembeli";
+export const JENDELA_UBAH_JAM = 3;
+
+export type UlasanPembeliBaru = { rating: number; body?: string | null };
+export type UlasanPembeliBersih = { rating: number; body: string | null };
 
 function galat(error: string, message: string): Gagal {
   return { status: 422, badan: { error, message, field: "review" } };
@@ -45,6 +49,21 @@ export function samarkanPengulas(nama: string): string {
 function teksBersih(nilai: string | null | undefined): string | null {
   const s = nilai?.trim();
   return s ? s : null;
+}
+
+export function periksaUlasanPembeli(
+  d: UlasanPembeliBaru,
+): { ok: true; bersih: UlasanPembeliBersih } | ({ ok: false } & Gagal) {
+  if (!Number.isInteger(d.rating) || d.rating < 1 || d.rating > 5) {
+    return { ok: false, ...galat("invalid_rating", "Pilih bintang 1 sampai 5") };
+  }
+
+  const body = teksBersih(d.body);
+  if ((body?.length ?? 0) > MAKS_TEKS) {
+    return { ok: false, ...galat("review_too_long", "Ulasan maksimal 3.000 karakter") };
+  }
+
+  return { ok: true, bersih: { rating: d.rating, body } };
 }
 
 export function periksaUlasanImpor(

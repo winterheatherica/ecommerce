@@ -3,8 +3,19 @@ import { afterAll, beforeEach, describe, expect, it } from "vitest";
 import type { Sql } from "../lib/db";
 import { periksaUlasanImpor } from "../lib/ulasan";
 import { bacaMigrasi, bersihkan, koneksiTes, pecahUkuran } from "../test/db";
+import type { OpsiOngkir } from "../lib/shipping";
+import { ambilPesanan, buatPesanan, tandaiDikirim, tandaiTerbayar } from "./pesanan";
 import { satuProduk, satuProdukAdmin } from "./produk";
-import { ULASAN_PER_HALAMAN, halamanUlasan, tambahUlasanImpor, ubahTampilUlasan } from "./ulasan";
+import {
+  ULASAN_PER_HALAMAN,
+  halamanUlasan,
+  pesananBisaDiulas,
+  tambahUlasanImpor,
+  tulisUlasanPembeli,
+  ubahTampilUlasan,
+  ubahUlasanPembeli,
+  ulasanPesanan,
+} from "./ulasan";
 
 const sql: Sql = koneksiTes();
 const KUCING = "bye-bye-cat-50g";
@@ -123,22 +134,32 @@ describe("ulasan di halaman produk", () => {
     expect(salah).toBe(false);
   });
 
-  it("ulasan tanpa tanggal pasti (lebih dari setahun) selalu tampil paling akhir", async () => {
+  it("urutan terbaru: ulasan tanpa tanggal pasti (lebih dari setahun) selalu paling akhir", async () => {
     await ulasanTokopedia(KUCING, 1, "2026-10-20", "over_year");
     await ulasan(KUCING, "lama", "2024-01-01");
     await ulasanTokopedia(KUCING, 2, "2026-05-01", "month");
 
-    const produk = await satuProduk(sql, KUCING);
+    const { data } = await halamanUlasan(sql, KUCING, { offset: 0, limit: 10, admin: false, urut: "terbaru" });
 
-    expect(produk?.reviews.map((r) => [r.source, r.reviewed_precision])).toEqual([
+    expect(data.map((r) => [r.source, r.reviewed_precision])).toEqual([
       ["tokopedia", "month"],
       ["shopee", "day"],
       ["tokopedia", "over_year"],
     ]);
-    expect(produk?.reviews[0]).toMatchObject({
+    expect(data[0]).toMatchObject({
       source_product: "Gel Pengusir dan training Kucing 100gr",
       source_url: "https://www.tokopedia.com/menikstore/gel-kucing",
     });
+  });
+
+  it("bawaan halaman produk: ulasan paling lengkap dulu, apa pun bintang dan tanggalnya", async () => {
+    await ulasan(KUCING, "pendek", "2026-10-01", "Ok");
+    await ulasan(KUCING, "panjang", "2025-01-01", "Kucingnya sempat balik sekali, setelah gel kedua dipasang tidak datang lagi.");
+    await ulasan(KUCING, "sedang", "2026-09-01", "Wanginya enak dan awet");
+
+    const produk = await satuProduk(sql, KUCING);
+
+    expect(produk?.reviews.map((r) => r.author_name)).toEqual(["p*****g", "s*****g", "p*****k"]);
   });
 
   it("halaman produk memuat 30 ulasan pertama plus ringkasan per sumber, sisanya lewat halaman berikutnya", async () => {
@@ -154,6 +175,7 @@ describe("ulasan di halaman produk", () => {
       shopee: 1,
       tokopedia: ULASAN_PER_HALAMAN + 5,
       web: 0,
+      bintang: { "1": 0, "2": 0, "3": 0, "4": ULASAN_PER_HALAMAN + 5, "5": 1 },
     });
 
     const lanjut = await halamanUlasan(sql, KUCING, {
@@ -161,9 +183,10 @@ describe("ulasan di halaman produk", () => {
       limit: ULASAN_PER_HALAMAN,
       admin: false,
     });
-    expect(lanjut).toHaveLength(6);
+    expect(lanjut.data).toHaveLength(6);
+    expect(lanjut.total).toBe(ULASAN_PER_HALAMAN + 6);
 
-    const semuaId = [...(produk?.reviews ?? []).map((r) => r.id), ...lanjut.map((r) => r.id)];
+    const semuaId = [...(produk?.reviews ?? []).map((r) => r.id), ...lanjut.data.map((r) => r.id)];
     expect(new Set(semuaId).size).toBe(ULASAN_PER_HALAMAN + 6);
   });
 
@@ -173,19 +196,187 @@ describe("ulasan di halaman produk", () => {
     await ubahTampilUlasan(sql, b.id, true);
 
     const publik = await halamanUlasan(sql, KUCING, { offset: 0, limit: 10, admin: false });
-    expect(publik.map((r) => r.id)).toEqual([a.id]);
+    expect(publik.data.map((r) => r.id)).toEqual([a.id]);
 
     await sql`update products set is_active = false where slug = (
       select p.slug from products p join product_variants v on v.product_id = p.id where v.slug = ${KUCING}
     )`;
     const nonaktif = await halamanUlasan(sql, KUCING, { offset: 0, limit: 10, admin: false });
-    expect(nonaktif).toEqual([]);
+    expect(nonaktif).toEqual({ data: [], total: 0 });
 
     const admin = await halamanUlasan(sql, KUCING, { offset: 0, limit: 10, admin: true });
-    expect(admin.map((r) => [r.id, r.is_hidden])).toEqual([
+    expect(admin.data.map((r) => [r.id, r.is_hidden])).toEqual([
       [b.id, true],
       [a.id, false],
     ]);
+  });
+});
+
+describe("urutan dan saringan ulasan", () => {
+  async function isi() {
+    await pecahUkuran(sql, KUCING, [ukuran("uji-50g", "50 g"), ukuran("uji-80g", "80 g")]);
+    const bintang = async (slug: string, nomor: number, nilai: number, tanggal: string, presisi: "day" | "over_year", sumber = "tokopedia") => {
+      await sql`
+        insert into reviews (variant_id, source, external_id, rating, author_name, body, reviewed_at, reviewed_precision)
+        select id, ${sumber}, ${`x-${nomor}`}, ${nilai}, ${`n-${nomor}`}, ${"teks ".repeat(nomor)}, ${tanggal}, ${presisi}
+        from product_variants where slug = ${slug}
+      `;
+    };
+
+    await bintang("uji-50g", 1, 5, "2026-09-01", "day", "shopee");
+    await bintang("uji-50g", 2, 1, "2026-08-01", "day");
+    await bintang("uji-80g", 3, 5, "2025-01-01T00:00:02Z", "over_year");
+    await bintang("uji-80g", 4, 3, "2025-01-01T00:00:01Z", "over_year");
+  }
+
+  const nama = (h: { data: { author_name: string }[] }) => h.data.map((r) => r.author_name);
+  const minta = (s: Parameters<typeof halamanUlasan>[2]) => halamanUlasan(sql, KUCING, s);
+  const dasar = { offset: 0, limit: 10, admin: false };
+
+  it("tiap urutan menghasilkan susunan yang benar", async () => {
+    await isi();
+
+    expect(nama(await minta({ ...dasar, urut: "lengkap" }))).toEqual(["n-4", "n-3", "n-2", "n-1"]);
+    expect(nama(await minta({ ...dasar, urut: "terbaru" }))).toEqual(["n-1", "n-2", "n-3", "n-4"]);
+    expect(nama(await minta({ ...dasar, urut: "terlama" }))).toEqual(["n-4", "n-3", "n-2", "n-1"]);
+    expect(nama(await minta({ ...dasar, urut: "bintang_tinggi" }))).toEqual(["n-1", "n-3", "n-4", "n-2"]);
+    expect(nama(await minta({ ...dasar, urut: "bintang_rendah" }))).toEqual(["n-2", "n-4", "n-1", "n-3"]);
+  });
+
+  it("saringan bintang, sumber, dan ukuran bisa digabung dengan urutan, dan totalnya ikut tersaring", async () => {
+    await isi();
+
+    const limaTerlama = await minta({ ...dasar, bintang: 5, urut: "terlama" });
+    expect(nama(limaTerlama)).toEqual(["n-3", "n-1"]);
+    expect(limaTerlama.total).toBe(2);
+
+    expect(nama(await minta({ ...dasar, sumber: "shopee" }))).toEqual(["n-1"]);
+    expect(nama(await minta({ ...dasar, ukuran: "uji-80g", urut: "terbaru" }))).toEqual(["n-3", "n-4"]);
+    expect(await minta({ ...dasar, bintang: 2 })).toEqual({ data: [], total: 0 });
+  });
+});
+
+describe("ulasan pembeli website", () => {
+  const ONGKIR_UJI: OpsiOngkir[] = [{ courier: "JNE", service: "REG", cost: 9000, etd: "1-2" }];
+
+  async function pengguna(nama: string): Promise<{ id: number; name: string }> {
+    const [u] = await sql<{ id: number; name: string }[]>`
+      insert into users (google_sub, email, name)
+      values (${`sub-${nama}`}, ${`${nama}@contoh.test`}, ${nama})
+      returning id::int as id, name
+    `;
+    return u;
+  }
+
+  async function pesananMilik(pemilik: { id: number }, status: "PAID" | "SHIPPED" | "SAMPAI" | "DELIVERED") {
+    const hasil = await buatPesanan(
+      sql,
+      {
+        customer_name: "Rafii Anindito",
+        phone: `0821114${String(Math.floor(Math.random() * 1e5)).padStart(5, "0")}`,
+        email: `pemesan${Math.floor(Math.random() * 1e9)}@contoh.test`,
+        address: "Jl. Buni No. 24",
+        dest_id: "50001",
+        courier: "JNE",
+        service: "REG",
+        items: [{ slug: KUCING, qty: 1 }],
+      },
+      1,
+      async () => ONGKIR_UJI,
+      pemilik.id,
+    );
+    if (!hasil.ok) throw new Error(`gagal membuat pesanan: ${hasil.badan.error}`);
+
+    const nomor = hasil.pesanan.order_no;
+    await tandaiTerbayar(sql, nomor, "BNI_VA");
+    if (status !== "PAID") await tandaiDikirim(sql, nomor, "300380022869426");
+    if (status === "SAMPAI" || status === "DELIVERED") {
+      await sql`update orders set delivered_at = now() - interval '1 hour' where order_no = ${nomor}`;
+    }
+    if (status === "DELIVERED") await sql`update orders set status = 'DELIVERED' where order_no = ${nomor}`;
+
+    return (await ambilPesanan(sql, nomor))!;
+  }
+
+  const isi = { rating: 5, body: "Kucing tetangga tidak mampir lagi" };
+
+  it("terbuka begitu kurir mencatat paket diterima, sebelum status Selesai", async () => {
+    const saya = await pengguna("rafii");
+    const p = await pesananMilik(saya, "SAMPAI");
+
+    expect(pesananBisaDiulas(p)).toBe(true);
+    const hasil = await tulisUlasanPembeli(sql, { pesanan: p, pengguna: saya, variantSlug: KUCING, isi });
+
+    expect(hasil.ok && hasil.ulasan).toMatchObject({ variant_slug: KUCING, rating: 5, body: isi.body });
+    expect(await ulasanPesanan(sql, p.id)).toHaveLength(1);
+
+    const produk = await satuProduk(sql, KUCING);
+    expect(produk?.reviews[0]).toMatchObject({ source: "web", author_name: "r*****i", body: isi.body });
+  });
+
+  it("ditolak kalau paket belum sampai, bukan pemiliknya, barangnya tidak ada, atau sudah diulas", async () => {
+    const saya = await pengguna("rafii");
+    const orangLain = await pengguna("budi");
+
+    const belum = await pesananMilik(saya, "SHIPPED");
+    expect(await tulisUlasanPembeli(sql, { pesanan: belum, pengguna: saya, variantSlug: KUCING, isi })).toEqual({
+      ok: false,
+      alasan: "not_eligible",
+    });
+
+    const selesai = await pesananMilik(saya, "DELIVERED");
+    expect(await tulisUlasanPembeli(sql, { pesanan: selesai, pengguna: orangLain, variantSlug: KUCING, isi })).toEqual({
+      ok: false,
+      alasan: "not_eligible",
+    });
+    expect(
+      await tulisUlasanPembeli(sql, { pesanan: selesai, pengguna: saya, variantSlug: "bukan-barangnya", isi }),
+    ).toEqual({ ok: false, alasan: "not_in_order" });
+
+    expect((await tulisUlasanPembeli(sql, { pesanan: selesai, pengguna: saya, variantSlug: KUCING, isi })).ok).toBe(true);
+    expect(await tulisUlasanPembeli(sql, { pesanan: selesai, pengguna: saya, variantSlug: KUCING, isi })).toEqual({
+      ok: false,
+      alasan: "already_reviewed",
+    });
+  });
+
+  it("bisa diubah dalam 3 jam, setelah itu terkunci", async () => {
+    const saya = await pengguna("rafii");
+    const p = await pesananMilik(saya, "DELIVERED");
+    await tulisUlasanPembeli(sql, { pesanan: p, pengguna: saya, variantSlug: KUCING, isi });
+
+    const ubah = await ubahUlasanPembeli(sql, {
+      orderId: p.id,
+      userId: saya.id,
+      variantSlug: KUCING,
+      isi: { rating: 4, body: "Ternyata harus dipasang dua" },
+    });
+    expect(ubah.ok && [ubah.ulasan.rating, ubah.ulasan.body, ubah.ulasan.updated_at !== null]).toEqual([
+      4,
+      "Ternyata harus dipasang dua",
+      true,
+    ]);
+
+    await sql`update reviews set created_at = now() - interval '3 hours 1 minute' where order_id = ${p.id}`;
+    expect(
+      await ubahUlasanPembeli(sql, { orderId: p.id, userId: saya.id, variantSlug: KUCING, isi }),
+    ).toEqual({ ok: false, alasan: "edit_expired" });
+
+    const orangLain = await pengguna("budi");
+    expect(
+      await ubahUlasanPembeli(sql, { orderId: p.id, userId: orangLain.id, variantSlug: KUCING, isi }),
+    ).toEqual({ ok: false, alasan: "not_found" });
+  });
+
+  it("database menolak ulasan website yang tidak terhubung ke pesanan", async () => {
+    const lolos = await sql`
+      insert into reviews (variant_id, source, rating, author_name, reviewed_at)
+      select id, 'web', 5, 'a*****b', now() from product_variants where slug = ${KUCING}
+    `.then(
+      () => true,
+      () => false,
+    );
+    expect(lolos).toBe(false);
   });
 });
 

@@ -32,6 +32,7 @@ import {
   type HasilUbahStatus,
 } from "../db/pesanan";
 import { segarkanLacak } from "../db/lacak";
+import { QUERY_ULASAN } from "./products";
 import type { StatusPesanan } from "../lib/orders";
 
 const STATUS = [
@@ -620,23 +621,22 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
       const sql = koneksi();
 
       try {
-        return {
-          data: await halamanUlasan(sql, params.slug, {
-            offset: query.offset ?? 0,
-            limit: query.limit ?? ULASAN_PER_HALAMAN,
-            admin: true,
-          }),
-        };
+        return await halamanUlasan(sql, params.slug, {
+          offset: query.offset ?? 0,
+          limit: query.limit ?? ULASAN_PER_HALAMAN,
+          admin: true,
+          urut: query.urut,
+          bintang: query.bintang,
+          sumber: query.sumber,
+          ukuran: query.ukuran,
+        });
       } finally {
         await tutup(sql);
       }
     },
     {
       params: t.Object({ slug: t.String({ maxLength: 120 }) }),
-      query: t.Object({
-        offset: t.Optional(t.Numeric({ minimum: 0, maximum: 100000 })),
-        limit: t.Optional(t.Numeric({ minimum: 1, maximum: 100 })),
-      }),
+      query: QUERY_ULASAN,
     },
   )
   .patch(

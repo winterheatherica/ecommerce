@@ -242,6 +242,7 @@ export default async function DetailProdukPage({ params }: Props) {
           produkSlug={produk.slug}
           ulasan={produk.ulasan}
           ringkasan={produk.ringkasanUlasan}
+          ukuranPilihan={produk.varian.map((v) => ({ slug: v.slug, label: v.label }))}
           tampilkanUkuran={produk.varian.length > 1}
           linkShopee={linkTunggal}
           linkPerUkuran={Object.fromEntries(

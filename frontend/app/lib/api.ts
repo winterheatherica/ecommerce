@@ -224,6 +224,7 @@ export const ambilSatuProduk = cache(async function ambilSatuProduk(
 export type ItemPesanan = {
   product_id: number;
   slug: string;
+  variant_slug?: string | null;
   sku: string | null;
   name_snapshot: string;
   qty: number;
@@ -268,6 +269,17 @@ export type Pesanan = {
   items: ItemPesanan[];
   samar?: boolean;
   dilihat_admin?: boolean;
+  bisa_ulas?: boolean;
+  ulasan_saya?: UlasanSaya[];
+};
+
+export type UlasanSaya = {
+  variant_slug: string;
+  rating: number;
+  body: string | null;
+  created_at: string;
+  updated_at: string | null;
+  editable_until: string;
 };
 
 export type PeristiwaLacak = {

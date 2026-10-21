@@ -6,6 +6,13 @@ import { buatKoneksi, tutup } from "../lib/db";
 import { ambilPesanan, buatPesanan, cariPesanan, simpanPembayaran } from "../db/pesanan";
 import { periksaKeDoku } from "../db/pelunasan";
 import { segarkanLacak } from "../db/lacak";
+import {
+  pesananBisaDiulas,
+  tulisUlasanPembeli,
+  ubahUlasanPembeli,
+  ulasanPesanan,
+} from "../db/ulasan";
+import { periksaUlasanPembeli } from "../lib/ulasan";
 import { adminDariCookie } from "../db/admin";
 import { COOKIE_ADMIN, bacaCookie } from "../lib/sesi";
 import { BADAN_PERLU_MASUK, aksesPesanan, untukPublik } from "../lib/privasi-pesanan";
@@ -61,8 +68,15 @@ export const orderRoutes = new Elysia({ prefix: "/api/orders" })
         }
 
         const segar = await segarkanLacak(sql, wadahEnv(), pesanan);
+        const pemilik = Boolean(pengguna) && pengguna?.id === segar.user_id;
 
-        return { ...untukPublik(segar, akses), dilihat_admin: olehAdmin };
+        return {
+          ...untukPublik(segar, akses),
+          dilihat_admin: olehAdmin,
+          ...(pemilik
+            ? { bisa_ulas: pesananBisaDiulas(segar), ulasan_saya: await ulasanPesanan(sql, segar.id) }
+            : {}),
+        };
       } finally {
         await tutup(sql);
       }
@@ -337,4 +351,152 @@ export const orderRoutes = new Elysia({ prefix: "/api/orders" })
     {
       params: t.Object({ orderNo: t.String({ maxLength: 40 }) }),
     },
+  )
+  .post(
+    "/:orderNo/reviews",
+    async ({ params, body, set, request, headers }) => {
+      const periksa = periksaUlasanPembeli(body);
+      if (!periksa.ok) {
+        set.status = periksa.status;
+        return periksa.badan;
+      }
+
+      const captcha = await periksaCaptchaUlasan(request, body.turnstile_token);
+      if (!captcha.ok) {
+        set.status = captcha.status;
+        return captcha.badan;
+      }
+
+      const sql = buatKoneksi(wadahEnv());
+
+      try {
+        const pengguna = await penggunaDariCookie(sql, headers.cookie);
+        if (!pengguna) {
+          set.status = 401;
+          return BADAN_PERLU_MASUK;
+        }
+
+        const pesanan = await ambilPesanan(sql, params.orderNo);
+        if (!pesanan || pesanan.user_id !== pengguna.id) {
+          set.status = 404;
+          return { error: "not_found", message: "Pesanan tidak ditemukan" };
+        }
+
+        const hasil = await tulisUlasanPembeli(sql, {
+          pesanan,
+          pengguna,
+          variantSlug: body.variant_slug,
+          isi: periksa.bersih,
+        });
+
+        if (!hasil.ok) {
+          const [status, message] = {
+            not_eligible: [409, "Ulasan bisa ditulis setelah paket diterima."],
+            not_in_order: [404, "Barang ini tidak ada di pesananmu."],
+            already_reviewed: [409, "Barang ini sudah kamu ulas. Ubah ulasannya saja."],
+          }[hasil.alasan] as [number, string];
+          set.status = status;
+          return { error: hasil.alasan, message };
+        }
+
+        set.status = 201;
+        return hasil.ulasan;
+      } finally {
+        await tutup(sql);
+      }
+    },
+    {
+      params: t.Object({ orderNo: t.String({ maxLength: 40 }) }),
+      body: t.Object({
+        variant_slug: t.String({ minLength: 1, maxLength: 120 }),
+        rating: t.Integer({ minimum: 1, maximum: 5 }),
+        body: t.Optional(t.Union([t.String({ maxLength: 3000 }), t.Null()])),
+        turnstile_token: t.Optional(t.String({ maxLength: 4096 })),
+      }),
+    },
+  )
+  .patch(
+    "/:orderNo/reviews/:variantSlug",
+    async ({ params, body, set, request, headers }) => {
+      const periksa = periksaUlasanPembeli(body);
+      if (!periksa.ok) {
+        set.status = periksa.status;
+        return periksa.badan;
+      }
+
+      const captcha = await periksaCaptchaUlasan(request, body.turnstile_token);
+      if (!captcha.ok) {
+        set.status = captcha.status;
+        return captcha.badan;
+      }
+
+      const sql = buatKoneksi(wadahEnv());
+
+      try {
+        const pengguna = await penggunaDariCookie(sql, headers.cookie);
+        if (!pengguna) {
+          set.status = 401;
+          return BADAN_PERLU_MASUK;
+        }
+
+        const pesanan = await ambilPesanan(sql, params.orderNo);
+        if (!pesanan || pesanan.user_id !== pengguna.id) {
+          set.status = 404;
+          return { error: "not_found", message: "Pesanan tidak ditemukan" };
+        }
+
+        const hasil = await ubahUlasanPembeli(sql, {
+          orderId: pesanan.id,
+          userId: pengguna.id,
+          variantSlug: params.variantSlug,
+          isi: periksa.bersih,
+        });
+
+        if (!hasil.ok) {
+          set.status = hasil.alasan === "edit_expired" ? 409 : 404;
+          return hasil.alasan === "edit_expired"
+            ? { error: "edit_expired", message: "Batas waktu mengubah ulasan (3 jam) sudah lewat." }
+            : { error: "not_found", message: "Ulasan tidak ditemukan" };
+        }
+
+        return hasil.ulasan;
+      } finally {
+        await tutup(sql);
+      }
+    },
+    {
+      params: t.Object({
+        orderNo: t.String({ maxLength: 40 }),
+        variantSlug: t.String({ maxLength: 120 }),
+      }),
+      body: t.Object({
+        rating: t.Integer({ minimum: 1, maximum: 5 }),
+        body: t.Optional(t.Union([t.String({ maxLength: 3000 }), t.Null()])),
+        turnstile_token: t.Optional(t.String({ maxLength: 4096 })),
+      }),
+    },
   );
+
+type HasilCaptcha =
+  | { ok: true }
+  | { ok: false; status: number; badan: { error: string; message: string } };
+
+async function periksaCaptchaUlasan(request: Request, token: string | undefined): Promise<HasilCaptcha> {
+  const wadah = wadahEnv();
+  const turnstile = bacaKonfigTurnstile(wadah);
+
+  if (!turnstile && turnstileWajib(wadah)) {
+    console.error("[turnstile] kunci captcha tidak terpasang, ulasan ditolak");
+    return {
+      ok: false,
+      status: 503,
+      badan: { error: "captcha_unconfigured", message: "Ulasan sedang tidak bisa dikirim. Coba lagi nanti." },
+    };
+  }
+
+  if (turnstile && !(await periksaTurnstile(turnstile.secret, token, ipPembeli(request, zonaToko(wadah))))) {
+    return { ok: false, status: 403, badan: BADAN_CAPTCHA };
+  }
+
+  return { ok: true };
+}

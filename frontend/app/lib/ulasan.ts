@@ -55,13 +55,43 @@ export function tanggalUlasan(iso: string, presisi: PresisiUlasan): string {
   });
 }
 
+export type UrutanUlasan = "lengkap" | "terbaru" | "terlama" | "bintang_tinggi" | "bintang_rendah";
+
+export const PILIHAN_URUTAN: { nilai: UrutanUlasan; label: string }[] = [
+  { nilai: "lengkap", label: "Paling lengkap" },
+  { nilai: "terbaru", label: "Terbaru" },
+  { nilai: "terlama", label: "Terlama" },
+  { nilai: "bintang_tinggi", label: "Bintang tertinggi" },
+  { nilai: "bintang_rendah", label: "Bintang terendah" },
+];
+
+export type SaringanUlasan = {
+  urut: UrutanUlasan;
+  bintang: number | null;
+  sumber: SumberUlasan | null;
+  ukuran: string | null;
+};
+
+export const SARINGAN_AWAL: SaringanUlasan = { urut: "lengkap", bintang: null, sumber: null, ukuran: null };
+
+export function saringanAwal(s: SaringanUlasan): boolean {
+  return s.urut === "lengkap" && s.bintang === null && s.sumber === null && s.ukuran === null;
+}
+
 export async function ambilUlasanLanjutan(
   jalur: string,
   offset: number,
-): Promise<Ulasan[]> {
-  const res = await fetch(`${jalur}?offset=${offset}&limit=${ULASAN_PER_HALAMAN}`, { cache: "no-store" });
+  saringan: SaringanUlasan = SARINGAN_AWAL,
+): Promise<{ data: Ulasan[]; total: number }> {
+  const q = new URLSearchParams({ offset: String(offset), limit: String(ULASAN_PER_HALAMAN), urut: saringan.urut });
+  if (saringan.bintang) q.set("bintang", String(saringan.bintang));
+  if (saringan.sumber) q.set("sumber", saringan.sumber);
+  if (saringan.ukuran) q.set("ukuran", saringan.ukuran);
+
+  const res = await fetch(`${jalur}?${q}`, { cache: "no-store" });
 
   if (!res.ok) throw new Error(`Gagal memuat ulasan (${res.status})`);
 
-  return ((await res.json()) as { data: UlasanAPI[] }).data.map(petakanUlasan);
+  const isi = (await res.json()) as { data: UlasanAPI[]; total: number };
+  return { data: isi.data.map(petakanUlasan), total: isi.total };
 }

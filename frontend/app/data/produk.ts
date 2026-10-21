@@ -85,6 +85,7 @@ export type RingkasanUlasan = {
   shopee: number;
   tokopedia: number;
   web: number;
+  bintang?: Record<"1" | "2" | "3" | "4" | "5", number>;
 };
 
 export type Produk = {
