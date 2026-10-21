@@ -15,7 +15,7 @@ export default function FeaturedProducts({ produk }: { produk: Produk[] }) {
             Paling dicari
           </p>
           <h2 className="mt-3 text-3xl leading-tight font-semibold tracking-tight text-ink sm:text-4xl">
-            Yang sering diambil orang
+            Yang sering dibeli orang
           </h2>
         </div>
 
