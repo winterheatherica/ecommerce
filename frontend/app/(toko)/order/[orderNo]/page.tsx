@@ -317,20 +317,26 @@ export default async function StatusPesananPage({ params }: Props) {
           <ReorderButton items={pesanan.items} tersedia={tersedia} />
         </div>
       ) : (
-        <ol className="mt-12 border-l border-ink/15 pl-8">
+        <ol className="mt-12">
           {LANGKAH.map((l, i) => {
             const lewat = i <= posisi;
             const sekarang = i === posisi;
 
             return (
-              <li key={l.status} className="relative pb-10 last:pb-0">
+              <li key={l.status} className="relative pb-10 pl-10 last:pb-0">
+                {i < LANGKAH.length - 1 && (
+                  <span
+                    aria-hidden="true"
+                    className="absolute top-[17px] -bottom-[2px] left-[7px] w-px bg-ink/15"
+                  />
+                )}
                 <span
                   aria-hidden="true"
-                  className={`absolute top-1 -left-[41px] flex h-4 w-4 items-center justify-center rounded-full border-2 ${
+                  className={`absolute top-[2px] left-0 flex h-[15px] w-[15px] items-center justify-center rounded-full border-2 ${
                     lewat ? "border-brand-500 bg-brand-500" : "border-ink/20 bg-white"
                   }`}
                 >
-                  {lewat && <span className="h-1.5 w-1.5 rounded-full bg-white" />}
+                  {lewat && <span className="h-[5px] w-[5px] rounded-full bg-white" />}
                 </span>
 
                 <p

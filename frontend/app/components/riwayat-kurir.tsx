@@ -20,12 +20,18 @@ export default function RiwayatKurir({ baris, awal = 3 }: Props) {
   return (
     <div className="mt-4">
       {tampil.length > 0 && (
-        <ol className="space-y-3 border-l border-ink/10 pl-4">
+        <ol>
           {tampil.map((b, i) => (
-            <li key={`${i}-${b.waktu}`} className="relative">
+            <li key={`${i}-${b.waktu}`} className="relative pb-3 pl-5 last:pb-0">
+              {i < tampil.length - 1 && (
+                <span
+                  aria-hidden="true"
+                  className="absolute top-[13px] -bottom-1 left-1 w-px bg-ink/10"
+                />
+              )}
               <span
                 aria-hidden="true"
-                className={`absolute top-1.5 -left-[21px] h-2 w-2 rounded-full ${
+                className={`absolute top-1 left-0 h-[9px] w-[9px] rounded-full ${
                   i === 0 ? "bg-brand-500" : "bg-ink/20"
                 }`}
               />
