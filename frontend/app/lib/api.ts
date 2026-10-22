@@ -241,6 +241,7 @@ export type Pesanan = {
   customer_name: string;
   phone: string;
   email: string | null;
+  account_email?: string | null;
   address: string;
   notes: string | null;
   dest_id: string;
@@ -301,7 +302,8 @@ export type Lacak = {
 export type HasilPesanan =
   | { status: "ada"; pesanan: Pesanan }
   | { status: "tidak_ada" }
-  | { status: "perlu_masuk" };
+  | { status: "perlu_masuk" }
+  | { status: "akun_lain" };
 
 export async function ambilPesanan(orderNo: string): Promise<HasilPesanan> {
   const res = await fetch(
@@ -314,6 +316,7 @@ export async function ambilPesanan(orderNo: string): Promise<HasilPesanan> {
 
   if (res.status === 404) return { status: "tidak_ada" };
   if (res.status === 401) return { status: "perlu_masuk" };
+  if (res.status === 403) return { status: "akun_lain" };
 
   if (!res.ok) {
     throw new Error(`Gagal mengambil pesanan ${orderNo} (${res.status})`);

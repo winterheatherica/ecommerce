@@ -26,6 +26,39 @@ import {
 import { rupiah } from "@/app/data/produk";
 import { statusLabel, statusWarna } from "@/app/data/status-pesanan";
 
+type BarisSalin = { k: string; v: string };
+
+function DaftarSalin({ baris }: { baris: BarisSalin[] }) {
+  return (
+    <dl className="mt-3 space-y-2.5">
+      {baris.map((b) => (
+        <div key={b.k} className="flex items-start gap-3">
+          <div className="min-w-0 flex-1">
+            <dt className="font-mono text-[12px] tracking-[0.16em] text-stone-400 uppercase">
+              {b.k}
+            </dt>
+            <dd className="mt-0.5 text-sm leading-relaxed break-words whitespace-pre-line text-ink">
+              {b.v}
+            </dd>
+          </div>
+          <CopyButton nilai={b.v} label={b.k} />
+        </div>
+      ))}
+    </dl>
+  );
+}
+
+function barisAkun(p: Pesanan): BarisSalin[] {
+  const baris: BarisSalin[] = [];
+
+  if (p.account_email) baris.push({ k: "Akun Google", v: p.account_email });
+  if (p.email && p.email.toLowerCase() !== p.account_email?.toLowerCase()) {
+    baris.push({ k: "Email di formulir", v: p.email });
+  }
+
+  return baris;
+}
+
 function ringkasLacak(p: Pesanan): { teks: string; warna: string } {
   if (p.delivered_at) {
     return {
@@ -292,25 +325,13 @@ export default function AdminOrders({ pesanan, status }: Props) {
                         Alamat kirim
                       </p>
 
-                      <dl className="mt-3 space-y-2.5">
-                        {[
+                      <DaftarSalin
+                        baris={[
                           { k: "Nama", v: p.customer_name },
                           { k: "No. HP", v: p.phone },
                           { k: "Alamat", v: `${p.address}\n${p.dest_label}` },
-                        ].map((b) => (
-                          <div key={b.k} className="flex items-start gap-3">
-                            <div className="min-w-0 flex-1">
-                              <dt className="font-mono text-[12px] tracking-[0.16em] text-stone-400 uppercase">
-                                {b.k}
-                              </dt>
-                              <dd className="mt-0.5 text-sm leading-relaxed whitespace-pre-line text-ink">
-                                {b.v}
-                              </dd>
-                            </div>
-                            <CopyButton nilai={b.v} label={b.k} />
-                          </div>
-                        ))}
-                      </dl>
+                        ]}
+                      />
 
                       <p className="mt-3 font-mono text-xs text-stone-500">
                         {namaLayanan(p.courier, p.service)} ({p.service}) &middot; {p.weight_g} g
@@ -318,6 +339,26 @@ export default function AdminOrders({ pesanan, status }: Props) {
                       {p.notes && (
                         <p className="mt-3 text-sm text-stone-600">
                           Catatan: {p.notes}
+                        </p>
+                      )}
+
+                      <p className="mt-6 font-mono text-[12px] tracking-[0.2em] text-stone-500 uppercase">
+                        Akun pemesan
+                      </p>
+
+                      <DaftarSalin baris={barisAkun(p)} />
+
+                      <p className="mt-3 text-xs leading-relaxed text-stone-500">
+                        {p.account_email
+                          ? "Detail pesanan hanya bisa dibuka lewat akun Google di atas."
+                          : p.email
+                            ? "Belum terhubung ke akun Google. Pesanan ini otomatis tertaut begitu pembeli masuk dengan Google memakai email di atas."
+                            : "Belum terhubung ke akun Google."}
+                      </p>
+                      {(p.account_email || p.email) && (
+                        <p className="mt-1.5 text-xs leading-relaxed text-stone-500">
+                          Sebelum menyebutkan emailnya ke pembeli, cocokkan dulu nomor
+                          WhatsApp yang bertanya dengan No. HP pesanan.
                         </p>
                       )}
                     </div>

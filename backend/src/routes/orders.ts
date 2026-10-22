@@ -15,7 +15,12 @@ import {
 import { periksaUlasanPembeli } from "../lib/ulasan";
 import { adminDariCookie } from "../db/admin";
 import { COOKIE_ADMIN, bacaCookie } from "../lib/sesi";
-import { BADAN_PERLU_MASUK, aksesPesanan, untukPublik } from "../lib/privasi-pesanan";
+import {
+  BADAN_AKUN_LAIN,
+  BADAN_PERLU_MASUK,
+  aksesPesanan,
+  untukPublik,
+} from "../lib/privasi-pesanan";
 import { penggunaDariCookie } from "../db/akun";
 import { JALUR_NOTIFIKASI, bacaKonfig, menitBayar } from "../lib/doku";
 import { buatHalamanBayar } from "../lib/payment";
@@ -62,6 +67,11 @@ export const orderRoutes = new Elysia({ prefix: "/api/orders" })
         const pengguna = olehAdmin ? undefined : await penggunaDariCookie(sql, headers.cookie);
         const akses = olehAdmin ? "penuh" : aksesPesanan(pesanan.user_id, pengguna?.id ?? null);
 
+        if (akses === "tolak" && pengguna) {
+          set.status = 403;
+          return BADAN_AKUN_LAIN;
+        }
+
         if (akses === "tolak") {
           set.status = 401;
           return BADAN_PERLU_MASUK;
@@ -73,6 +83,7 @@ export const orderRoutes = new Elysia({ prefix: "/api/orders" })
         return {
           ...untukPublik(segar, akses),
           dilihat_admin: olehAdmin,
+          ...(olehAdmin ? { account_email: segar.account_email } : {}),
           ...(pemilik
             ? { bisa_ulas: pesananBisaDiulas(segar), ulasan_saya: await ulasanPesanan(sql, segar.id) }
             : {}),
@@ -229,8 +240,8 @@ export const orderRoutes = new Elysia({ prefix: "/api/orders" })
         const pengguna = await penggunaDariCookie(sql, headers.cookie);
 
         if (aksesPesanan(pesanan.user_id, pengguna?.id ?? null) === "tolak") {
-          set.status = 401;
-          return BADAN_PERLU_MASUK;
+          set.status = pengguna ? 403 : 401;
+          return pengguna ? BADAN_AKUN_LAIN : BADAN_PERLU_MASUK;
         }
 
         if (pesanan.status !== "PENDING") {

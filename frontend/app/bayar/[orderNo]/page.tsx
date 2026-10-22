@@ -28,7 +28,9 @@ export default async function BayarPage({ params }: Props) {
   const hasil = await ambilPesanan(orderNo);
 
   if (hasil.status === "tidak_ada") notFound();
-  if (hasil.status === "perlu_masuk") redirect(`/order/${encodeURIComponent(orderNo)}`);
+  if (hasil.status === "perlu_masuk" || hasil.status === "akun_lain") {
+    redirect(`/order/${encodeURIComponent(orderNo)}`);
+  }
 
   const { pesanan } = hasil;
 

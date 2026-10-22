@@ -105,6 +105,34 @@ describe("selesaikanMasuk", () => {
   });
 });
 
+describe("email akun di pesanan", () => {
+  it("pesanan membawa email akun Google pemesannya, meski email di formulir berbeda", async () => {
+    const { pengguna } = await selesaikanMasuk(sql, BUDI);
+    const hasil = await buatPesanan(
+      sql,
+      permintaan({ email: "kontak.lain@contoh.test" }),
+      1,
+      cariOngkir,
+      pengguna.id,
+    );
+    if (!hasil.ok) throw new Error(`gagal membuat pesanan: ${hasil.badan.error}`);
+
+    expect(hasil.pesanan).toMatchObject({
+      email: "kontak.lain@contoh.test",
+      account_email: BUDI.email,
+    });
+  });
+
+  it("pesanan tamu belum punya email akun sampai pembelinya masuk dengan Google", async () => {
+    const orderNo = await pesanSebagaiTamu();
+    expect((await cariPesanan(sql, orderNo))?.account_email).toBeNull();
+
+    await selesaikanMasuk(sql, RINA);
+
+    expect((await cariPesanan(sql, orderNo))?.account_email).toBe(RINA.email);
+  });
+});
+
 describe("sesi", () => {
   it("token yang dibuat bisa dipakai menemukan penggunanya", async () => {
     const { pengguna } = await selesaikanMasuk(sql, RINA);

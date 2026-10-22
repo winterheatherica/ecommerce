@@ -36,6 +36,7 @@ export type Pesanan = {
   id: number;
   order_no: string;
   user_id: number | null;
+  account_email: string | null;
   customer_name: string;
   phone: string;
   email: string | null;
@@ -100,6 +101,7 @@ const pilih = (sql: Sql) => sql`
   o.id::int as id,
   o.order_no,
   o.user_id::int as user_id,
+  (select u.email from users u where u.id = o.user_id) as account_email,
   o.customer_name,
   o.phone,
   o.email,

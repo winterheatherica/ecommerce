@@ -9,7 +9,7 @@ import PaymentCheck from "@/app/components/payment-check";
 import ReorderButton from "@/app/components/reorder-button";
 import RiwayatKurir from "@/app/components/riwayat-kurir";
 import UlasanPesanan from "@/app/components/ulasan-pesanan";
-import { urlMasukGoogle } from "@/app/lib/akun";
+import { ambilAkun, urlMasukGoogle } from "@/app/lib/akun";
 import { ambilKunciCaptcha } from "@/app/lib/captcha";
 import { ambilPesanan, ambilSemuaProduk, type Pesanan } from "@/app/lib/api";
 import { namaKurir, namaLayanan } from "@/app/lib/kurir";
@@ -180,6 +180,62 @@ function PerluMasuk({ orderNo }: { orderNo: string }) {
           <GoogleButton href={urlMasukGoogle(`/order/${orderNo}`)} label="Masuk dengan Google" />
         </div>
       </div>
+
+      <BantuanAkun />
+    </div>
+  );
+}
+
+function BantuanAkun() {
+  return (
+    <p className="mt-8 max-w-lg text-sm leading-relaxed text-stone-500">
+      Lupa akun mana yang dipakai waktu memesan?{" "}
+      <a
+        href={WA_URL}
+        className="border-b border-stone-400 pb-0.5 text-ink transition-colors hover:border-brand-600 hover:text-brand-600"
+      >
+        Chat WhatsApp
+      </a>
+      , sebutkan nomor pesanannya, nanti kami bantu cek.
+    </p>
+  );
+}
+
+function AkunLain({ orderNo, email }: { orderNo: string; email: string | null }) {
+  return (
+    <div className="mx-auto w-full max-w-3xl px-6 pt-32 pb-24">
+      <p className="font-mono text-[13px] tracking-[0.28em] text-accent-600 uppercase">
+        Status pesanan
+      </p>
+      <h1 className="mt-3 font-mono text-2xl tracking-[0.1em] text-ink uppercase sm:text-3xl">
+        {orderNo}
+      </h1>
+
+      <div className="mt-10 border border-amber-200 bg-amber-50/60 px-6 py-8">
+        <p className="font-medium text-ink">Pesanan ini milik akun lain</p>
+        <p className="mt-2 max-w-lg text-sm leading-relaxed text-stone-600">
+          {email ? (
+            <>
+              Kamu sedang masuk sebagai <span className="font-medium text-ink">{email}</span>,
+              sedangkan pesanan ini dibuat dengan akun Google yang berbeda.
+            </>
+          ) : (
+            "Akun yang sedang kamu pakai berbeda dengan akun yang dipakai waktu memesan."
+          )}{" "}
+          Supaya data pembeli tetap aman, isinya hanya bisa dibuka oleh akun pemesan.
+        </p>
+        <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-4">
+          <GoogleButton href={urlMasukGoogle(`/order/${orderNo}`)} label="Ganti akun Google" />
+          <Link
+            href="/akun"
+            className="border-b border-stone-400 pb-0.5 text-sm text-ink transition-colors hover:border-brand-600 hover:text-brand-600"
+          >
+            Lihat pesanan di akun ini
+          </Link>
+        </div>
+      </div>
+
+      <BantuanAkun />
     </div>
   );
 }
@@ -190,6 +246,10 @@ export default async function StatusPesananPage({ params }: Props) {
 
   if (hasil.status === "tidak_ada") notFound();
   if (hasil.status === "perlu_masuk") return <PerluMasuk orderNo={orderNo} />;
+  if (hasil.status === "akun_lain") {
+    const akun = await ambilAkun().catch(() => null);
+    return <AkunLain orderNo={orderNo} email={akun?.user.email ?? null} />;
+  }
 
   const { pesanan } = hasil;
 
@@ -220,9 +280,28 @@ export default async function StatusPesananPage({ params }: Props) {
         Dibuat {tanggal(pesanan.created_at)} WIB
       </p>
       {pesanan.dilihat_admin && (
-        <p className="mt-3 inline-block border border-amber-300 bg-amber-50 px-3 py-1 font-mono text-[11px] tracking-[0.16em] indent-[0.16em] text-amber-800 uppercase">
-          Dilihat sebagai admin
-        </p>
+        <div className="mt-3">
+          <p className="inline-block border border-amber-300 bg-amber-50 px-3 py-1 font-mono text-[11px] tracking-[0.16em] indent-[0.16em] text-amber-800 uppercase">
+            Dilihat sebagai admin
+          </p>
+          <p className="mt-2 text-sm text-stone-600">
+            {pesanan.account_email ? (
+              <>
+                Akun Google pemesan:{" "}
+                <span className="font-medium break-all text-ink">{pesanan.account_email}</span>
+              </>
+            ) : (
+              "Pesanan tamu, belum terhubung ke akun Google."
+            )}
+          </p>
+          {pesanan.email &&
+            pesanan.email.toLowerCase() !== pesanan.account_email?.toLowerCase() && (
+              <p className="mt-1 text-sm text-stone-600">
+                Email di formulir:{" "}
+                <span className="font-medium break-all text-ink">{pesanan.email}</span>
+              </p>
+            )}
+        </div>
       )}
 
       {batal ? (

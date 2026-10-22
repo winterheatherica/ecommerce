@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, type ReactNode } from "react";
 
 import type { RingkasanUlasan, SumberUlasan, Ulasan } from "@/app/data/produk";
 import {
@@ -16,13 +16,13 @@ import {
 const AWAL = 5;
 
 const kotakPilih =
-  "mt-1.5 border border-ink/15 bg-white px-3 py-2 text-sm text-ink outline-none transition-colors focus:border-brand-500 disabled:text-stone-400";
+  "w-full appearance-none border border-ink/15 bg-white py-2.5 pr-8 pl-3 text-[13px]/5 text-ink outline-none transition-colors hover:border-brand-400 focus:border-brand-500 disabled:text-stone-400 sm:text-sm";
 const labelPilih = "block font-mono text-[11px] tracking-[0.16em] text-stone-500 uppercase";
 
 const NAMA_SUMBER: Record<SumberUlasan, string> = {
   shopee: "Shopee",
   tokopedia: "Tokopedia",
-  web: "Pembeli website",
+  web: "Website",
 };
 
 function Bintang({ nilai }: { nilai: number }) {
@@ -56,7 +56,7 @@ function LabelSumber({ sumber }: { sumber: Ulasan["sumber"] }) {
 
   return (
     <span className="border border-brand-200 bg-brand-50 px-2 py-0.5 font-mono text-[11px] tracking-[0.14em] text-brand-700 uppercase">
-      Pembeli website
+      Dari website
     </span>
   );
 }
@@ -175,78 +175,106 @@ function Saringan({
   const sumberAda = (["shopee", "tokopedia", "web"] as const).filter((s) => (ringkasan?.[s] ?? 0) > 0);
 
   return (
-    <div className="mt-8 flex flex-wrap items-end gap-x-4 gap-y-3">
-      <label>
-        <span className={labelPilih}>Urutkan</span>
-        <select
-          value={saringan.urut}
-          disabled={memuat}
-          onChange={(e) => ubah({ ...saringan, urut: e.target.value as UrutanUlasan })}
-          className={kotakPilih}
-        >
-          {PILIHAN_URUTAN.map((p) => (
-            <option key={p.nilai} value={p.nilai}>
-              {p.label}
-            </option>
-          ))}
-        </select>
-      </label>
+    <div className="mt-8 grid grid-cols-2 gap-x-3 gap-y-4 sm:gap-x-4 lg:grid-cols-4">
+      <Pilih
+        label="Urutkan"
+        nilai={saringan.urut}
+        memuat={memuat}
+        ubah={(v) => ubah({ ...saringan, urut: v as UrutanUlasan })}
+      >
+        {PILIHAN_URUTAN.map((p) => (
+          <option key={p.nilai} value={p.nilai}>
+            {p.label}
+          </option>
+        ))}
+      </Pilih>
 
-      <label>
-        <span className={labelPilih}>Bintang</span>
-        <select
-          value={saringan.bintang ?? ""}
-          disabled={memuat}
-          onChange={(e) => ubah({ ...saringan, bintang: e.target.value ? Number(e.target.value) : null })}
-          className={kotakPilih}
-        >
-          <option value="">Semua bintang</option>
-          {([5, 4, 3, 2, 1] as const).map((b) => (
-            <option key={b} value={b}>
-              {b} bintang{ringkasan?.bintang ? ` (${angka(ringkasan.bintang[`${b}`])})` : ""}
-            </option>
-          ))}
-        </select>
-      </label>
+      <Pilih
+        label="Bintang"
+        nilai={String(saringan.bintang ?? "")}
+        memuat={memuat}
+        ubah={(v) => ubah({ ...saringan, bintang: v ? Number(v) : null })}
+      >
+        <option value="">Semua bintang</option>
+        {([5, 4, 3, 2, 1] as const).map((b) => (
+          <option key={b} value={b}>
+            {b} bintang{ringkasan?.bintang ? ` (${angka(ringkasan.bintang[`${b}`])})` : ""}
+          </option>
+        ))}
+      </Pilih>
 
       {sumberAda.length > 1 && (
-        <label>
-          <span className={labelPilih}>Sumber</span>
-          <select
-            value={saringan.sumber ?? ""}
-            disabled={memuat}
-            onChange={(e) => ubah({ ...saringan, sumber: (e.target.value || null) as SumberUlasan | null })}
-            className={kotakPilih}
-          >
-            <option value="">Semua sumber</option>
-            {sumberAda.map((s) => (
-              <option key={s} value={s}>
-                {NAMA_SUMBER[s]} ({angka(ringkasan?.[s] ?? 0)})
-              </option>
-            ))}
-          </select>
-        </label>
+        <Pilih
+          label="Sumber"
+          nilai={saringan.sumber ?? ""}
+          memuat={memuat}
+          ubah={(v) => ubah({ ...saringan, sumber: (v || null) as SumberUlasan | null })}
+        >
+          <option value="">Semua sumber</option>
+          {sumberAda.map((s) => (
+            <option key={s} value={s}>
+              {NAMA_SUMBER[s]} ({angka(ringkasan?.[s] ?? 0)})
+            </option>
+          ))}
+        </Pilih>
       )}
 
       {ukuranPilihan.length > 1 && (
-        <label>
-          <span className={labelPilih}>Ukuran</span>
-          <select
-            value={saringan.ukuran ?? ""}
-            disabled={memuat}
-            onChange={(e) => ubah({ ...saringan, ukuran: e.target.value || null })}
-            className={kotakPilih}
-          >
-            <option value="">Semua ukuran</option>
-            {ukuranPilihan.map((u) => (
-              <option key={u.slug} value={u.slug}>
-                {u.label}
-              </option>
-            ))}
-          </select>
-        </label>
+        <Pilih
+          label="Ukuran"
+          nilai={saringan.ukuran ?? ""}
+          memuat={memuat}
+          ubah={(v) => ubah({ ...saringan, ukuran: v || null })}
+        >
+          <option value="">Semua ukuran</option>
+          {ukuranPilihan.map((u) => (
+            <option key={u.slug} value={u.slug}>
+              {u.label}
+            </option>
+          ))}
+        </Pilih>
       )}
     </div>
+  );
+}
+
+function Pilih({
+  label,
+  nilai,
+  memuat,
+  ubah,
+  children,
+}: {
+  label: string;
+  nilai: string;
+  memuat: boolean;
+  ubah: (nilai: string) => void;
+  children: ReactNode;
+}) {
+  return (
+    <label className="block min-w-0">
+      <span className={labelPilih}>{label}</span>
+      <span className="relative mt-1.5 block">
+        <select
+          value={nilai}
+          disabled={memuat}
+          onChange={(e) => ubah(e.target.value)}
+          className={kotakPilih}
+        >
+          {children}
+        </select>
+        <svg
+          className="pointer-events-none absolute top-1/2 right-3 h-3.5 w-3.5 -translate-y-1/2 text-stone-400"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={1.75}
+          aria-hidden="true"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="m6 9 6 6 6-6" />
+        </svg>
+      </span>
+    </label>
   );
 }
 

@@ -15,6 +15,7 @@ function pesanan(ubah: Partial<Pesanan> = {}): Pesanan {
     id: 7,
     order_no: "MNK-482917365520",
     user_id: null,
+    account_email: null,
     customer_name: "Rafii Anindito",
     phone: "0821-1141-3740",
     email: "rafii@contoh.test",
@@ -115,11 +116,12 @@ describe("untukPublik", () => {
     });
   });
 
-  it("id pemilik dan token DOKU tidak pernah ikut keluar, bahkan untuk pemiliknya", () => {
+  it("id pemilik, email akun, dan token DOKU tidak pernah ikut keluar, bahkan untuk pemiliknya", () => {
     for (const akses of ["samar", "penuh"] as const) {
-      const hasil = untukPublik(pesanan({ user_id: 3 }), akses);
+      const hasil = untukPublik(pesanan({ user_id: 3, account_email: "rafii@gmail.test" }), akses);
 
       expect("user_id" in hasil, akses).toBe(false);
+      expect("account_email" in hasil, akses).toBe(false);
       expect("payment_reference" in hasil, akses).toBe(false);
     }
   });

@@ -40,13 +40,17 @@ export function samarkanLacak(lacak: Lacak, nama: (string | null)[]): Lacak {
   };
 }
 
-export type PesananPublik = Omit<Pesanan, "user_id" | "payment_reference" | "tracking_error"> & {
+export type PesananPublik = Omit<
+  Pesanan,
+  "user_id" | "account_email" | "payment_reference" | "tracking_error"
+> & {
   samar: boolean;
 };
 
 export function untukPublik(p: Pesanan, akses: "penuh" | "samar"): PesananPublik {
   const {
     user_id: _pemilik,
+    account_email: _akun,
     payment_reference: _referensi,
     tracking_error: _galatLacak,
     ...sisa
@@ -70,4 +74,9 @@ export function untukPublik(p: Pesanan, akses: "penuh" | "samar"): PesananPublik
 export const BADAN_PERLU_MASUK = {
   error: "login_required",
   message: "Pesanan ini terhubung ke akun. Masuk dengan akun yang dipakai waktu memesan.",
+};
+
+export const BADAN_AKUN_LAIN = {
+  error: "wrong_account",
+  message: "Pesanan ini terhubung ke akun lain. Ganti ke akun yang dipakai waktu memesan.",
 };
