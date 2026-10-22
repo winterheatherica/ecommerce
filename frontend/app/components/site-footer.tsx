@@ -30,7 +30,7 @@ const bantuan = [
   { label: "Pertanyaan Umum", href: "/faq" },
 ];
 
-const pembayaran = ["QRIS", "BCA", "BNI", "Mandiri", "OVO", "DANA"];
+const pembayaran = ["Virtual Account BNI"];
 
 export default function SiteFooter() {
   return (

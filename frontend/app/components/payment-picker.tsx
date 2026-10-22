@@ -122,6 +122,8 @@ export default function PaymentPicker({ orderNo, total }: Props) {
   }
 
   const kelompok = [...new Set(info.data.map((c) => c.group))];
+  const satu = info.data.length === 1 ? info.data[0] : null;
+  const namaSatu = satu && (satu.group === satu.name ? satu.name : `${satu.group} ${satu.name}`);
 
   return (
     <div className="mt-10">
@@ -166,8 +168,15 @@ export default function PaymentPicker({ orderNo, total }: Props) {
         {memproses ? "Menyiapkan..." : `Bayar ${rupiah(total)}`}
       </button>
       <p className="mt-3 text-xs leading-relaxed text-stone-500">
-        Kamu akan diarahkan ke halaman pembayaran DOKU dan memilih metodenya di
-        sana.
+        {satu ? (
+          <>
+            Kamu akan diarahkan ke halaman DOKU untuk membayar lewat {namaSatu}.
+            {satu.group === "Virtual Account" &&
+              " Nomor VA-nya juga bisa dibayar dari bank lain lewat transfer antarbank."}
+          </>
+        ) : (
+          "Kamu akan diarahkan ke halaman pembayaran DOKU dan memilih metodenya di sana."
+        )}
       </p>
 
       <Link

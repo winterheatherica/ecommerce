@@ -21,12 +21,7 @@ export type KabarDoku = {
 };
 
 export const METODE_BAYAR = [
-  { code: "QRIS", name: "QRIS", group: "QRIS" },
-  { code: "VIRTUAL_ACCOUNT_BCA", name: "BCA", group: "Virtual Account" },
   { code: "VIRTUAL_ACCOUNT_BNI", name: "BNI", group: "Virtual Account" },
-  { code: "VIRTUAL_ACCOUNT_BANK_MANDIRI", name: "Mandiri", group: "Virtual Account" },
-  { code: "EMONEY_OVO", name: "OVO", group: "E-wallet" },
-  { code: "EMONEY_DANA", name: "DANA", group: "E-wallet" },
 ] as const;
 
 const NAMA_METODE: Record<string, string> = {

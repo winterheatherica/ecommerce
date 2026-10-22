@@ -37,14 +37,9 @@ afterEach(() => {
 });
 
 describe("badanCheckout", () => {
-  it("hanya menawarkan enam metode yang dipasang di footer", () => {
+  it("hanya menawarkan VA BNI, satu-satunya metode yang sudah aktif di akun DOKU", () => {
     expect(badanCheckout(permintaan()).payment.payment_method_types).toEqual([
-      "QRIS",
-      "VIRTUAL_ACCOUNT_BCA",
       "VIRTUAL_ACCOUNT_BNI",
-      "VIRTUAL_ACCOUNT_BANK_MANDIRI",
-      "EMONEY_OVO",
-      "EMONEY_DANA",
     ]);
   });
 

@@ -53,7 +53,7 @@ const kelompok = [
       {
         tanya: "Metode pembayaran apa saja yang diterima?",
         jawab:
-          "Virtual account BCA dan BNI, QRIS, serta dompet digital OVO, DANA, dan ShopeePay. Semua pilihan itu muncul di halaman pembayaran setelah checkout.",
+          "Untuk sementara lewat Virtual Account BNI. Nomornya muncul di halaman pembayaran setelah checkout, dan bisa dibayar dari bank lain lewat transfer antarbank.",
       },
       {
         tanya: "Bisa bayar di tempat (COD)?",

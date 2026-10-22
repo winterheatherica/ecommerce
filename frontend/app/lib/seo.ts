@@ -86,7 +86,7 @@ export function skemaToko() {
     image: tautan(GAMBAR_BAGI),
     telephone: KONTAK.waInternasional,
     currenciesAccepted: "IDR",
-    paymentAccepted: "QRIS, Transfer Bank, E-Wallet",
+    paymentAccepted: "Virtual Account BNI",
     areaServed: { "@type": "Country", name: "Indonesia" },
     address: {
       "@type": "PostalAddress",
