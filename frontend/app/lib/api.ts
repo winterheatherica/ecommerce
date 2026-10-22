@@ -175,7 +175,7 @@ export async function ambilProduk(opsi: OpsiDaftar = {}): Promise<Produk[]> {
 
 const BATAS_HALAMAN = 100;
 
-export async function ambilSemuaProduk(): Promise<Produk[]> {
+export const ambilSemuaProduk = cache(async function ambilSemuaProduk(): Promise<Produk[]> {
   const kumpulan: Produk[] = [];
   let offset = 0;
 
@@ -202,7 +202,7 @@ export async function ambilSemuaProduk(): Promise<Produk[]> {
   }
 
   return kumpulan;
-}
+});
 
 export const ambilSatuProduk = cache(async function ambilSatuProduk(
   slug: string,

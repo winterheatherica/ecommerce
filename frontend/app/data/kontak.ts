@@ -8,9 +8,9 @@ export const ALAMAT = {
 } as const;
 
 export const KONTAK = {
-  waNomor: "62816638543",
-  waTampil: "0816-638-543",
-  waInternasional: "+62 816-638-543",
+  waNomor: "6281317244671",
+  waTampil: "0813-1724-4671",
+  waInternasional: "+62 813-1724-4671",
   alamat: ALAMAT,
   alamatBaris: [
     ALAMAT.jalan,

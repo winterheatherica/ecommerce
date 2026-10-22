@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 
+import type { GambarBagi } from "@/app/data/gambar";
 import { INSTAGRAM_URL, KONTAK, WA_URL } from "@/app/data/kontak";
 import { kategoriJudul, type Produk } from "@/app/data/produk";
 
@@ -41,13 +42,13 @@ type OpsiMeta = {
   ringkasan: string;
   path: string;
   judulUtuh?: string;
-  gambar?: string;
+  gambar?: GambarBagi;
   indeks?: boolean;
 };
 
 export function metaHalaman(o: OpsiMeta): Metadata {
   const utuh = o.judulUtuh ?? `${o.judul} | ${NAMA_SITUS}`;
-  const gambar = o.gambar ?? GAMBAR_BAGI;
+  const gambar = o.gambar ?? { url: GAMBAR_BAGI, lebar: 1200, tinggi: 630 };
   const ringkasan = potong(o.ringkasan);
 
   return {
@@ -61,13 +62,13 @@ export function metaHalaman(o: OpsiMeta): Metadata {
       url: o.path,
       title: utuh,
       description: ringkasan,
-      images: [{ url: gambar, width: 1200, height: 630, alt: utuh }],
+      images: [{ url: gambar.url, width: gambar.lebar, height: gambar.tinggi, alt: utuh }],
     },
     twitter: {
       card: "summary_large_image",
       title: utuh,
       description: ringkasan,
-      images: [gambar],
+      images: [gambar.url],
     },
     ...(o.indeks === false
       ? { robots: { index: false, follow: false } }

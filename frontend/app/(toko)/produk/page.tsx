@@ -3,6 +3,7 @@ import { Suspense } from "react";
 
 import JsonLd from "@/app/components/json-ld";
 import ProductCatalog from "@/app/components/product-catalog";
+import { gambarBagiProduk } from "@/app/data/gambar";
 import { ambilSemuaProduk } from "@/app/lib/api";
 import {
   GRUP,
@@ -12,6 +13,7 @@ import {
   kategoriJudulSeo,
   kategoriRingkasan,
   kategoriSah,
+  type Produk,
 } from "@/app/data/produk";
 import { metaHalaman, skemaDaftarProduk, skemaRemah } from "@/app/lib/seo";
 
@@ -36,16 +38,32 @@ function jalan(kategori: string, grup: string): string {
   return "/produk";
 }
 
+function saring(produk: Produk[], kategori: string, grup: string): Produk[] {
+  if (kategori) return produk.filter((p) => p.kategori === kategori);
+  if (grup) return produk.filter((p) => grupDariKategori(p.kategori) === grup);
+  return produk;
+}
+
+function gambarTerlaris(produk: Produk[]) {
+  return [...produk]
+    .sort((a, b) => b.terjualPerBulan - a.terjualPerBulan)
+    .map(gambarBagiProduk)
+    .find(Boolean);
+}
+
 export async function generateMetadata({
   searchParams,
 }: Props): Promise<Metadata> {
   const { kategori, grup } = baca(await searchParams);
+  const produk = await ambilSemuaProduk().catch(() => []);
+  const gambar = gambarTerlaris(saring(produk, kategori, grup));
 
   if (kategori) {
     return metaHalaman({
       judul: kategoriJudulSeo[kategori],
       ringkasan: kategoriRingkasan[kategori],
       path: jalan(kategori, ""),
+      gambar,
     });
   }
 
@@ -54,6 +72,7 @@ export async function generateMetadata({
       judul: GRUP[grup].judul,
       ringkasan: GRUP[grup].ringkasan,
       path: jalan("", grup),
+      gambar,
     });
   }
 
@@ -61,6 +80,7 @@ export async function generateMetadata({
     judul: JUDUL_SEMUA,
     ringkasan: RINGKASAN_SEMUA,
     path: "/produk",
+    gambar,
   });
 }
 
@@ -100,12 +120,7 @@ async function IsiKatalog({
 }) {
   const { kategori, grup } = baca(q);
   const produk = await ambilSemuaProduk();
-
-  const tampil = kategori
-    ? produk.filter((p) => p.kategori === kategori)
-    : grup
-      ? produk.filter((p) => grupDariKategori(p.kategori) === grup)
-      : produk;
+  const tampil = saring(produk, kategori, grup);
 
   const judul = kategori
     ? kategoriJudul[kategori]
