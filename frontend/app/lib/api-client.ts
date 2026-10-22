@@ -369,6 +369,15 @@ export async function sapuPesanan(): Promise<number> {
   return isi.swept;
 }
 
+export async function kirimEmailUji(): Promise<string[]> {
+  const res = await fetch("/api/admin/notifications/test", { method: "POST" });
+
+  await pastikanOk(res);
+
+  const isi = (await res.json()) as { recipients: string[] };
+  return isi.recipients;
+}
+
 export type UlasanImporBaru = {
   source: "shopee" | "tokopedia";
   rating: number;

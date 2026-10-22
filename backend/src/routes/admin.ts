@@ -34,6 +34,7 @@ import {
 import { segarkanLacak } from "../db/lacak";
 import { QUERY_ULASAN } from "./products";
 import type { StatusPesanan } from "../lib/orders";
+import { bacaKonfigEmail, emailUji, kirimEmail, samarkanEmail } from "../lib/notifikasi";
 
 const STATUS = [
   "PENDING",
@@ -278,6 +279,31 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
     } finally {
       await tutup(sql);
     }
+  })
+  .get("/notifications", () => {
+    const surel = bacaKonfigEmail(env as unknown as Record<string, unknown>);
+
+    return {
+      active: Boolean(surel),
+      recipients: surel ? surel.ke.map(samarkanEmail) : [],
+    };
+  })
+  .post("/notifications/test", async ({ set }) => {
+    const surel = bacaKonfigEmail(env as unknown as Record<string, unknown>);
+
+    if (!surel) {
+      set.status = 503;
+      return { error: "email_unconfigured", message: "Notifikasi email belum disetel" };
+    }
+
+    const hasil = await kirimEmail(surel, emailUji(surel.toko));
+
+    if (!hasil.ok) {
+      set.status = 502;
+      return { error: "email_failed", message: `Email gagal dikirim: ${hasil.pesan}` };
+    }
+
+    return { sent: true, recipients: surel.ke.map(samarkanEmail) };
   })
   .get(
     "/products",

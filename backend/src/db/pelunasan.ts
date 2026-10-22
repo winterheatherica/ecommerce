@@ -1,5 +1,6 @@
 import type { Sql } from "../lib/db";
 import { namaMetode, type KabarDoku, type KonfigDoku } from "../lib/doku";
+import { emailPerluDicek, emailPesananDibayar, type IsiEmail } from "../lib/notifikasi";
 import { cekStatusBayar } from "../lib/payment";
 import {
   ambilPesanan,
@@ -12,7 +13,7 @@ export type HasilKabar =
   | { jenis: "lunas"; nomor: string; baru: boolean }
   | { jenis: "kedaluwarsa"; nomor: string }
   | { jenis: "diabaikan"; nomor: string | null; status: string | null }
-  | { jenis: "nominal_beda"; nomor: string }
+  | { jenis: "nominal_beda"; nomor: string; dibayar: number | null; total: number }
   | { jenis: "gagal_tandai"; nomor: string; alasan: string };
 
 export async function terapkanKabarDoku(sql: Sql, isi: KabarDoku): Promise<HasilKabar> {
@@ -37,7 +38,13 @@ export async function terapkanKabarDoku(sql: Sql, isi: KabarDoku): Promise<Hasil
       doku: isi.order?.amount,
       pesanan: pesanan.total,
     });
-    return { jenis: "nominal_beda", nomor };
+    const dibayar = Number(isi.order?.amount);
+    return {
+      jenis: "nominal_beda",
+      nomor,
+      dibayar: Number.isFinite(dibayar) ? dibayar : null,
+      total: pesanan.total,
+    };
   }
 
   const hasil = await tandaiTerbayar(
@@ -57,6 +64,35 @@ export async function terapkanKabarDoku(sql: Sql, isi: KabarDoku): Promise<Hasil
   }
 
   return { jenis: "lunas", nomor, baru: !hasil.sudahPernah };
+}
+
+export async function isiKabarPelunasan(
+  sql: Sql,
+  hasil: HasilKabar,
+  toko: string,
+): Promise<IsiEmail | null> {
+  if (hasil.jenis === "lunas") {
+    if (!hasil.baru) return null;
+    const pesanan = await ambilPesanan(sql, hasil.nomor);
+    return pesanan ? emailPesananDibayar(pesanan, toko) : null;
+  }
+
+  if (hasil.jenis === "nominal_beda") {
+    return emailPerluDicek(
+      { jenis: "nominal_beda", nomor: hasil.nomor, dibayar: hasil.dibayar, total: hasil.total },
+      toko,
+    );
+  }
+
+  if (hasil.jenis === "gagal_tandai") {
+    const pesanan = await ambilPesanan(sql, hasil.nomor);
+    return emailPerluDicek(
+      { jenis: "gagal_tandai", nomor: hasil.nomor, status: pesanan?.status ?? null },
+      toko,
+    );
+  }
+
+  return null;
 }
 
 export type CekStatus = typeof cekStatusBayar;

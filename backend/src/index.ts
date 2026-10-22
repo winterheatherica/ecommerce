@@ -14,7 +14,8 @@ import { buatKoneksi, tutup } from "./lib/db";
 import { bacaKonfig } from "./lib/doku";
 import { bacaKonfigTurnstile } from "./lib/turnstile";
 import { sapuKedaluwarsa } from "./db/pesanan";
-import { periksaTertundaKeDoku } from "./db/pelunasan";
+import { isiKabarPelunasan, periksaTertundaKeDoku } from "./db/pelunasan";
+import { bacaKonfigEmail, kirimEmail } from "./lib/notifikasi";
 import { sapuSesi } from "./db/akun";
 import { sapuSesiAdmin } from "./db/admin";
 import { sapuPeristiwaWebhook } from "./db/webhook";
@@ -104,11 +105,19 @@ async function sapuTerjadwal(): Promise<void> {
 
   if (konfig) {
     try {
-      const berubah = (await periksaTertundaKeDoku(sql, konfig)).filter(
-        (h) => h.jenis === "lunas" || h.jenis === "kedaluwarsa",
-      );
+      const semua = await periksaTertundaKeDoku(sql, konfig);
+      const berubah = semua.filter((h) => h.jenis === "lunas" || h.jenis === "kedaluwarsa");
 
       if (berubah.length > 0) console.log("[cron] status dari DOKU diterapkan", berubah);
+
+      const surel = bacaKonfigEmail(wadah);
+
+      if (surel) {
+        for (const hasil of semua) {
+          const kabar = await isiKabarPelunasan(sql, hasil, surel.toko);
+          if (kabar) await kirimEmail(surel, kabar);
+        }
+      }
     } catch (e) {
       console.error("[cron] gagal mencocokkan pembayaran dengan DOKU", e);
     }

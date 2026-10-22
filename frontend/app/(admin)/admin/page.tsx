@@ -1,16 +1,18 @@
+import AdminEmailNotif from "@/app/components/admin-email-notif";
 import AdminSweepButton from "@/app/components/admin-sweep-button";
 import Link from "next/link";
 import { namaDenganUkuran, rupiah } from "@/app/data/produk";
 import { statusLabel, statusWarna } from "@/app/data/status-pesanan";
-import { ambilDaftarPesanan, ambilProdukAdmin } from "@/app/lib/api";
+import { ambilDaftarPesanan, ambilProdukAdmin, ambilStatusNotifikasi } from "@/app/lib/api";
 
 const AMBANG_STOK_MENIPIS = 10;
 const TAMPIL_STOK = 12;
 
 export default async function AdminRingkasanPage() {
-  const [daftarProduk, daftarPesanan] = await Promise.all([
+  const [daftarProduk, daftarPesanan, notifikasi] = await Promise.all([
     ambilProdukAdmin(),
     ambilDaftarPesanan(),
+    ambilStatusNotifikasi().catch(() => null),
   ]);
 
   const perluDikirim = daftarPesanan.filter((p) => p.status === "PAID");
@@ -131,6 +133,7 @@ export default async function AdminRingkasanPage() {
       </div>
 
       <AdminSweepButton />
+      <AdminEmailNotif status={notifikasi} />
 
       {menungguBayar.length > 0 && (
         <p className="mt-6 text-sm text-stone-500">

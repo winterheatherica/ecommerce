@@ -16,6 +16,7 @@
       "simple": { "limit": 5, "period": 60 }
     }
   ],
+  "send_email": [{ "name": "EMAIL" }],
   "workers_dev": false,
   "routes": [
     { "pattern": "api.menikstore.my.id", "custom_domain": true }
@@ -31,7 +32,8 @@
     "RAJAONGKIR_JATAH_HARIAN": "80",
     "RAJAONGKIR_JATAH_PER_IP": "30",
     "RAJAONGKIR_JATAH_LACAK": "20",
-    "MAKS_PESANAN_PER_IP": "10"
+    "MAKS_PESANAN_PER_IP": "10",
+    "EMAIL_PENGIRIM": "notifikasi@menikstore.my.id"
   },
   "triggers": {
     "crons": ["*/15 * * * *"]

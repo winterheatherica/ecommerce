@@ -354,6 +354,18 @@ export async function ambilDaftarPesanan(
   return isi.data;
 }
 
+export type StatusNotifikasi = { active: boolean; recipients: string[] };
+
+export async function ambilStatusNotifikasi(): Promise<StatusNotifikasi> {
+  const res = await ambilAdmin(`${basis()}/api/admin/notifications`);
+
+  if (!res.ok) {
+    throw new Error(`Gagal mengambil status notifikasi (${res.status})`);
+  }
+
+  return (await res.json()) as StatusNotifikasi;
+}
+
 const BATAS_ADMIN = 200;
 
 export async function ambilProdukAdmin(): Promise<Produk[]> {

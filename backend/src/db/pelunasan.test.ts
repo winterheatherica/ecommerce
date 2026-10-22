@@ -5,6 +5,7 @@ import type { KabarDoku, KonfigDoku } from "../lib/doku";
 import type { OpsiOngkir } from "../lib/shipping";
 import { bersihkan, koneksiTes } from "../test/db";
 import {
+  isiKabarPelunasan,
   periksaKeDoku,
   periksaTertundaKeDoku,
   terapkanKabarDoku,
@@ -273,5 +274,55 @@ describe("periksaTertundaKeDoku", () => {
     const pesanan = await ambilPesanan(sql, nomor);
     expect(pesanan?.status).toBe("PAID");
     expect(pesanan?.payment_method).toBe("QRIS");
+  });
+});
+
+describe("isiKabarPelunasan", () => {
+  const TOKO = "https://menikstore.my.id";
+
+  it("pembayaran yang baru tercatat menghasilkan email pesanan dibayar", async () => {
+    const nomor = await buat();
+
+    const isi = await isiKabarPelunasan(sql, await terapkanKabarDoku(sql, kabar(nomor, "SUCCESS")), TOKO);
+
+    expect(isi?.subjek).toBe(`Pesanan dibayar: ${nomor} (Rp58.000)`);
+    expect(isi?.teks).toContain("Rina Kartika");
+    expect(isi?.teks).toContain("lewat BCA Virtual Account");
+  });
+
+  it("kabar ulang untuk pesanan yang sudah lunas tidak mengirim email lagi", async () => {
+    const nomor = await buat();
+    await terapkanKabarDoku(sql, kabar(nomor, "SUCCESS"));
+
+    const kedua = await terapkanKabarDoku(sql, kabar(nomor, "SUCCESS"));
+
+    expect(await isiKabarPelunasan(sql, kedua, TOKO)).toBeNull();
+  });
+
+  it("nominal yang beda menghasilkan email perlu dicek berisi kedua angkanya", async () => {
+    const nomor = await buat();
+
+    const isi = await isiKabarPelunasan(sql, await terapkanKabarDoku(sql, kabar(nomor, "SUCCESS", 50000)), TOKO);
+
+    expect(isi?.subjek).toBe(`Perlu dicek: pembayaran ${nomor} tidak tercatat otomatis`);
+    expect(isi?.teks).toContain("sebesar Rp50.000, padahal total pesanannya Rp58.000");
+  });
+
+  it("uang masuk untuk pesanan yang sudah kedaluwarsa menghasilkan email perlu dicek", async () => {
+    const nomor = await buat();
+    await lewatkanBatas(nomor);
+    await cariPesanan(sql, nomor);
+
+    const isi = await isiKabarPelunasan(sql, await terapkanKabarDoku(sql, kabar(nomor, "SUCCESS")), TOKO);
+
+    expect(isi?.teks).toContain("pesanannya sudah kedaluwarsa");
+  });
+
+  it("kabar yang diabaikan atau kedaluwarsa tidak menghasilkan email", async () => {
+    const nomor = await buat();
+
+    for (const s of ["PENDING", "EXPIRED"]) {
+      expect(await isiKabarPelunasan(sql, await terapkanKabarDoku(sql, kabar(nomor, s)), TOKO)).toBeNull();
+    }
   });
 });

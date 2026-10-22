@@ -1,10 +1,11 @@
-import { env } from "cloudflare:workers";
+import { env, waitUntil } from "cloudflare:workers";
 import { Elysia, t } from "elysia";
 
 import { alamatToko, asalApi } from "../lib/alamat";
 import { buatKoneksi, tutup } from "../lib/db";
 import { ambilPesanan, buatPesanan, cariPesanan, simpanPembayaran } from "../db/pesanan";
-import { periksaKeDoku } from "../db/pelunasan";
+import { isiKabarPelunasan, periksaKeDoku } from "../db/pelunasan";
+import { bacaKonfigEmail, kirimEmail } from "../lib/notifikasi";
 import { segarkanLacak } from "../db/lacak";
 import {
   pesananBisaDiulas,
@@ -349,7 +350,10 @@ export const orderRoutes = new Elysia({ prefix: "/api/orders" })
           sebelum.payment_channel === "DOKU" &&
           sebelum.payment_url
         ) {
-          await periksaKeDoku(sql, konfig, sebelum.order_no);
+          const hasil = await periksaKeDoku(sql, konfig, sebelum.order_no);
+          const surel = hasil ? bacaKonfigEmail(wadah) : undefined;
+          const kabar = surel && hasil && (await isiKabarPelunasan(sql, hasil, surel.toko));
+          if (surel && kabar) waitUntil(kirimEmail(surel, kabar));
         }
 
         const sesudah = (await cariPesanan(sql, sebelum.order_no)) ?? sebelum;
