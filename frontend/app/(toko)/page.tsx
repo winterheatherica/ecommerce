@@ -37,13 +37,13 @@ export default async function Home() {
 
         <div className="absolute inset-y-0 left-0 hidden w-[56%] bg-brand-600 lg:block" />
 
-        <div className="relative z-10 mx-auto flex h-full max-w-6xl flex-col justify-center px-6">
-          <div className="max-w-xl lg:max-w-lg">
-            <p className="font-mono text-[11px] tracking-[0.28em] text-brand-600 uppercase lg:text-brand-200">
+        <div className="relative z-10 mx-auto flex h-full max-w-6xl flex-col justify-center px-6 lg:pt-[4.5rem]">
+          <div className="max-w-xl lg:max-w-lg xl:max-w-[38rem]">
+            <p className="font-mono text-[11px] tracking-[0.28em] text-brand-600 uppercase lg:text-brand-200 xl:text-[13px]">
               Pengusir hama alami
             </p>
 
-            <h1 className="mt-6 text-5xl leading-[1.05] font-semibold tracking-tight text-ink sm:text-7xl lg:text-white">
+            <h1 className="mt-6 text-5xl leading-[1.05] font-semibold tracking-tight text-ink sm:text-7xl lg:text-white xl:text-[length:clamp(4.5rem,12svh,5.5rem)] xl:whitespace-nowrap">
               Rumah bersih,
               <br />
               <span className="text-brand-600 lg:text-brand-200">
@@ -59,19 +59,19 @@ export default async function Home() {
             <div className="mt-10 flex flex-wrap items-center gap-x-8 gap-y-4">
               <a
                 href="#produk"
-                className="border border-ink px-8 py-3.5 font-mono text-[11px] tracking-[0.22em] indent-[0.22em] text-ink uppercase transition-colors hover:bg-ink hover:text-white lg:border-white lg:text-white lg:hover:bg-white lg:hover:text-brand-700"
+                className="border border-ink px-8 py-3.5 font-mono text-[11px] tracking-[0.22em] indent-[0.22em] text-ink uppercase transition-colors hover:bg-ink hover:text-white lg:border-white lg:text-white lg:hover:bg-white lg:hover:text-brand-700 xl:px-10 xl:py-4 xl:text-[13px]"
               >
                 Lihat Produk
               </a>
               <a
                 href="#kontak"
-                className="font-mono text-[11px] tracking-[0.22em] text-stone-600 uppercase transition-colors hover:text-brand-600 lg:text-white/80 lg:hover:text-white"
+                className="font-mono text-[11px] tracking-[0.22em] text-stone-600 uppercase transition-colors hover:text-brand-600 lg:text-white/80 lg:hover:text-white xl:text-[13px]"
               >
                 Chat WhatsApp &rarr;
               </a>
             </div>
 
-            <div className="mt-14 space-y-2 font-mono text-[11px] tracking-[0.18em] text-stone-500 uppercase lg:text-white/65">
+            <div className="mt-14 space-y-2 font-mono text-[11px] tracking-[0.18em] text-stone-500 uppercase lg:text-white/65 xl:text-[13px]">
               <p>Berbahan dasar alami</p>
               <p>Mengusir, bukan membunuh</p>
             </div>
