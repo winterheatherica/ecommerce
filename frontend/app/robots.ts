@@ -2,6 +2,8 @@ import type { MetadataRoute } from "next";
 
 import { bolehDiindeks, tautan } from "@/app/lib/seo";
 
+export const dynamic = "force-dynamic";
+
 export default function robots(): MetadataRoute.Robots {
   if (!bolehDiindeks()) {
     return { rules: { userAgent: "*", disallow: "/" } };

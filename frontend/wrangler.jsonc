@@ -15,7 +15,8 @@
   ],
   "vars": {
     "API_URL": "https://api.menikstore.my.id",
-    "SITE_URL": "https://menikstore.my.id"
+    "SITE_URL": "https://menikstore.my.id",
+    "SIAP_DIINDEKS": "true"
   },
   "observability": {
     "enabled": true
