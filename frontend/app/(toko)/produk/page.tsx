@@ -3,7 +3,6 @@ import { Suspense } from "react";
 
 import JsonLd from "@/app/components/json-ld";
 import ProductCatalog from "@/app/components/product-catalog";
-import { gambarBagiProduk } from "@/app/data/gambar";
 import { ambilSemuaProduk } from "@/app/lib/api";
 import {
   GRUP,
@@ -44,26 +43,16 @@ function saring(produk: Produk[], kategori: string, grup: string): Produk[] {
   return produk;
 }
 
-function gambarTerlaris(produk: Produk[]) {
-  return [...produk]
-    .sort((a, b) => b.terjualPerBulan - a.terjualPerBulan)
-    .map(gambarBagiProduk)
-    .find(Boolean);
-}
-
 export async function generateMetadata({
   searchParams,
 }: Props): Promise<Metadata> {
   const { kategori, grup } = baca(await searchParams);
-  const produk = await ambilSemuaProduk().catch(() => []);
-  const gambar = gambarTerlaris(saring(produk, kategori, grup));
 
   if (kategori) {
     return metaHalaman({
       judul: kategoriJudulSeo[kategori],
       ringkasan: kategoriRingkasan[kategori],
       path: jalan(kategori, ""),
-      gambar,
     });
   }
 
@@ -72,7 +61,6 @@ export async function generateMetadata({
       judul: GRUP[grup].judul,
       ringkasan: GRUP[grup].ringkasan,
       path: jalan("", grup),
-      gambar,
     });
   }
 
@@ -80,7 +68,6 @@ export async function generateMetadata({
     judul: JUDUL_SEMUA,
     ringkasan: RINGKASAN_SEMUA,
     path: "/produk",
-    gambar,
   });
 }
 

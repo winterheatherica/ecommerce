@@ -6,7 +6,7 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 
 import JsonLd from "@/app/components/json-ld";
-import { gambarBagiProduk } from "@/app/data/gambar";
+import { PUNYA_GAMBAR, urlGambarBagi } from "@/app/data/gambar";
 import ProductBuyBox from "@/app/components/product-buy-box";
 import ProductCard from "@/app/components/product-card";
 import ProductReviews from "@/app/components/product-reviews";
@@ -45,7 +45,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     judul: produk.nama,
     ringkasan: `${harga}. ${ringkasan}`,
     path: `/produk/${produk.slug}`,
-    gambar: gambarBagiProduk(produk),
+    gambar: PUNYA_GAMBAR.has(produk.slug)
+      ? { url: urlGambarBagi(produk.slug), lebar: 1200, tinggi: 630 }
+      : undefined,
   });
 }
 

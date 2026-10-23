@@ -11,6 +11,8 @@ export const RINGKASAN =
 
 export const GAMBAR_BAGI = "/og.jpg";
 
+export const GAMBAR_BAGI_PERSEGI = "/og-persegi.jpg";
+
 const CADANGAN_URL = "https://menikstore.my.id";
 
 export function situsUrl(): string {
@@ -84,7 +86,7 @@ export function skemaToko() {
     name: NAMA_SITUS,
     description: RINGKASAN,
     url: tautan("/"),
-    image: tautan(GAMBAR_BAGI),
+    image: tautan(GAMBAR_BAGI_PERSEGI),
     telephone: KONTAK.waInternasional,
     currenciesAccepted: "IDR",
     paymentAccepted: "Virtual Account BNI",

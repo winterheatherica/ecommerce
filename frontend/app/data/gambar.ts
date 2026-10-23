@@ -1,5 +1,3 @@
-import type { Produk } from "@/app/data/produk";
-
 const CLOUD = "dokzc5ogk";
 const FOLDER = "menik-store/produk";
 
@@ -9,21 +7,8 @@ export function urlGambar(slug: string): string {
 
 export type GambarBagi = { url: string; lebar: number; tinggi: number };
 
-const SISI_BAGI = 1200;
-
-export function gambarBagiProduk(p: Produk): GambarBagi | undefined {
-  const slug = PUNYA_GAMBAR.has(p.slug)
-    ? p.slug
-    : (p.varian.find((v) => v.aktif !== false && PUNYA_GAMBAR.has(v.slug)) ??
-        p.varian.find((v) => PUNYA_GAMBAR.has(v.slug)))?.slug;
-
-  if (!slug) return undefined;
-
-  return {
-    url: `https://res.cloudinary.com/${CLOUD}/image/upload/f_jpg,q_auto,c_pad,w_${SISI_BAGI},h_${SISI_BAGI},b_auto/${FOLDER}/${slug}`,
-    lebar: SISI_BAGI,
-    tinggi: SISI_BAGI,
-  };
+export function urlGambarBagi(slug: string): string {
+  return `https://res.cloudinary.com/${CLOUD}/image/upload/f_jpg,q_auto,c_pad,w_1200,h_630,b_auto/${FOLDER}/${slug}`;
 }
 
 export const PUNYA_GAMBAR = new Set<string>([
