@@ -9,9 +9,11 @@ export const NAMA_SITUS = "Menik Store";
 export const RINGKASAN =
   "Pengusir hama berbahan dasar alami. Bekerja dengan aroma yang dihindari hama, bukan dengan racun.";
 
-export const GAMBAR_BAGI = "/og.jpg";
+export const GAMBAR_BAGI: GambarBagi = { url: "/og-persegi.jpg", lebar: 1200, tinggi: 1200 };
 
-export const GAMBAR_BAGI_PERSEGI = "/og-persegi.jpg";
+export function jenisKartu(g: GambarBagi): "summary" | "summary_large_image" {
+  return g.lebar > g.tinggi ? "summary_large_image" : "summary";
+}
 
 const CADANGAN_URL = "https://menikstore.my.id";
 
@@ -50,7 +52,7 @@ type OpsiMeta = {
 
 export function metaHalaman(o: OpsiMeta): Metadata {
   const utuh = o.judulUtuh ?? `${o.judul} | ${NAMA_SITUS}`;
-  const gambar = o.gambar ?? { url: GAMBAR_BAGI, lebar: 1200, tinggi: 630 };
+  const gambar = o.gambar ?? GAMBAR_BAGI;
   const ringkasan = potong(o.ringkasan);
 
   return {
@@ -67,7 +69,7 @@ export function metaHalaman(o: OpsiMeta): Metadata {
       images: [{ url: gambar.url, width: gambar.lebar, height: gambar.tinggi, alt: utuh }],
     },
     twitter: {
-      card: "summary_large_image",
+      card: jenisKartu(gambar),
       title: utuh,
       description: ringkasan,
       images: [gambar.url],
@@ -86,7 +88,7 @@ export function skemaToko() {
     name: NAMA_SITUS,
     description: RINGKASAN,
     url: tautan("/"),
-    image: tautan(GAMBAR_BAGI_PERSEGI),
+    image: tautan(GAMBAR_BAGI.url),
     telephone: KONTAK.waInternasional,
     currenciesAccepted: "IDR",
     paymentAccepted: "Virtual Account BNI",

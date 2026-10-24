@@ -7,6 +7,7 @@ import {
   NAMA_SITUS,
   RINGKASAN,
   bolehDiindeks,
+  jenisKartu,
   situsUrl,
 } from "@/app/lib/seo";
 
@@ -51,14 +52,14 @@ export async function generateMetadata(): Promise<Metadata> {
       title: JUDUL_BAWAAN,
       description: RINGKASAN,
       images: [
-        { url: GAMBAR_BAGI, width: 1200, height: 630, alt: JUDUL_BAWAAN },
+        { url: GAMBAR_BAGI.url, width: GAMBAR_BAGI.lebar, height: GAMBAR_BAGI.tinggi, alt: JUDUL_BAWAAN },
       ],
     },
     twitter: {
-      card: "summary_large_image",
+      card: jenisKartu(GAMBAR_BAGI),
       title: JUDUL_BAWAAN,
       description: RINGKASAN,
-      images: [GAMBAR_BAGI],
+      images: [GAMBAR_BAGI.url],
     },
     robots: terbuka
       ? {

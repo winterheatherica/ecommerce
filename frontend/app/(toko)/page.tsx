@@ -4,7 +4,7 @@ import ProblemPicker from "@/app/components/problem-picker";
 import FeaturedProducts from "@/app/components/featured-products";
 import JsonLd from "@/app/components/json-ld";
 import { ambilSemuaProduk } from "@/app/lib/api";
-import { GAMBAR_BAGI_PERSEGI, NAMA_SITUS, RINGKASAN, metaHalaman, skemaToko } from "@/app/lib/seo";
+import { NAMA_SITUS, RINGKASAN, metaHalaman, skemaToko } from "@/app/lib/seo";
 
 export function generateMetadata(): Metadata {
   return metaHalaman({
@@ -12,7 +12,6 @@ export function generateMetadata(): Metadata {
     judulUtuh: `${NAMA_SITUS} | Pengusir Hama Berbahan Dasar Alami`,
     ringkasan: RINGKASAN,
     path: "/",
-    gambar: { url: GAMBAR_BAGI_PERSEGI, lebar: 1200, tinggi: 1200 },
   });
 }
 
