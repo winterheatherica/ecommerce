@@ -18,7 +18,7 @@ export default function AdminSweepButton() {
       const jumlah = await sapuPesanan();
       setPesan(
         jumlah === 0
-          ? "Tidak ada pesanan yang kedaluwarsa."
+          ? "Tidak ada pesanan yang perlu dibatalkan sekarang. Yang sudah lewat batas waktu sudah dibatalkan otomatis."
           : `${jumlah} pesanan dibatalkan, stoknya dikembalikan.`,
       );
       router.refresh();
