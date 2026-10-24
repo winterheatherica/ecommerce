@@ -24,7 +24,6 @@ import {
   batalkanPesanan,
   cariPesanan,
   daftarPesanan,
-  sapuKedaluwarsa,
   tandaiDikirim,
   tandaiSelesai,
   tandaiTerbayar,
@@ -266,20 +265,6 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
       body: t.Object({ method: t.String({ minLength: 2, maxLength: 40 }) }),
     },
   )
-  .post("/orders/sweep", async () => {
-    const sql = koneksi();
-
-    try {
-      const disapu = await sapuKedaluwarsa(sql);
-
-      return {
-        swept: disapu.length,
-        order_nos: disapu,
-      };
-    } finally {
-      await tutup(sql);
-    }
-  })
   .get("/notifications", () => {
     const surel = bacaKonfigEmail(env as unknown as Record<string, unknown>);
 

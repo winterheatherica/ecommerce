@@ -1,5 +1,4 @@
 import AdminEmailNotif from "@/app/components/admin-email-notif";
-import AdminSweepButton from "@/app/components/admin-sweep-button";
 import Link from "next/link";
 import { namaDenganUkuran, rupiah } from "@/app/data/produk";
 import { statusLabel, statusWarna } from "@/app/data/status-pesanan";
@@ -132,15 +131,14 @@ export default async function AdminRingkasanPage() {
         </ul>
       </div>
 
-      <AdminSweepButton />
-      <AdminEmailNotif status={notifikasi} />
-
       {menungguBayar.length > 0 && (
         <p className="mt-6 text-sm text-stone-500">
           {menungguBayar.length} pesanan masih menunggu pembayaran. Biarkan
           saja, nanti kedaluwarsa sendiri.
         </p>
       )}
+
+      <AdminEmailNotif status={notifikasi} />
     </div>
   );
 }

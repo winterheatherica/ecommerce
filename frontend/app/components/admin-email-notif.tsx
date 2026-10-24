@@ -29,7 +29,7 @@ export default function AdminEmailNotif({ status }: { status: StatusNotifikasi |
   };
 
   return (
-    <div className="mt-6 border border-ink/10 bg-white p-6">
+    <div className="mt-10 border border-ink/10 bg-white p-6">
       <h2 className="text-sm font-medium text-ink">Notifikasi email</h2>
       <p className="mt-2 max-w-lg text-sm leading-relaxed text-stone-500">
         {status === null

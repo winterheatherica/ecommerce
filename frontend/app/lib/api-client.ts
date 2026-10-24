@@ -360,15 +360,6 @@ export async function simpanProduk(
   await pastikanOk(res);
 }
 
-export async function sapuPesanan(): Promise<number> {
-  const res = await fetch("/api/admin/orders/sweep", { method: "POST" });
-
-  await pastikanOk(res);
-
-  const isi = (await res.json()) as { swept: number };
-  return isi.swept;
-}
-
 export async function kirimEmailUji(): Promise<string[]> {
   const res = await fetch("/api/admin/notifications/test", { method: "POST" });
 
