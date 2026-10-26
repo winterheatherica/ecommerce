@@ -22,13 +22,32 @@ export type KabarDoku = {
 
 export const METODE_BAYAR = [
   { code: "VIRTUAL_ACCOUNT_BNI", name: "BNI", group: "Virtual Account" },
+  { code: "VIRTUAL_ACCOUNT_BRI", name: "BRI", group: "Virtual Account" },
+  { code: "VIRTUAL_ACCOUNT_BANK_MANDIRI", name: "Mandiri", group: "Virtual Account" },
+  { code: "VIRTUAL_ACCOUNT_BANK_SYARIAH_MANDIRI", name: "BSI", group: "Virtual Account" },
+  { code: "VIRTUAL_ACCOUNT_BANK_CIMB", name: "CIMB Niaga", group: "Virtual Account" },
+  { code: "VIRTUAL_ACCOUNT_BANK_PERMATA", name: "Permata", group: "Virtual Account" },
+  { code: "VIRTUAL_ACCOUNT_BANK_DANAMON", name: "Danamon", group: "Virtual Account" },
+  { code: "VIRTUAL_ACCOUNT_BTN", name: "BTN", group: "Virtual Account" },
+  { code: "VIRTUAL_ACCOUNT_DOKU", name: "DOKU", group: "Virtual Account" },
+  { code: "ONLINE_TO_OFFLINE_INDOMARET", name: "Indomaret", group: "Minimarket" },
+  { code: "ONLINE_TO_OFFLINE_ALFA", name: "Alfamart", group: "Minimarket" },
 ] as const;
 
 const NAMA_METODE: Record<string, string> = {
   QRIS: "QRIS",
   VIRTUAL_ACCOUNT_BCA: "BCA Virtual Account",
   VIRTUAL_ACCOUNT_BNI: "BNI Virtual Account",
+  VIRTUAL_ACCOUNT_BRI: "BRI Virtual Account",
   VIRTUAL_ACCOUNT_BANK_MANDIRI: "Mandiri Virtual Account",
+  VIRTUAL_ACCOUNT_BANK_SYARIAH_MANDIRI: "BSI Virtual Account",
+  VIRTUAL_ACCOUNT_BANK_CIMB: "CIMB Niaga Virtual Account",
+  VIRTUAL_ACCOUNT_BANK_PERMATA: "Permata Virtual Account",
+  VIRTUAL_ACCOUNT_BANK_DANAMON: "Danamon Virtual Account",
+  VIRTUAL_ACCOUNT_BTN: "BTN Virtual Account",
+  VIRTUAL_ACCOUNT_DOKU: "DOKU Virtual Account",
+  ONLINE_TO_OFFLINE_INDOMARET: "Indomaret",
+  ONLINE_TO_OFFLINE_ALFA: "Alfamart",
   EMONEY_OVO: "OVO",
   EMONEY_DANA: "DANA",
 };

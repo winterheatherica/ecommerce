@@ -53,7 +53,7 @@ const kelompok = [
       {
         tanya: "Metode pembayaran apa saja yang diterima?",
         jawab:
-          "Untuk sementara lewat Virtual Account BNI. Nomornya muncul di halaman pembayaran setelah checkout, dan bisa dibayar dari bank lain lewat transfer antarbank.",
+          "Virtual Account BNI, BRI, Mandiri, BSI, CIMB Niaga, Permata, Danamon, BTN, dan DOKU, serta bayar tunai di kasir Indomaret atau Alfamart. Semua pilihan itu muncul di halaman pembayaran setelah checkout.",
       },
       {
         tanya: "Bisa bayar di tempat (COD)?",

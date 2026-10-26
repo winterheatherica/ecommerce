@@ -221,6 +221,8 @@ describe("pembantu", () => {
 
   it("nama metode yang terbaca manusia, dan kode mentah untuk metode yang tidak dikenal", () => {
     expect(namaMetode("VIRTUAL_ACCOUNT_BCA")).toBe("BCA Virtual Account");
+    expect(namaMetode("VIRTUAL_ACCOUNT_BRI")).toBe("BRI Virtual Account");
+    expect(namaMetode("ONLINE_TO_OFFLINE_ALFA")).toBe("Alfamart");
     expect(namaMetode("EMONEY_DANA")).toBe("DANA");
     expect(namaMetode("EMONEY_SHOPEE_PAY")).toBe("EMONEY_SHOPEE_PAY");
     expect(namaMetode(undefined)).toBeNull();

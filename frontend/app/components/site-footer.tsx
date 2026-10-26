@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { KONTAK, SOSIAL, WA_URL } from "@/app/data/kontak";
+import { LOGO } from "@/app/data/logo-bayar";
 import {
   GRUP,
   KATEGORI,
@@ -30,7 +31,20 @@ const bantuan = [
   { label: "Pertanyaan Umum", href: "/faq" },
 ];
 
-const pembayaran = ["Virtual Account BNI"];
+const pembayaran = [
+  LOGO.bni,
+  LOGO.bri,
+  LOGO.mandiri,
+  LOGO.bsi,
+  LOGO.cimb,
+  LOGO.permata,
+  LOGO.danamon,
+  LOGO.btn,
+  LOGO.indomaret,
+  LOGO.alfamart,
+];
+
+const skalaLogo = 0.65;
 
 export default function SiteFooter() {
   return (
@@ -187,13 +201,17 @@ export default function SiteFooter() {
                 Kebijakan Privasi
               </Link>
             </p>
-            <ul className="flex flex-wrap gap-2">
-              {pembayaran.map((p) => (
-                <li
-                  key={p}
-                  className="border border-white/15 px-2.5 py-1 font-mono text-[12px] tracking-[0.12em] indent-[0.12em] text-white/50 uppercase"
-                >
-                  {p}
+            <ul aria-label="Metode pembayaran" className="flex flex-wrap gap-2">
+              {pembayaran.map((l) => (
+                <li key={l.src} className="flex h-8 items-center bg-white px-2">
+                  <Image
+                    src={l.src}
+                    alt={l.nama}
+                    title={l.nama}
+                    width={Math.round(l.lebar * skalaLogo)}
+                    height={Math.round(l.tinggi * skalaLogo)}
+                    unoptimized
+                  />
                 </li>
               ))}
             </ul>

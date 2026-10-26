@@ -37,9 +37,19 @@ afterEach(() => {
 });
 
 describe("badanCheckout", () => {
-  it("hanya menawarkan VA BNI, satu-satunya metode yang sudah aktif di akun DOKU", () => {
+  it("menawarkan VA dan minimarket yang sudah aktif di akun DOKU", () => {
     expect(badanCheckout(permintaan()).payment.payment_method_types).toEqual([
       "VIRTUAL_ACCOUNT_BNI",
+      "VIRTUAL_ACCOUNT_BRI",
+      "VIRTUAL_ACCOUNT_BANK_MANDIRI",
+      "VIRTUAL_ACCOUNT_BANK_SYARIAH_MANDIRI",
+      "VIRTUAL_ACCOUNT_BANK_CIMB",
+      "VIRTUAL_ACCOUNT_BANK_PERMATA",
+      "VIRTUAL_ACCOUNT_BANK_DANAMON",
+      "VIRTUAL_ACCOUNT_BTN",
+      "VIRTUAL_ACCOUNT_DOKU",
+      "ONLINE_TO_OFFLINE_INDOMARET",
+      "ONLINE_TO_OFFLINE_ALFA",
     ]);
   });
 

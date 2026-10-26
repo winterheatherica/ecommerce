@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
@@ -8,6 +9,7 @@ import {
   bayarPesanan,
   type InfoPembayaran,
 } from "@/app/lib/api-client";
+import { LOGO_BAYAR } from "@/app/data/logo-bayar";
 import { rupiah } from "@/app/data/produk";
 import { waPesan } from "@/app/data/kontak";
 
@@ -137,23 +139,43 @@ export default function PaymentPicker({ orderNo, total }: Props) {
       <p className="font-mono text-[12px] tracking-[0.2em] text-stone-500 uppercase">
         Bisa dibayar dengan
       </p>
-      <dl className="mt-4 space-y-3">
+      <dl className="mt-4 space-y-5">
         {kelompok.map((g) => (
-          <div key={g} className="flex flex-wrap items-baseline gap-x-4 gap-y-2">
-            <dt className="w-32 shrink-0 font-mono text-[12px] tracking-[0.16em] text-stone-400 uppercase">
+          <div key={g}>
+            <dt className="font-mono text-[12px] tracking-[0.16em] text-stone-400 uppercase">
               {g}
             </dt>
-            <dd className="flex flex-wrap gap-2">
-              {info.data
-                .filter((c) => c.group === g)
-                .map((c) => (
-                  <span
-                    key={c.code}
-                    className="border border-ink/15 px-3 py-1.5 text-sm text-stone-700"
-                  >
-                    {c.name}
-                  </span>
-                ))}
+            <dd className="mt-2">
+              <ul className="grid grid-cols-3 gap-2">
+                {info.data
+                  .filter((c) => c.group === g)
+                  .map((c) => {
+                    const logo = LOGO_BAYAR[c.code];
+
+                    return (
+                      <li
+                        key={c.code}
+                        className="flex h-12 min-w-0 items-center justify-center border border-ink/10 px-1.5"
+                      >
+                        {logo ? (
+                          <Image
+                            src={logo.src}
+                            alt={c.name}
+                            title={c.name}
+                            width={logo.lebar}
+                            height={logo.tinggi}
+                            unoptimized
+                            className="h-auto max-w-full min-w-0"
+                          />
+                        ) : (
+                          <span className="truncate text-sm text-stone-700">
+                            {c.name}
+                          </span>
+                        )}
+                      </li>
+                    );
+                  })}
+              </ul>
             </dd>
           </div>
         ))}
