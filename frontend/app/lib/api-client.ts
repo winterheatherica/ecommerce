@@ -266,6 +266,9 @@ export type PerubahanVarian = {
   shopee_url?: string | null;
   shopee_rating?: number | null;
   shopee_rating_count?: number | null;
+  tokopedia_url?: string | null;
+  tokopedia_rating?: number | null;
+  tokopedia_rating_count?: number | null;
 };
 
 export type VarianBaru = {

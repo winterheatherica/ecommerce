@@ -546,6 +546,25 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
           };
         }
 
+        if (!hasil.ok && hasil.alasan === "tokopedia_url_invalid") {
+          set.status = 422;
+          return {
+            error: "invalid_tokopedia_url",
+            message: "Link Tokopedia harus diawali https://www.tokopedia.com/ dan maksimal 300 karakter",
+            field: "tokopedia",
+          };
+        }
+
+        if (!hasil.ok && hasil.alasan === "tokopedia_rating_inconsistent") {
+          set.status = 422;
+          return {
+            error: "tokopedia_rating_inconsistent",
+            message:
+              "Rating Tokopedia wajib diisi (1 sampai 5) kalau jumlah ratingnya lebih dari 0, dan dikosongkan kalau belum ada rating",
+            field: "tokopedia",
+          };
+        }
+
         if (!hasil.ok) {
           set.status = 404;
           return { error: "not_found", message: "Varian tidak ditemukan" };
@@ -581,6 +600,11 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
         shopee_url: t.Optional(t.Union([t.String({ maxLength: 300 }), t.Null()])),
         shopee_rating: t.Optional(t.Union([t.Number({ minimum: 1, maximum: 5 }), t.Null()])),
         shopee_rating_count: t.Optional(
+          t.Union([t.Integer({ minimum: 0, maximum: 100000000 }), t.Null()]),
+        ),
+        tokopedia_url: t.Optional(t.Union([t.String({ maxLength: 300 }), t.Null()])),
+        tokopedia_rating: t.Optional(t.Union([t.Number({ minimum: 1, maximum: 5 }), t.Null()])),
+        tokopedia_rating_count: t.Optional(
           t.Union([t.Integer({ minimum: 0, maximum: 100000000 }), t.Null()]),
         ),
       }),

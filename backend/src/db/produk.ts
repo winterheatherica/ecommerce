@@ -9,14 +9,18 @@ import {
   type RingkasanUlasan,
 } from "./ulasan";
 
-export type KolomShopee = {
+export type KolomRating = {
   shopee_url: string | null;
   shopee_rating: number | null;
   shopee_rating_count: number | null;
   shopee_rating_at: string | null;
+  tokopedia_url: string | null;
+  tokopedia_rating: number | null;
+  tokopedia_rating_count: number | null;
+  tokopedia_rating_at: string | null;
 };
 
-export type BarisVarian = KolomShopee & {
+export type BarisVarian = KolomRating & {
   slug: string;
   label: string;
   price: number;
@@ -27,9 +31,13 @@ export type BarisVarian = KolomShopee & {
   stock: number;
 };
 
-export type RingkasanShopee = {
+export type RingkasanRating = {
   shopee_rating: number | null;
   shopee_rating_count: number;
+  tokopedia_rating: number | null;
+  tokopedia_rating_count: number;
+  rating: number | null;
+  rating_count: number;
 };
 
 export type BarisVarianLengkap = Omit<BarisVarian, "regular_price" | "promo_visible_until"> & {
@@ -50,7 +58,7 @@ export type BarisVarianLengkap = Omit<BarisVarian, "regular_price" | "promo_visi
 
 export type StatusPromo = "none" | "active" | "scheduled" | "ended";
 
-export type BarisProduk = RingkasanShopee & {
+export type BarisProduk = RingkasanRating & {
   id: number;
   slug: string;
   name: string;
@@ -102,7 +110,7 @@ const dasar = (sql: Kueri) => sql`
   is_active
 `;
 
-const ringkasanShopee = (sql: Kueri) => sql`
+const ringkasanRating = (sql: Kueri) => sql`
   (
     select round(sum(v.shopee_rating * v.shopee_rating_count) / sum(v.shopee_rating_count), 2)::float8
     from product_variants v
@@ -112,12 +120,47 @@ const ringkasanShopee = (sql: Kueri) => sql`
     select coalesce(sum(v.shopee_rating_count), 0)::int
     from product_variants v
     where v.product_id = products.id and v.is_active
-  ) as shopee_rating_count
+  ) as shopee_rating_count,
+  (
+    select round(sum(v.tokopedia_rating * v.tokopedia_rating_count) / sum(v.tokopedia_rating_count), 2)::float8
+    from product_variants v
+    where v.product_id = products.id and v.is_active and v.tokopedia_rating_count > 0
+  ) as tokopedia_rating,
+  (
+    select coalesce(sum(v.tokopedia_rating_count), 0)::int
+    from product_variants v
+    where v.product_id = products.id and v.is_active
+  ) as tokopedia_rating_count,
+  (
+    select round(
+      sum(coalesce(v.shopee_rating * v.shopee_rating_count, 0) + coalesce(v.tokopedia_rating * v.tokopedia_rating_count, 0))
+        / nullif(sum(coalesce(v.shopee_rating_count, 0) + coalesce(v.tokopedia_rating_count, 0)), 0),
+      2
+    )::float8
+    from product_variants v
+    where v.product_id = products.id and v.is_active
+  ) as rating,
+  (
+    select coalesce(sum(coalesce(v.shopee_rating_count, 0) + coalesce(v.tokopedia_rating_count, 0)), 0)::int
+    from product_variants v
+    where v.product_id = products.id and v.is_active
+  ) as rating_count
+`;
+
+const ratingVarian = (sql: Kueri) => sql`
+  'shopee_url', v.shopee_url,
+  'shopee_rating', v.shopee_rating,
+  'shopee_rating_count', v.shopee_rating_count,
+  'shopee_rating_at', v.shopee_rating_at,
+  'tokopedia_url', v.tokopedia_url,
+  'tokopedia_rating', v.tokopedia_rating,
+  'tokopedia_rating_count', v.tokopedia_rating_count,
+  'tokopedia_rating_at', v.tokopedia_rating_at
 `;
 
 const kolom = (sql: Kueri) => sql`
   ${dasar(sql)},
-  ${ringkasanShopee(sql)},
+  ${ringkasanRating(sql)},
   coalesce((
     select jsonb_agg(
       jsonb_build_object(
@@ -135,10 +178,7 @@ const kolom = (sql: Kueri) => sql`
         'weight_g', v.weight_g,
         'package_weight_g', v.package_weight_g,
         'stock', v.stock,
-        'shopee_url', v.shopee_url,
-        'shopee_rating', v.shopee_rating,
-        'shopee_rating_count', v.shopee_rating_count,
-        'shopee_rating_at', v.shopee_rating_at
+        ${ratingVarian(sql)}
       ) order by v.sort_order, v.price
     )
     from product_variants v
@@ -148,7 +188,7 @@ const kolom = (sql: Kueri) => sql`
 
 const kolomAdmin = (sql: Kueri) => sql`
   ${dasar(sql)},
-  ${ringkasanShopee(sql)},
+  ${ringkasanRating(sql)},
   usage_instructions,
   coalesce((
     select jsonb_agg(
@@ -163,10 +203,7 @@ const kolomAdmin = (sql: Kueri) => sql`
         'package_length_cm', v.package_length_cm,
         'package_width_cm', v.package_width_cm,
         'package_height_cm', v.package_height_cm,
-        'shopee_url', v.shopee_url,
-        'shopee_rating', v.shopee_rating,
-        'shopee_rating_count', v.shopee_rating_count,
-        'shopee_rating_at', v.shopee_rating_at,
+        ${ratingVarian(sql)},
         'sort_order', v.sort_order,
         'is_active', v.is_active,
         'promo_price', v.promo_price,

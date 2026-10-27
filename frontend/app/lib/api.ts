@@ -3,7 +3,15 @@ import { redirect } from "next/navigation";
 import { cache } from "react";
 
 import { PUNYA_GAMBAR, urlGambar } from "@/app/data/gambar";
-import type { Kategori, Produk, RingkasanUlasan, StatusPromo, Varian } from "@/app/data/produk";
+import type {
+  Kategori,
+  Produk,
+  RatingVarian,
+  RingkasanRating,
+  RingkasanUlasan,
+  StatusPromo,
+  Varian,
+} from "@/app/data/produk";
 import { petakanUlasan, type UlasanAPI } from "@/app/lib/ulasan";
 import type { StatusPesanan } from "@/app/data/status-pesanan";
 import { kepalaCookie } from "@/app/lib/akun";
@@ -49,6 +57,10 @@ type VarianAPI = {
   shopee_rating?: number | null;
   shopee_rating_count?: number | null;
   shopee_rating_at?: string | null;
+  tokopedia_url?: string | null;
+  tokopedia_rating?: number | null;
+  tokopedia_rating_count?: number | null;
+  tokopedia_rating_at?: string | null;
 };
 
 type ProdukAPI = {
@@ -68,6 +80,10 @@ type ProdukAPI = {
   variants?: VarianAPI[];
   shopee_rating?: number | null;
   shopee_rating_count?: number;
+  tokopedia_rating?: number | null;
+  tokopedia_rating_count?: number;
+  rating?: number | null;
+  rating_count?: number;
   reviews?: UlasanAPI[];
   reviews_summary?: RingkasanUlasan;
 };
@@ -78,6 +94,23 @@ type DaftarAPI = {
   limit: number;
   offset: number;
 };
+
+function ratingVarian(
+  url: string | null | undefined,
+  rata: number | null | undefined,
+  jumlah: number | null | undefined,
+  per: string | null | undefined,
+): RatingVarian | null {
+  if (!url && jumlah == null) return null;
+  return { url: url ?? null, rata: rata ?? null, jumlah: jumlah ?? null, per: per ?? null };
+}
+
+function ringkasanRating(
+  rata: number | null | undefined,
+  jumlah: number | undefined,
+): RingkasanRating | null {
+  return rata != null && (jumlah ?? 0) > 0 ? { rata, jumlah: jumlah ?? 0 } : null;
+}
 
 function petakan(p: ProdukAPI): Produk {
   const varian: Varian[] = (p.variants ?? []).map((v) => ({
@@ -93,15 +126,13 @@ function petakan(p: ProdukAPI): Produk {
     aktif: v.is_active,
     paketBeratG: v.package_weight_g ?? null,
     paketDimensi: dimensiPaket(v),
-    shopee:
-      v.shopee_url || v.shopee_rating_count != null
-        ? {
-            url: v.shopee_url ?? null,
-            rata: v.shopee_rating ?? null,
-            jumlah: v.shopee_rating_count ?? null,
-            per: v.shopee_rating_at ?? null,
-          }
-        : null,
+    shopee: ratingVarian(v.shopee_url, v.shopee_rating, v.shopee_rating_count, v.shopee_rating_at),
+    tokopedia: ratingVarian(
+      v.tokopedia_url,
+      v.tokopedia_rating,
+      v.tokopedia_rating_count,
+      v.tokopedia_rating_at,
+    ),
     promo:
       v.promo_show_period === undefined
         ? undefined
@@ -138,10 +169,9 @@ function petakan(p: ProdukAPI): Produk {
     aktif: p.is_active,
     gambar: berfoto,
     varian,
-    ratingShopee:
-      p.shopee_rating != null && (p.shopee_rating_count ?? 0) > 0
-        ? { rata: p.shopee_rating, jumlah: p.shopee_rating_count ?? 0 }
-        : null,
+    ratingShopee: ringkasanRating(p.shopee_rating, p.shopee_rating_count),
+    ratingTokopedia: ringkasanRating(p.tokopedia_rating, p.tokopedia_rating_count),
+    rating: ringkasanRating(p.rating, p.rating_count),
     ulasan: p.reviews?.map(petakanUlasan),
     ringkasanUlasan: p.reviews_summary,
   };

@@ -12,14 +12,27 @@ import ProductCard from "@/app/components/product-card";
 import ProductReviews from "@/app/components/product-reviews";
 import { ambilProduk, ambilSatuProduk } from "@/app/lib/api";
 import { uraiCaraPakai } from "@/app/lib/cara-pakai";
-import { angkaRating, jumlahLengkap, perTerbaru, tanggalRating } from "@/app/lib/rating";
+import {
+  angkaRating,
+  jumlahLengkap,
+  NAMA_MARKETPLACE,
+  perTerbaru,
+  SATUAN_RATING,
+  tanggalRating,
+} from "@/app/lib/rating";
 import {
   kategoriJudul,
   kategoriLabel,
   kategoriRingkasan,
+  rentangHarga,
   rupiah,
   type Produk,
 } from "@/app/data/produk";
+
+function teksHarga(produk: Produk): string {
+  const rentang = rentangHarga(produk);
+  return rentang ? `${rupiah(rentang.min)} - ${rupiah(rentang.max)}` : rupiah(produk.harga);
+}
 import { metaHalaman, skemaProduk, skemaRemah } from "@/app/lib/seo";
 
 type Props = {
@@ -37,7 +50,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     };
   }
 
-  const harga = rupiah(produk.harga);
+  const harga = teksHarga(produk);
   const ringkasan =
     produk.deskripsi.trim() || kategoriRingkasan[produk.kategori];
 
@@ -59,10 +72,8 @@ export default async function DetailProdukPage({ params }: Props) {
 
   const habis = produk.stok === 0;
   const caraPakai = uraiCaraPakai(produk.caraPakai);
-  const rating = produk.ratingShopee;
-  const ukuranDinilai = produk.varian.filter((v) => (v.shopee?.jumlah ?? 0) > 0).length;
   const linkTunggal = produk.varian.length === 1 ? (produk.varian[0].shopee?.url ?? null) : null;
-  const perShopee = perTerbaru(produk.varian);
+  const rentang = rentangHarga(produk);
 
   return (
     <div className="mx-auto w-full max-w-6xl px-6 pt-32 pb-24">
@@ -128,42 +139,20 @@ export default async function DetailProdukPage({ params }: Props) {
             {produk.nama}
           </h1>
 
-          {rating && (
-            <div className="mt-4">
-              <p className="flex flex-wrap items-baseline gap-x-2 gap-y-1 text-sm text-stone-600">
-                <span aria-hidden="true" className="text-base text-amber-500">
-                  &#9733;
-                </span>
-                <span className="font-semibold text-ink">{angkaRating(rating.rata)}</span>
-                <span>
-                  {jumlahLengkap(rating.jumlah)} penilaian di Shopee
-                  {ukuranDinilai > 1 ? `, gabungan ${ukuranDinilai} ukuran` : ""}
-                </span>
-                {linkTunggal && (
-                  <a
-                    href={linkTunggal}
-                    target="_blank"
-                    rel="noopener nofollow"
-                    className="border-b border-stone-400 font-mono text-[12px] tracking-[0.14em] text-ink uppercase transition-colors hover:border-brand-600 hover:text-brand-600"
-                  >
-                    Lihat di Shopee &#8599;
-                  </a>
-                )}
-              </p>
-              {perShopee && (
-                <p className="mt-1 text-xs text-stone-400">
-                  Angka dari Shopee per {tanggalRating(perShopee)}
-                </p>
-              )}
-            </div>
-          )}
+          <RatingMarketplace produk={produk} />
 
           <p className="mt-6">
-            <HargaCoret
-              harga={produk.harga}
-              normal={produk.hargaNormal}
-              kelasHarga="text-3xl font-semibold tracking-tight text-brand-600"
-            />
+            {rentang ? (
+              <span className="text-2xl font-semibold tracking-tight text-brand-600 sm:text-3xl">
+                {teksHarga(produk)}
+              </span>
+            ) : (
+              <HargaCoret
+                harga={produk.harga}
+                normal={produk.hargaNormal}
+                kelasHarga="text-3xl font-semibold tracking-tight text-brand-600"
+              />
+            )}
           </p>
 
           <p className="mt-3 font-mono text-[13px] tracking-[0.16em] text-stone-500 uppercase">
@@ -254,6 +243,61 @@ export default async function DetailProdukPage({ params }: Props) {
       <Suspense fallback={<KerangkaSerupa />}>
         <ProdukSerupa kategori={produk.kategori} slug={produk.slug} />
       </Suspense>
+    </div>
+  );
+}
+
+const kelasLink =
+  "border-b border-stone-400 font-mono text-[12px] tracking-[0.14em] text-ink uppercase transition-colors hover:border-brand-600 hover:text-brand-600";
+
+function RatingMarketplace({ produk }: { produk: Produk }) {
+  const rating = produk.rating;
+  if (!rating) return null;
+
+  const daftar = (["shopee", "tokopedia"] as const).flatMap((m) => {
+    const r = m === "shopee" ? produk.ratingShopee : produk.ratingTokopedia;
+    return r ? [{ m, r }] : [];
+  });
+  const tunggal = produk.varian.length === 1 ? produk.varian[0] : null;
+  const ukuranDinilai = produk.varian.filter(
+    (v) => (v.shopee?.jumlah ?? 0) + (v.tokopedia?.jumlah ?? 0) > 0,
+  ).length;
+
+  return (
+    <div className="mt-4">
+      <p className="text-sm leading-relaxed text-stone-600">
+        <span aria-hidden="true" className="mr-2 text-base text-amber-500">
+          &#9733;
+        </span>
+        <span className="mr-2 font-semibold text-ink">{angkaRating(rating.rata)}</span>
+        {jumlahLengkap(rating.jumlah)} penilaian di{" "}
+        {daftar.map(({ m }) => NAMA_MARKETPLACE[m]).join(" dan ")}
+        {ukuranDinilai > 1 ? `, gabungan ${ukuranDinilai} ukuran` : ""}
+      </p>
+      <ul className="mt-1.5 space-y-1 text-xs text-stone-500">
+        {daftar.map(({ m, r }) => {
+          const per = perTerbaru(produk.varian, m);
+          const link = tunggal?.[m]?.url ?? null;
+          if (daftar.length === 1 && !per && !link) return null;
+
+          return (
+            <li key={m} className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+              <span>
+                {daftar.length > 1
+                  ? `${NAMA_MARKETPLACE[m]} ${angkaRating(r.rata)} dari ${jumlahLengkap(r.jumlah)} ${SATUAN_RATING[m]}${per ? `, per ${tanggalRating(per)}` : ""}`
+                  : per
+                    ? `Angka dari ${NAMA_MARKETPLACE[m]} per ${tanggalRating(per)}`
+                    : ""}
+              </span>
+              {link && (
+                <a href={link} target="_blank" rel="noopener nofollow" className={kelasLink}>
+                  Lihat di {NAMA_MARKETPLACE[m]} &#8599;
+                </a>
+              )}
+            </li>
+          );
+        })}
+      </ul>
     </div>
   );
 }

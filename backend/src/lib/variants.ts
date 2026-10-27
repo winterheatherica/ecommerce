@@ -45,11 +45,12 @@ export type PerubahanVarian = {
   shopee_url?: string | null;
   shopee_rating?: number | null;
   shopee_rating_count?: number | null;
+  tokopedia_url?: string | null;
+  tokopedia_rating?: number | null;
+  tokopedia_rating_count?: number | null;
 };
 
 export type PerubahanVarianBersih = PerubahanVarian;
-
-const POLA_URL_SHOPEE = /^https:\/\/shopee\.co\.id\/\S+$/;
 
 const GALAT_URL_SHOPEE: Gagal = {
   status: 422,
@@ -69,6 +70,74 @@ const GALAT_RATING_SHOPEE: Gagal = {
     field: "shopee",
   },
 };
+
+const GALAT_URL_TOKOPEDIA: Gagal = {
+  status: 422,
+  badan: {
+    error: "invalid_tokopedia_url",
+    message: "Link Tokopedia harus diawali https://www.tokopedia.com/ dan maksimal 300 karakter",
+    field: "tokopedia",
+  },
+};
+
+const GALAT_RATING_TOKOPEDIA: Gagal = {
+  status: 422,
+  badan: {
+    error: "tokopedia_rating_inconsistent",
+    message:
+      "Rating Tokopedia wajib diisi (1 sampai 5) kalau jumlah ratingnya lebih dari 0, dan dikosongkan kalau belum ada rating",
+    field: "tokopedia",
+  },
+};
+
+const ATURAN_RATING = [
+  {
+    url: "shopee_url",
+    rating: "shopee_rating",
+    jumlah: "shopee_rating_count",
+    pola: /^https:\/\/shopee\.co\.id\/\S+$/,
+    galatUrl: GALAT_URL_SHOPEE,
+    galatRating: GALAT_RATING_SHOPEE,
+  },
+  {
+    url: "tokopedia_url",
+    rating: "tokopedia_rating",
+    jumlah: "tokopedia_rating_count",
+    pola: /^https:\/\/(www\.)?tokopedia\.com\/\S+$/,
+    galatUrl: GALAT_URL_TOKOPEDIA,
+    galatRating: GALAT_RATING_TOKOPEDIA,
+  },
+] as const;
+
+function periksaRating(
+  p: PerubahanVarian,
+  bersih: PerubahanVarianBersih,
+  aturan: (typeof ATURAN_RATING)[number],
+): Gagal | null {
+  const urlMentah = p[aturan.url];
+  if (urlMentah !== undefined) {
+    const url = urlMentah?.trim() || null;
+    if (url !== null && (url.length > 300 || !aturan.pola.test(url))) return aturan.galatUrl;
+    bersih[aturan.url] = url;
+  }
+
+  const rating = p[aturan.rating];
+  if (rating !== undefined) {
+    if (rating !== null && !(rating >= 1 && rating <= 5)) return aturan.galatRating;
+    bersih[aturan.rating] = rating === null ? null : Math.round(rating * 100) / 100;
+  }
+
+  const jumlah = p[aturan.jumlah];
+  if (jumlah !== undefined) bersih[aturan.jumlah] = jumlah;
+
+  const ratingBersih = bersih[aturan.rating];
+  const jumlahBersih = bersih[aturan.jumlah];
+  if (ratingBersih !== undefined && jumlahBersih !== undefined) {
+    if ((jumlahBersih ?? 0) > 0 !== (ratingBersih !== null)) return aturan.galatRating;
+  }
+
+  return null;
+}
 
 const KOLOM_PAKET = [
   "package_weight_g",
@@ -186,29 +255,9 @@ export function periksaPerubahanVarian(
     if (p[kolom] !== undefined) bersih[kolom] = p[kolom];
   }
 
-  if (p.shopee_url !== undefined) {
-    const url = p.shopee_url?.trim() || null;
-    if (url !== null && (url.length > 300 || !POLA_URL_SHOPEE.test(url))) {
-      return { ok: false, ...GALAT_URL_SHOPEE };
-    }
-    bersih.shopee_url = url;
-  }
-
-  if (p.shopee_rating !== undefined) {
-    const rating = p.shopee_rating;
-    if (rating !== null && !(rating >= 1 && rating <= 5)) {
-      return { ok: false, ...GALAT_RATING_SHOPEE };
-    }
-    bersih.shopee_rating = rating === null ? null : Math.round(rating * 100) / 100;
-  }
-
-  if (p.shopee_rating_count !== undefined) bersih.shopee_rating_count = p.shopee_rating_count;
-
-  if (bersih.shopee_rating !== undefined && bersih.shopee_rating_count !== undefined) {
-    const adaPenilaian = (bersih.shopee_rating_count ?? 0) > 0;
-    if (adaPenilaian !== (bersih.shopee_rating !== null)) {
-      return { ok: false, ...GALAT_RATING_SHOPEE };
-    }
+  for (const aturan of ATURAN_RATING) {
+    const galat = periksaRating(p, bersih, aturan);
+    if (galat) return { ok: false, ...galat };
   }
 
   for (const kolom of ["promo_starts_at", "promo_ends_at"] as const) {

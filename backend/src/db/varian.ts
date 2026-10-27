@@ -26,6 +26,10 @@ export type BarisVarianAdmin = {
   shopee_rating: number | null;
   shopee_rating_count: number | null;
   shopee_rating_at: string | null;
+  tokopedia_url: string | null;
+  tokopedia_rating: number | null;
+  tokopedia_rating_count: number | null;
+  tokopedia_rating_at: string | null;
 };
 
 const kolomPaket = (sql: Kueri) => sql`
@@ -35,11 +39,15 @@ const kolomPaket = (sql: Kueri) => sql`
   package_height_cm
 `;
 
-const kolomShopee = (sql: Kueri) => sql`
+const kolomRating = (sql: Kueri) => sql`
   shopee_url,
   shopee_rating::float8 as shopee_rating,
   shopee_rating_count,
-  shopee_rating_at
+  shopee_rating_at,
+  tokopedia_url,
+  tokopedia_rating::float8 as tokopedia_rating,
+  tokopedia_rating_count,
+  tokopedia_rating_at
 `;
 
 const kolomPromo = (sql: Kueri) => sql`
@@ -63,7 +71,7 @@ const kolom = (sql: Kueri) => sql`
   v.is_active,
   ${kolomPromo(sql)},
   ${kolomPaket(sql)},
-  ${kolomShopee(sql)}
+  ${kolomRating(sql)}
 `;
 
 type AlasanBentrok = "slug_taken" | "sku_taken";
@@ -101,7 +109,9 @@ export type HasilUbahVarian =
         | "promo_period_reversed"
         | "package_dimensions_incomplete"
         | "shopee_url_invalid"
-        | "shopee_rating_inconsistent";
+        | "shopee_rating_inconsistent"
+        | "tokopedia_url_invalid"
+        | "tokopedia_rating_inconsistent";
     };
 
 export async function perbaruiVarian(
@@ -109,7 +119,9 @@ export async function perbaruiVarian(
   slug: string,
   b: PerubahanVarianBersih,
 ): Promise<HasilUbahVarian> {
-  const ratingBerubah = b.shopee_rating !== undefined || b.shopee_rating_count !== undefined;
+  const shopeeBerubah = b.shopee_rating !== undefined || b.shopee_rating_count !== undefined;
+  const tokopediaBerubah =
+    b.tokopedia_rating !== undefined || b.tokopedia_rating_count !== undefined;
 
   try {
     const varian =
@@ -120,7 +132,8 @@ export async function perbaruiVarian(
               update product_variants v
               set ${sql(b as Record<string, never>)},
                   updated_at = now()
-                  ${ratingBerubah ? sql`, shopee_rating_at = now()` : sql``}
+                  ${shopeeBerubah ? sql`, shopee_rating_at = now()` : sql``}
+                  ${tokopediaBerubah ? sql`, tokopedia_rating_at = now()` : sql``}
               where v.slug = ${slug}
               returning ${kolom(sql)}
             `
@@ -147,6 +160,12 @@ export async function perbaruiVarian(
     }
     if (cek === "product_variants_shopee_rating") {
       return { ok: false, alasan: "shopee_rating_inconsistent" };
+    }
+    if (cek === "product_variants_tokopedia_url") {
+      return { ok: false, alasan: "tokopedia_url_invalid" };
+    }
+    if (cek === "product_variants_tokopedia_rating") {
+      return { ok: false, alasan: "tokopedia_rating_inconsistent" };
     }
 
     throw e;
@@ -197,7 +216,7 @@ export async function tambahVarian(
         is_active,
         ${kolomPromo(sql)},
         ${kolomPaket(sql)},
-        ${kolomShopee(sql)}
+        ${kolomRating(sql)}
     `;
 
     if (!varian) return { ok: false, alasan: "not_found" };

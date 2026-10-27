@@ -4,9 +4,9 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
+import AdminMarketplaceRating from "@/app/components/admin-marketplace-rating";
 import AdminPromoEditor from "@/app/components/admin-promo-editor";
 import AdminReviews from "@/app/components/admin-reviews";
-import AdminShopeeRating from "@/app/components/admin-shopee-rating";
 import AdminVariantEditor from "@/app/components/admin-variant-editor";
 import { buatProdukBaru, simpanProduk } from "@/app/lib/api-client";
 import { kategoriLabel, type Kategori, type Produk } from "@/app/data/produk";
@@ -330,7 +330,8 @@ export default function AdminProductForm({ awal }: Props) {
 
       {ubahMode && awal && <AdminVariantEditor produk={awal} />}
       {ubahMode && awal && <AdminPromoEditor produk={awal} />}
-      {ubahMode && awal && <AdminShopeeRating produk={awal} />}
+      {ubahMode && awal && <AdminMarketplaceRating produk={awal} marketplace="shopee" />}
+      {ubahMode && awal && <AdminMarketplaceRating produk={awal} marketplace="tokopedia" />}
       {ubahMode && awal && <AdminReviews produk={awal} />}
     </div>
   );

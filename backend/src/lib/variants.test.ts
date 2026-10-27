@@ -238,3 +238,51 @@ describe("rating Shopee", () => {
     expect(periksaPerubahanVarian({ shopee_rating: null, shopee_rating_count: 0 }).ok).toBe(true);
   });
 });
+
+describe("rating Tokopedia", () => {
+  it("menerima link tokopedia.com dengan atau tanpa www, dan isian kosong berarti dikosongkan", () => {
+    const hasil = periksaPerubahanVarian({
+      tokopedia_url: "  https://www.tokopedia.com/menikstore/gocat-gel-jumbo  ",
+    });
+    expect(hasil.ok && hasil.bersih.tokopedia_url).toBe(
+      "https://www.tokopedia.com/menikstore/gocat-gel-jumbo",
+    );
+    expect(periksaPerubahanVarian({ tokopedia_url: "https://tokopedia.com/menikstore/x" }).ok).toBe(true);
+
+    const kosong = periksaPerubahanVarian({ tokopedia_url: "   " });
+    expect(kosong.ok && kosong.bersih.tokopedia_url).toBeNull();
+  });
+
+  it("menolak link selain tokopedia.com, termasuk http, link Shopee, dan domain tiruan", () => {
+    for (const url of [
+      "http://www.tokopedia.com/menikstore/x",
+      "https://shopee.co.id/product/1/2",
+      "https://www.tokopedia.com.palsu.com/menikstore/x",
+      "https://www.tokopedia.com/",
+      "https://www.tokopedia.com/ada spasi",
+    ]) {
+      const hasil = periksaPerubahanVarian({ tokopedia_url: url });
+      expect(hasil.ok, url).toBe(false);
+      expect(!hasil.ok && hasil.badan.error, url).toBe("invalid_tokopedia_url");
+    }
+  });
+
+  it("jumlah rating di atas 0 wajib punya rating, dan aturannya terpisah dari Shopee", () => {
+    const tanpaRating = periksaPerubahanVarian({ tokopedia_rating: null, tokopedia_rating_count: 10 });
+    expect(!tanpaRating.ok && tanpaRating.badan.error).toBe("tokopedia_rating_inconsistent");
+    expect(periksaPerubahanVarian({ tokopedia_rating: 4.5, tokopedia_rating_count: 0 }).ok).toBe(false);
+
+    const keduanya = periksaPerubahanVarian({
+      shopee_rating: 4.79,
+      shopee_rating_count: 1814,
+      tokopedia_rating: 4.7408,
+      tokopedia_rating_count: 4884,
+    });
+    expect(keduanya.ok && keduanya.bersih).toEqual({
+      shopee_rating: 4.79,
+      shopee_rating_count: 1814,
+      tokopedia_rating: 4.74,
+      tokopedia_rating_count: 4884,
+    });
+  });
+});

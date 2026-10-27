@@ -6,7 +6,7 @@ import { useState } from "react";
 
 import HargaCoret from "@/app/components/harga-coret";
 import { MAKS_PER_UKURAN, tambahKeKeranjang } from "@/app/lib/keranjang";
-import { angkaRating, jumlahLengkap } from "@/app/lib/rating";
+import { angkaRating, jumlahLengkap, NAMA_MARKETPLACE, SATUAN_RATING } from "@/app/lib/rating";
 import { tanggalWib } from "@/app/lib/waktu-wib";
 import { rupiah, type Produk, type Varian } from "@/app/data/produk";
 
@@ -28,8 +28,13 @@ export default function ProductBuyBox({ produk }: { produk: Produk }) {
   const hargaNormal = dipilih ? dipilih.hargaNormal : produk.hargaNormal;
   const habis = stok === 0;
   const maksimal = Math.max(1, Math.min(stok, MAKS_PER_UKURAN));
-  const shopee = banyakUkuran ? (dipilih?.shopee ?? null) : null;
-  const adaPenilaian = (shopee?.jumlah ?? 0) > 0 && shopee?.rata != null;
+  const marketplace =
+    banyakUkuran && dipilih
+      ? (["shopee", "tokopedia"] as const).flatMap((m) => {
+          const r = dipilih[m];
+          return r && (r.url || (r.jumlah ?? 0) > 0) ? [{ m, r }] : [];
+        })
+      : [];
 
   const ubah = (delta: number) => {
     setQty((n) => Math.min(maksimal, Math.max(1, n + delta)));
@@ -85,31 +90,46 @@ export default function ProductBuyBox({ produk }: { produk: Produk }) {
         })}
       </div>
 
-      {dipilih && shopee && (shopee.url || adaPenilaian) && (
-        <p className="mt-4 flex flex-wrap items-baseline gap-x-2 gap-y-1 text-sm text-stone-600">
-          {adaPenilaian ? (
-            <>
-              <span>Ukuran {dipilih.label}:</span>
-              <span aria-hidden="true" className="text-amber-500">
-                &#9733;
-              </span>
-              <span className="font-semibold text-ink">{angkaRating(shopee.rata ?? 0)}</span>
-              <span>dari {jumlahLengkap(shopee.jumlah ?? 0)} penilaian</span>
-            </>
-          ) : (
-            <span>Ukuran {dipilih.label} belum punya penilaian di Shopee</span>
-          )}
-          {shopee.url && (
-            <a
-              href={shopee.url}
-              target="_blank"
-              rel="noopener nofollow"
-              className="border-b border-stone-400 font-mono text-[12px] tracking-[0.14em] text-ink uppercase transition-colors hover:border-brand-600 hover:text-brand-600"
-            >
-              Lihat di Shopee &#8599;
-            </a>
-          )}
-        </p>
+      {dipilih && marketplace.length > 0 && (
+        <div className="mt-4 text-sm text-stone-600">
+          <p>Ukuran {dipilih.label}:</p>
+          <ul className="mt-1 space-y-1">
+            {marketplace.map(({ m, r }) => {
+              const ada = (r.jumlah ?? 0) > 0 && r.rata != null;
+
+              return (
+                <li key={m} className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+                  {ada ? (
+                    <>
+                      <span>{NAMA_MARKETPLACE[m]}</span>
+                      <span aria-hidden="true" className="text-amber-500">
+                        &#9733;
+                      </span>
+                      <span className="font-semibold text-ink">{angkaRating(r.rata ?? 0)}</span>
+                      <span>
+                        dari {jumlahLengkap(r.jumlah ?? 0)} {SATUAN_RATING[m]}
+                      </span>
+                    </>
+                  ) : (
+                    <span>
+                      Belum punya {SATUAN_RATING[m]} di {NAMA_MARKETPLACE[m]}
+                    </span>
+                  )}
+                  {r.url && (
+                    <a
+                      href={r.url}
+                      target="_blank"
+                      rel="noopener nofollow"
+                      className="border-b border-stone-400 font-mono text-[12px] tracking-[0.14em] text-ink uppercase transition-colors hover:border-brand-600 hover:text-brand-600"
+                    >
+                      Lihat di {NAMA_MARKETPLACE[m]} &#8599;
+                    </a>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        </div>
       )}
     </fieldset>
   );

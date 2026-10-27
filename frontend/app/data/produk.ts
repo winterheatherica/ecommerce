@@ -46,12 +46,13 @@ export type Varian = {
   promo?: PromoAdmin;
   paketBeratG?: number | null;
   paketDimensi?: DimensiPaket | null;
-  shopee?: ShopeeVarian | null;
+  shopee?: RatingVarian | null;
+  tokopedia?: RatingVarian | null;
 };
 
 export type DimensiPaket = { p: number; l: number; t: number };
 
-export type ShopeeVarian = {
+export type RatingVarian = {
   url: string | null;
   rata: number | null;
   jumlah: number | null;
@@ -104,6 +105,8 @@ export type Produk = {
   gambar?: string;
   varian: Varian[];
   ratingShopee?: RingkasanRating | null;
+  ratingTokopedia?: RingkasanRating | null;
+  rating?: RingkasanRating | null;
   ulasan?: Ulasan[];
   ringkasanUlasan?: RingkasanUlasan;
 };
@@ -119,6 +122,15 @@ export function cariVarian(
     if (v) return { produk: p, varian: v };
   }
   return null;
+}
+
+export function rentangHarga(p: Produk): { min: number; max: number } | null {
+  const harga = p.varian.map((v) => v.harga);
+  if (harga.length < 2) return null;
+
+  const min = Math.min(...harga);
+  const max = Math.max(...harga);
+  return min === max ? null : { min, max };
 }
 
 export function semuaSlugVarian(daftar: Produk[]): string[] {

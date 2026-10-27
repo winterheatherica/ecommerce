@@ -7,6 +7,9 @@ import { angkaRating, jumlahSingkat } from "../lib/rating";
 
 export default function ProductCard({ produk }: { produk: Produk }) {
   const habis = produk.stok === 0;
+  const sumber = [produk.ratingShopee && "Shopee", produk.ratingTokopedia && "Tokopedia"]
+    .filter(Boolean)
+    .join(" & ");
 
   return (
     <Link href={`/produk/${produk.slug}`} className="group flex flex-col">
@@ -36,15 +39,15 @@ export default function ProductCard({ produk }: { produk: Produk }) {
         {produk.nama}
       </p>
 
-      {produk.ratingShopee && (
+      {produk.rating && (
         <p className="mt-1.5 flex flex-wrap items-baseline gap-x-1.5 font-mono text-[12px] text-stone-500">
-          <span className="sr-only">Rating di Shopee</span>
+          <span className="sr-only">Rating di {sumber}</span>
           <span aria-hidden="true" className="text-amber-500">
             &#9733;
           </span>
-          <span className="text-ink">{angkaRating(produk.ratingShopee.rata)}</span>
-          <span>({jumlahSingkat(produk.ratingShopee.jumlah)})</span>
-          <span>di Shopee</span>
+          <span className="text-ink">{angkaRating(produk.rating.rata)}</span>
+          <span>({jumlahSingkat(produk.rating.jumlah)})</span>
+          <span aria-hidden="true">di {sumber}</span>
         </p>
       )}
 
