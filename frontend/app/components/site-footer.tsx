@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 
+import { KELOMPOK_FAQ } from "@/app/data/faq";
 import { KONTAK, SOSIAL, WA_URL } from "@/app/data/kontak";
 import { LOGO } from "@/app/data/logo-bayar";
 import {
@@ -24,11 +25,9 @@ const produk = [
 ];
 
 const bantuan = [
-  { label: "Cara Pemesanan", href: "/faq" },
-  { label: "Lacak Pesanan", href: "/order" },
-  { label: "Ongkos Kirim", href: "/faq" },
-  { label: "Pengembalian Barang", href: "/faq" },
   { label: "Pertanyaan Umum", href: "/faq" },
+  ...KELOMPOK_FAQ.map((k) => ({ label: k.judul, href: `/faq#${k.id}` })),
+  { label: "Lacak Pesanan", href: "/order" },
 ];
 
 const pembayaran = [
