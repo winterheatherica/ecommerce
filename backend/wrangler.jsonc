@@ -33,7 +33,8 @@
     "RAJAONGKIR_JATAH_PER_IP": "30",
     "RAJAONGKIR_JATAH_LACAK": "20",
     "MAKS_PESANAN_PER_IP": "10",
-    "EMAIL_PENGIRIM": "notifikasi@menikstore.my.id"
+    "EMAIL_PENGIRIM": "notifikasi@menikstore.my.id",
+    "CLOUDINARY_CLOUD_NAME": "dokzc5ogk"
   },
   "triggers": {
     "crons": ["*/15 * * * *"]

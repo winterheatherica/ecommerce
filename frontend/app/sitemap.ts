@@ -1,13 +1,8 @@
 import type { MetadataRoute } from "next";
 
-import {
-  SEMUA_GRUP,
-  SEMUA_KATEGORI,
-  type Produk,
-  grupDariKategori,
-} from "@/app/data/produk";
-import { ambilSemuaProduk } from "@/app/lib/api";
+import { ambilSemuaProduk, ambilSitus } from "@/app/lib/api";
 import { tautan } from "@/app/lib/seo";
+import { grupDariKategori } from "@/app/lib/situs";
 
 const STATIS: { path: string; prioritas: number }[] = [
   { path: "/", prioritas: 1 },
@@ -24,37 +19,33 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: s.prioritas,
   }));
 
-  let daftar: Produk[] | null = null;
+  const [hasilProduk, hasilSitus] = await Promise.allSettled([ambilSemuaProduk(), ambilSitus()]);
 
-  try {
-    daftar = await ambilSemuaProduk();
-  } catch (e) {
-    console.error("[sitemap] gagal mengambil produk", e);
-  }
+  if (hasilProduk.status === "rejected") console.error("[sitemap] gagal mengambil produk", hasilProduk.reason);
+  if (hasilSitus.status === "rejected") console.error("[sitemap] gagal mengambil kategori", hasilSitus.reason);
 
-  const kategoriTerisi = daftar
-    ? new Set(daftar.map((p) => p.kategori))
-    : new Set(SEMUA_KATEGORI);
+  const daftar = hasilProduk.status === "fulfilled" ? hasilProduk.value : null;
+  const situs = hasilSitus.status === "fulfilled" ? hasilSitus.value : null;
 
-  const grupTerisi = daftar
-    ? new Set(daftar.map((p) => grupDariKategori(p.kategori)))
-    : new Set(SEMUA_GRUP);
+  const kategoriTerisi = daftar ? new Set(daftar.map((p) => p.kategori)) : null;
+  const grupTerisi =
+    daftar && situs ? new Set(daftar.map((p) => grupDariKategori(situs, p.kategori))) : null;
 
-  const grup: MetadataRoute.Sitemap = SEMUA_GRUP.filter((g) =>
-    grupTerisi.has(g),
-  ).map((g) => ({
-    url: tautan(`/produk?grup=${g}`),
-    changeFrequency: "weekly",
-    priority: 0.85,
-  }));
+  const grup: MetadataRoute.Sitemap = (situs?.grup ?? [])
+    .filter((g) => !grupTerisi || grupTerisi.has(g.slug))
+    .map((g) => ({
+      url: tautan(`/produk?grup=${g.slug}`),
+      changeFrequency: "weekly",
+      priority: 0.85,
+    }));
 
-  const kategori: MetadataRoute.Sitemap = SEMUA_KATEGORI.filter((k) =>
-    kategoriTerisi.has(k),
-  ).map((k) => ({
-    url: tautan(`/produk?kategori=${k}`),
-    changeFrequency: "weekly",
-    priority: 0.8,
-  }));
+  const kategori: MetadataRoute.Sitemap = (situs?.kategori ?? [])
+    .filter((k) => !kategoriTerisi || kategoriTerisi.has(k.slug))
+    .map((k) => ({
+      url: tautan(`/produk?kategori=${k.slug}`),
+      changeFrequency: "weekly",
+      priority: 0.8,
+    }));
 
   const produk: MetadataRoute.Sitemap = (daftar ?? []).map((p) => ({
     url: tautan(`/produk/${p.slug}`),

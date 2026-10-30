@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 
-import { WA_URL } from "@/app/data/kontak";
+import { LinkWa } from "@/app/components/situs-konteks";
 
 type OpsiWidget = {
   sitekey: string;
@@ -121,12 +121,11 @@ export default function Turnstile({ siteKey, ulang, onToken, className }: Props)
       {gagal && (
         <p role="alert" className="mt-3 max-w-md text-sm leading-relaxed text-red-700">
           Verifikasi keamanan gagal dimuat. Muat ulang halaman, atau{" "}
-          <a
-            href={WA_URL}
+          <LinkWa
             className="border-b border-red-300 font-medium transition-colors hover:border-red-700"
           >
             pesan lewat WhatsApp
-          </a>
+          </LinkWa>
           .
         </p>
       )}

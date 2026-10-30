@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  KATEGORI,
   TURUNAN_VARIAN,
   periksaPerubahan,
   periksaProdukBaru,
@@ -16,6 +15,7 @@ function baru(ubah: Partial<ProdukBaru> = {}): ProdukBaru {
     price: 25000,
     weight_g: 60,
     category: "kucing",
+    images: [{ cloudinary_id: "menik-store/produk/produk-uji" }],
     ...ubah,
   };
 }
@@ -35,8 +35,8 @@ describe("periksaProdukBaru", () => {
     }
   });
 
-  it("menolak kategori di luar daftar", () => {
-    const hasil = periksaProdukBaru(baru({ category: "burung" }));
+  it("menolak kategori yang bentuknya bukan slug, keberadaannya dicek database", () => {
+    const hasil = periksaProdukBaru(baru({ category: "Burung Hantu!" }));
 
     expect(hasil.ok).toBe(false);
     if (hasil.ok) return;
@@ -90,6 +90,71 @@ describe("periksaProdukBaru", () => {
   });
 });
 
+describe("foto produk baru", () => {
+  const foto = (nama: string) => ({ cloudinary_id: `menik-store/produk/${nama}` });
+
+  it("menolak produk tanpa foto", () => {
+    for (const images of [undefined, []]) {
+      const hasil = periksaProdukBaru(baru({ images }));
+
+      expect(hasil.ok).toBe(false);
+      if (hasil.ok) return;
+      expect(hasil.status).toBe(422);
+      expect(hasil.badan.error).toBe("images_required");
+      expect(hasil.badan.field).toBe("images");
+    }
+  });
+
+  it("menolak lebih dari 12 foto", () => {
+    const images = Array.from({ length: 13 }, (_, i) => foto(`uji-${i}`));
+    const hasil = periksaProdukBaru(baru({ images }));
+
+    expect(hasil.ok).toBe(false);
+    if (hasil.ok) return;
+    expect(hasil.badan.error).toBe("too_many_images");
+  });
+
+  it("hanya menerima foto dari folder produk di Cloudinary", () => {
+    for (const cloudinary_id of [
+      "menik-store/lain/uji",
+      "menik-store/produk/../rahasia",
+      "menik-store/produk/",
+      "https://res.cloudinary.com/dokzc5ogk/image/upload/menik-store/produk/uji",
+    ]) {
+      const hasil = periksaProdukBaru(baru({ images: [{ cloudinary_id }] }));
+
+      expect(hasil.ok, cloudinary_id).toBe(false);
+      if (hasil.ok) return;
+      expect(hasil.badan.error).toBe("invalid_image");
+    }
+  });
+
+  it("menolak ukuran foto yang cuma terisi sebelah", () => {
+    const hasil = periksaProdukBaru(baru({ images: [{ ...foto("uji"), width: 800, height: null }] }));
+
+    expect(hasil.ok).toBe(false);
+  });
+
+  it("menjaga urutan, merapikan spasi, dan membuang foto kembar", () => {
+    const hasil = periksaProdukBaru(
+      baru({
+        images: [
+          { cloudinary_id: " menik-store/produk/kedua ", version: 1730000000, width: 800, height: 600 },
+          foto("pertama"),
+          foto("kedua"),
+        ],
+      }),
+    );
+
+    expect(hasil.ok).toBe(true);
+    if (!hasil.ok) return;
+    expect(hasil.bersih.images).toEqual([
+      { cloudinary_id: "menik-store/produk/kedua", version: 1730000000, width: 800, height: 600 },
+      { cloudinary_id: "menik-store/produk/pertama", version: null, width: null, height: null },
+    ]);
+  });
+});
+
 describe("periksaPerubahan", () => {
   it("hanya memuat field yang dikirim", () => {
     const hasil = periksaPerubahan({ name: "Nama Baru" });
@@ -107,19 +172,18 @@ describe("periksaPerubahan", () => {
     expect(Object.keys(hasil.bersih)).toHaveLength(0);
   });
 
-  it("menolak kategori tidak sah", () => {
-    const hasil = periksaPerubahan({ category: "ngawur" });
+  it("menolak kategori yang bentuknya bukan slug", () => {
+    const hasil = periksaPerubahan({ category: "ngawur sekali" });
 
     expect(hasil.ok).toBe(false);
     if (hasil.ok) return;
     expect(hasil.badan.error).toBe("invalid_category");
   });
 
-  it("menerima semua kategori yang dipakai storefront", () => {
-    for (const kategori of KATEGORI) {
-      const hasil = periksaPerubahan({ category: kategori });
-      expect(hasil.ok, kategori).toBe(true);
-    }
+  it("merapikan slug kategori sebelum dicocokkan ke database", () => {
+    const hasil = periksaPerubahan({ category: "  Laba-Laba " });
+
+    expect(hasil.ok && hasil.bersih.category).toBe("laba-laba");
   });
 
   it("menolak harga, berat, dan stok karena itu turunan varian", () => {

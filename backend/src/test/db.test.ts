@@ -23,6 +23,10 @@ describe("database tes", () => {
 
     expect(baris.map((b) => b.tablename)).toEqual([
       "admin_sessions",
+      "categories",
+      "category_groups",
+      "faq_groups",
+      "faq_items",
       "order_items",
       "orders",
       "product_images",
@@ -32,6 +36,7 @@ describe("database tes", () => {
       "reviews",
       "sessions",
       "shipping_quotes",
+      "store_settings",
       "users",
       "webhook_events",
     ]);

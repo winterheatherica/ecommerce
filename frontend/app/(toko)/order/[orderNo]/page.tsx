@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { WA_URL } from "@/app/data/kontak";
+import { LinkWa } from "@/app/components/situs-konteks";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -107,12 +107,11 @@ function BagianKurir({ pesanan, aktif }: { pesanan: Pesanan; aktif: boolean }) {
           )}
           <p className="mt-3 text-sm leading-relaxed text-emerald-900/80">
             Ada masalah? Kirim video unboxing ke{" "}
-            <a
-              href={WA_URL}
+            <LinkWa
               className="border-b border-emerald-700/40 font-medium text-emerald-900 transition-colors hover:border-emerald-900"
             >
               WhatsApp
-            </a>{" "}
+            </LinkWa>{" "}
             sebelum {waktuKurir(batasKomplain(sampai))}.
           </p>
         </div>
@@ -190,12 +189,11 @@ function BantuanAkun() {
   return (
     <p className="mt-8 max-w-lg text-sm leading-relaxed text-stone-500">
       Lupa akun mana yang dipakai waktu memesan?{" "}
-      <a
-        href={WA_URL}
+      <LinkWa
         className="border-b border-stone-400 pb-0.5 text-ink transition-colors hover:border-brand-600 hover:text-brand-600"
       >
         Chat WhatsApp
-      </a>
+      </LinkWa>
       , sebutkan nomor pesanannya, nanti kami bantu cek.
     </p>
   );
@@ -499,12 +497,11 @@ export default async function StatusPesananPage({ params }: Props) {
 
       <p className="mt-12 border-t border-ink/10 pt-8 text-sm leading-relaxed text-stone-500">
         Ada yang perlu ditanyakan soal pesanan ini?{" "}
-        <a
-          href={WA_URL}
+        <LinkWa
           className="border-b border-stone-400 pb-0.5 text-ink transition-colors hover:border-brand-600 hover:text-brand-600"
         >
           Chat WhatsApp
-        </a>
+        </LinkWa>
         , sebutkan nomor pesanannya.
       </p>
     </div>

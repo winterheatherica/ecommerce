@@ -1,4 +1,4 @@
-import { bentrokUnik, type Kueri, type Sql } from "../lib/db";
+import { bentrokUnik, kendalaAsing, type Kueri, type Sql } from "../lib/db";
 import type { PerubahanBersih, ProdukBersih } from "../lib/products";
 import { LABEL_TUNGGAL } from "../lib/variants";
 import {
@@ -8,6 +8,7 @@ import {
   type BarisUlasanAdmin,
   type RingkasanUlasan,
 } from "./ulasan";
+import { fotoProduk, type BarisFoto } from "./foto";
 
 export type KolomRating = {
   shopee_url: string | null;
@@ -72,6 +73,7 @@ export type BarisProduk = RingkasanRating & {
   sort_order: number;
   is_active: boolean;
   variants: BarisVarian[];
+  images: BarisFoto[];
 };
 
 export type BarisProdukDetail = BarisProduk & {
@@ -161,6 +163,7 @@ const ratingVarian = (sql: Kueri) => sql`
 const kolom = (sql: Kueri) => sql`
   ${dasar(sql)},
   ${ringkasanRating(sql)},
+  ${fotoProduk(sql, true)},
   coalesce((
     select jsonb_agg(
       jsonb_build_object(
@@ -189,6 +192,7 @@ const kolom = (sql: Kueri) => sql`
 const kolomAdmin = (sql: Kueri) => sql`
   ${dasar(sql)},
   ${ringkasanRating(sql)},
+  ${fotoProduk(sql, false)},
   usage_instructions,
   coalesce((
     select jsonb_agg(
@@ -323,7 +327,7 @@ export async function satuProdukAdmin(
 
 export type HasilSimpan =
   | { ok: true; produk: BarisProdukAdmin }
-  | { ok: false; alasan: "slug_taken" };
+  | { ok: false; alasan: "slug_taken" | "invalid_category" };
 
 export async function simpanProdukBaru(
   sql: Sql,
@@ -371,6 +375,19 @@ export async function simpanProdukBaru(
         )
       `;
 
+      await tx`
+        insert into product_images ${tx(
+          b.images.map((f, i) => ({
+            product_id: induk.id,
+            cloudinary_id: f.cloudinary_id,
+            version: f.version,
+            width: f.width,
+            height: f.height,
+            sort_order: i,
+          })) as unknown as Record<string, never>[],
+        )}
+      `;
+
       const [lengkap] = await tx<BarisProdukAdmin[]>`
         select ${kolomAdmin(tx)}
         from products
@@ -383,6 +400,7 @@ export async function simpanProdukBaru(
     return { ok: true, produk: produk[0] };
   } catch (e) {
     if (bentrokUnik(e)) return { ok: false, alasan: "slug_taken" };
+    if (kendalaAsing(e) === "products_category_fkey") return { ok: false, alasan: "invalid_category" };
     throw e;
   }
 }

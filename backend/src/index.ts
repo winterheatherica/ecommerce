@@ -31,6 +31,7 @@ import { adminRoutes } from "./routes/admin";
 import { devRoutes } from "./routes/dev";
 import { akunRoutes } from "./routes/akun";
 import { adminMasukRoutes } from "./routes/admin-masuk";
+import { situsRoutes } from "./routes/situs";
 
 const app = new Elysia({ adapter: CloudflareAdapter })
   .onRequest(async ({ request, set }) => {
@@ -88,6 +89,7 @@ const app = new Elysia({ adapter: CloudflareAdapter })
       bacaKonfigTurnstile(env as unknown as Record<string, unknown>)?.siteKey ?? null,
   }))
   .use(productRoutes)
+  .use(situsRoutes)
   .use(shippingRoutes)
   .use(paymentRoutes)
   .use(orderRoutes)

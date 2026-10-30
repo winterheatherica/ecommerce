@@ -5,7 +5,9 @@ import { useState } from "react";
 
 import AdminNumberBox from "@/app/components/admin-number-box";
 import { ubahProduk, ubahVarian } from "@/app/lib/api-client";
-import { kategoriLabel, rupiah, type Produk, type Varian } from "@/app/data/produk";
+import { rupiah, type Produk, type Varian } from "@/app/data/produk";
+import { useSitus } from "@/app/components/situs-konteks";
+import { cariKategori } from "@/app/lib/situs";
 
 export const AMBANG_MENIPIS = 10;
 
@@ -18,6 +20,7 @@ function warnaStok(v: Varian): string {
 }
 
 export default function AdminProducts({ awal }: { awal: Produk[] }) {
+  const situs = useSitus();
   const [produk, setProduk] = useState<Produk[]>(awal);
   const [menyimpan, setMenyimpan] = useState<string | null>(null);
   const [galat, setGalat] = useState<string | null>(null);
@@ -138,7 +141,7 @@ export default function AdminProducts({ awal }: { awal: Produk[] }) {
                       className="px-4 py-3 align-top text-stone-600"
                       rowSpan={p.varian.length}
                     >
-                      {kategoriLabel[p.kategori]}
+                      {cariKategori(situs, p.kategori)?.label ?? p.kategori}
                     </td>
                   )}
 

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import { KONTAK, WA_URL } from "@/app/data/kontak";
+import { ambilSitus } from "@/app/lib/api";
 import { metaHalaman } from "@/app/lib/seo";
 
 export const metadata: Metadata = metaHalaman({
@@ -74,7 +74,9 @@ const bagian = [
   },
 ];
 
-export default function PrivasiPage() {
+export default async function PrivasiPage() {
+  const { toko } = await ambilSitus();
+
   return (
     <section className="mx-auto w-full max-w-3xl px-6 pt-32 pb-24">
       <p className="font-mono text-[13px] tracking-[0.28em] text-accent-600 uppercase">
@@ -109,15 +111,15 @@ export default function PrivasiPage() {
         <p className="mt-3 leading-relaxed text-ink">
           Pertanyaan soal data pribadi bisa disampaikan lewat WhatsApp{" "}
           <a
-            href={WA_URL}
+            href={toko.waUrl}
             className="border-b border-ink/30 transition-colors hover:border-brand-600 hover:text-brand-600"
           >
-            {KONTAK.waTampil}
+            {toko.waTampil}
           </a>
           , atau datang langsung ke alamat kami.
         </p>
         <p className="mt-3 leading-relaxed text-stone-600">
-          {KONTAK.alamatSatuBaris}
+          {toko.alamatSatuBaris}
         </p>
       </div>
     </section>

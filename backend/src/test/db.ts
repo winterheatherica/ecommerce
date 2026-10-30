@@ -53,7 +53,7 @@ export function urlInduk(): string {
 }
 
 export function koneksiTes(): Sql {
-  return postgres(urlTes(), { max: 1, onnotice: () => {} });
+  return postgres(urlTes(), { max: 1, prepare: false, fetch_types: false, onnotice: () => {} });
 }
 
 export function bacaMigrasi(berkas: string): string {

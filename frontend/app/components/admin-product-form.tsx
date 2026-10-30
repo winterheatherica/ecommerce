@@ -5,13 +5,17 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 import AdminMarketplaceRating from "@/app/components/admin-marketplace-rating";
+import AdminPhotoEditor, {
+  AdminPhotoPicker,
+  PETUNJUK_FOTO,
+  type FotoBaru,
+} from "@/app/components/admin-photo-editor";
 import AdminPromoEditor from "@/app/components/admin-promo-editor";
 import AdminReviews from "@/app/components/admin-reviews";
 import AdminVariantEditor from "@/app/components/admin-variant-editor";
 import { buatProdukBaru, simpanProduk } from "@/app/lib/api-client";
-import { kategoriLabel, type Kategori, type Produk } from "@/app/data/produk";
-
-const KATEGORI = Object.keys(kategoriLabel) as Kategori[];
+import type { Produk } from "@/app/data/produk";
+import { useSitus } from "@/app/components/situs-konteks";
 
 const label = "block font-mono text-[12px] tracking-[0.2em] text-stone-500 uppercase";
 const kotak =
@@ -40,10 +44,13 @@ export default function AdminProductForm({ awal }: Props) {
   const [harga, setHarga] = useState(String(awal?.harga ?? ""));
   const [berat, setBerat] = useState(String(awal?.beratG ?? ""));
   const [stok, setStok] = useState(String(awal?.stok ?? 0));
-  const [kategori, setKategori] = useState<Kategori>(awal?.kategori ?? "kucing");
+  const situs = useSitus();
+  const [kategori, setKategori] = useState(awal?.kategori ?? situs.kategori[0]?.slug ?? "");
   const [terjual, setTerjual] = useState(String(awal?.terjualPerBulan ?? 0));
   const [unggulan, setUnggulan] = useState(awal?.unggulan ?? false);
   const [aktif, setAktif] = useState(awal?.aktif ?? true);
+  const [foto, setFoto] = useState<FotoBaru[]>([]);
+  const [mengunggah, setMengunggah] = useState<string | null>(null);
 
   const [galat, setGalat] = useState<string | null>(null);
   const [menyimpan, setMenyimpan] = useState(false);
@@ -57,6 +64,8 @@ export default function AdminProductForm({ awal }: Props) {
     if (nama.trim().length < 3) return "Nama produk minimal 3 huruf.";
     if (ubahMode) return null;
     if (!slug.trim()) return "Slug belum diisi.";
+    if (mengunggah) return "Tunggu sampai foto selesai diunggah.";
+    if (foto.length === 0) return "Tambahkan minimal satu foto produk.";
     if (!(Number(harga) > 0)) return "Harga harus lebih dari 0.";
     if (!(Number(berat) > 0)) return "Berat harus lebih dari 0 gram.";
     if (Number(stok) < 0) return "Stok tidak boleh minus.";
@@ -95,6 +104,12 @@ export default function AdminProductForm({ awal }: Props) {
           price: Number(harga),
           weight_g: Number(berat),
           stock: Number(stok),
+          images: foto.map((f) => ({
+            cloudinary_id: f.cloudinary_id,
+            version: f.version,
+            width: f.width,
+            height: f.height,
+          })),
         });
       }
 
@@ -155,6 +170,22 @@ export default function AdminProductForm({ awal }: Props) {
                 : `Halaman produknya nanti: /produk/${slug || "..."}`}
             </p>
           </div>
+
+          {!ubahMode && (
+            <div>
+              <p className={label}>Foto produk</p>
+              <p className="mt-2 mb-4 text-xs leading-relaxed text-stone-500">
+                {PETUNJUK_FOTO} Minimal satu foto.
+              </p>
+              <AdminPhotoPicker
+                foto={foto}
+                setFoto={setFoto}
+                sibuk={mengunggah}
+                setSibuk={setMengunggah}
+                mati={menyimpan}
+              />
+            </div>
+          )}
 
           <div>
             <label className={label} htmlFor="deskripsi">
@@ -249,12 +280,12 @@ export default function AdminProductForm({ awal }: Props) {
               <select
                 id="kategori"
                 value={kategori}
-                onChange={(e) => setKategori(e.target.value as Kategori)}
+                onChange={(e) => setKategori(e.target.value)}
                 className={kotak}
               >
-                {KATEGORI.map((k) => (
-                  <option key={k} value={k}>
-                    {kategoriLabel[k]}
+                {situs.kategori.map((k) => (
+                  <option key={k.slug} value={k.slug}>
+                    {k.label}
                   </option>
                 ))}
               </select>
@@ -313,7 +344,7 @@ export default function AdminProductForm({ awal }: Props) {
         <div className="mt-8 flex flex-wrap gap-3">
           <button
             type="submit"
-            disabled={menyimpan}
+            disabled={menyimpan || mengunggah !== null}
             className="border border-brand-500 bg-brand-500 px-8 py-3 font-mono text-[13px] tracking-[0.2em] indent-[0.2em] text-white uppercase transition-colors hover:border-brand-600 hover:bg-brand-600 disabled:cursor-not-allowed disabled:border-stone-300 disabled:bg-stone-300"
           >
             {menyimpan ? "Menyimpan..." : ubahMode ? "Simpan perubahan" : "Tambah produk"}
@@ -328,6 +359,7 @@ export default function AdminProductForm({ awal }: Props) {
         </div>
       </form>
 
+      {ubahMode && awal && <AdminPhotoEditor produk={awal} />}
       {ubahMode && awal && <AdminVariantEditor produk={awal} />}
       {ubahMode && awal && <AdminPromoEditor produk={awal} />}
       {ubahMode && awal && <AdminMarketplaceRating produk={awal} marketplace="shopee" />}

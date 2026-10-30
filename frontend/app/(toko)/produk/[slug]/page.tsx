@@ -1,16 +1,17 @@
 import type { Metadata } from "next";
 import HargaCoret from "@/app/components/harga-coret";
 import Link from "next/link";
-import Image from "next/image";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 
 import JsonLd from "@/app/components/json-ld";
-import { PUNYA_GAMBAR, urlGambarBagi } from "@/app/data/gambar";
 import ProductBuyBox from "@/app/components/product-buy-box";
+import ProductGallery from "@/app/components/product-gallery";
+import { PilihanUkuran } from "@/app/components/pilihan-ukuran";
 import ProductCard from "@/app/components/product-card";
 import ProductReviews from "@/app/components/product-reviews";
-import { ambilProduk, ambilSatuProduk } from "@/app/lib/api";
+import { ambilProduk, ambilSatuProduk, ambilSitus } from "@/app/lib/api";
+import { cariKategori } from "@/app/lib/situs";
 import { uraiCaraPakai } from "@/app/lib/cara-pakai";
 import {
   angkaRating,
@@ -21,11 +22,9 @@ import {
   tanggalRating,
 } from "@/app/lib/rating";
 import {
-  kategoriJudul,
-  kategoriLabel,
-  kategoriRingkasan,
   rentangHarga,
   rupiah,
+  varianAwal,
   type Produk,
 } from "@/app/data/produk";
 
@@ -33,7 +32,7 @@ function teksHarga(produk: Produk): string {
   const rentang = rentangHarga(produk);
   return rentang ? `${rupiah(rentang.min)} - ${rupiah(rentang.max)}` : rupiah(produk.harga);
 }
-import { metaHalaman, skemaProduk, skemaRemah } from "@/app/lib/seo";
+import { gambarBagiFoto, metaHalaman, skemaProduk, skemaRemah } from "@/app/lib/seo";
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -52,23 +51,25 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const harga = teksHarga(produk);
   const ringkasan =
-    produk.deskripsi.trim() || kategoriRingkasan[produk.kategori];
+    produk.deskripsi.trim() || (cariKategori(await ambilSitus(), produk.kategori)?.ringkasan ?? "");
 
   return metaHalaman({
     judul: produk.nama,
     ringkasan: `${harga}. ${ringkasan}`,
     path: `/produk/${produk.slug}`,
-    gambar: PUNYA_GAMBAR.has(produk.slug)
-      ? { url: urlGambarBagi(produk.slug), lebar: 1200, tinggi: 630 }
-      : undefined,
+    gambar: produk.gambar ? gambarBagiFoto(produk.gambar) : undefined,
   });
 }
 
 export default async function DetailProdukPage({ params }: Props) {
   const { slug } = await params;
-  const produk = await ambilSatuProduk(slug);
+  const [produk, situs] = await Promise.all([ambilSatuProduk(slug), ambilSitus()]);
 
   if (!produk) notFound();
+
+  const kategori = cariKategori(situs, produk.kategori);
+  const judulKategori = kategori?.judul ?? produk.kategori;
+  const labelKategori = kategori?.label ?? produk.kategori;
 
   const habis = produk.stok === 0;
   const caraPakai = uraiCaraPakai(produk.caraPakai);
@@ -77,13 +78,13 @@ export default async function DetailProdukPage({ params }: Props) {
 
   return (
     <div className="mx-auto w-full max-w-6xl px-6 pt-32 pb-24">
-      <JsonLd data={skemaProduk(produk)} />
+      <JsonLd data={skemaProduk(produk, judulKategori)} />
       <JsonLd
         data={skemaRemah([
           { nama: "Beranda", path: "/" },
           { nama: "Produk", path: "/produk" },
           {
-            nama: kategoriJudul[produk.kategori],
+            nama: judulKategori,
             path: `/produk?kategori=${produk.kategori}`,
           },
           { nama: produk.nama, path: `/produk/${produk.slug}` },
@@ -102,129 +103,110 @@ export default async function DetailProdukPage({ params }: Props) {
           href={`/produk?kategori=${produk.kategori}`}
           className="transition-colors hover:text-brand-600"
         >
-          {kategoriLabel[produk.kategori]}
+          {labelKategori}
         </Link>
       </nav>
 
-      <div className="mt-8 grid gap-12 lg:grid-cols-2 lg:gap-16">
-        <div className="relative aspect-square overflow-hidden border border-brand-100 bg-brand-50">
-          {produk.gambar ? (
-            <Image
-              src={produk.gambar}
-              alt={produk.nama}
-              fill
-              priority
-              sizes="(max-width: 1024px) 100vw, 50vw"
-              className="object-cover"
-            />
-          ) : (
-            <span className="absolute inset-0 flex items-center justify-center font-mono text-[13px] tracking-[0.2em] text-brand-300 uppercase">
-              Foto produk
-            </span>
-          )}
+      <PilihanUkuran foto={produk.foto} awal={varianAwal(produk.varian)?.slug ?? null}>
+        <div className="mt-8 grid gap-12 lg:grid-cols-2 lg:gap-16">
+          <ProductGallery nama={produk.nama} habis={habis} />
 
-          {habis && (
-            <span className="absolute inset-0 flex items-center justify-center bg-white/70 font-mono text-xs tracking-[0.2em] text-ink uppercase">
-              Stok habis
-            </span>
-          )}
-        </div>
+          <div>
+            <p className="font-mono text-[13px] tracking-[0.28em] text-accent-600 uppercase">
+              {judulKategori}
+            </p>
 
-        <div>
-          <p className="font-mono text-[13px] tracking-[0.28em] text-accent-600 uppercase">
-            {kategoriJudul[produk.kategori]}
-          </p>
+            <h1 className="mt-4 text-3xl leading-tight font-semibold tracking-tight text-ink sm:text-4xl">
+              {produk.nama}
+            </h1>
 
-          <h1 className="mt-4 text-3xl leading-tight font-semibold tracking-tight text-ink sm:text-4xl">
-            {produk.nama}
-          </h1>
+            <RatingMarketplace produk={produk} />
 
-          <RatingMarketplace produk={produk} />
+            <p className="mt-6">
+              {rentang ? (
+                <span className="text-2xl font-semibold tracking-tight text-brand-600 sm:text-3xl">
+                  {teksHarga(produk)}
+                </span>
+              ) : (
+                <HargaCoret
+                  harga={produk.harga}
+                  normal={produk.hargaNormal}
+                  kelasHarga="text-3xl font-semibold tracking-tight text-brand-600"
+                />
+              )}
+            </p>
 
-          <p className="mt-6">
-            {rentang ? (
-              <span className="text-2xl font-semibold tracking-tight text-brand-600 sm:text-3xl">
-                {teksHarga(produk)}
-              </span>
-            ) : (
-              <HargaCoret
-                harga={produk.harga}
-                normal={produk.hargaNormal}
-                kelasHarga="text-3xl font-semibold tracking-tight text-brand-600"
-              />
-            )}
-          </p>
+            <p className="mt-3 font-mono text-[13px] tracking-[0.16em] text-stone-500 uppercase">
+              {habis ? "Stok kosong" : `${produk.stok} tersedia`}
+              <span className="mx-2 text-stone-300">&middot;</span>
+              {produk.terjualPerBulan} terjual/bln
+            </p>
 
-          <p className="mt-3 font-mono text-[13px] tracking-[0.16em] text-stone-500 uppercase">
-            {habis ? "Stok kosong" : `${produk.stok} tersedia`}
-            <span className="mx-2 text-stone-300">&middot;</span>
-            {produk.terjualPerBulan} terjual/bln
-          </p>
+            <ProductBuyBox produk={produk} />
 
-          <ProductBuyBox produk={produk} />
-
-          <div className="mt-12 border-t border-ink/10 pt-8">
-            <h2 className="font-mono text-[13px] tracking-[0.28em] text-stone-500 uppercase">
-              Deskripsi
-            </h2>
-            <p className="mt-4 leading-relaxed text-stone-600">{produk.deskripsi}</p>
-          </div>
-
-          {caraPakai.length > 0 && (
-            <div className="mt-10 border-t border-ink/10 pt-8">
+            <div className="mt-12 border-t border-ink/10 pt-8">
               <h2 className="font-mono text-[13px] tracking-[0.28em] text-stone-500 uppercase">
-                Cara pakai
+                Deskripsi
               </h2>
-              {caraPakai.map((bagian, i) => {
-                const Daftar = bagian.poin ? "ul" : "ol";
+              <p className="mt-4 leading-relaxed text-stone-600">{produk.deskripsi}</p>
+            </div>
 
-                return (
-                  <div key={i} className="mt-5">
-                    {bagian.judul && (
-                      <h3 className="text-sm font-semibold text-ink">{bagian.judul}</h3>
-                    )}
-                    <Daftar
-                      className={`mt-2 space-y-2 pl-5 leading-relaxed text-stone-600 marker:text-stone-400 ${
-                        bagian.poin ? "list-disc" : "list-decimal"
-                      }`}
-                    >
-                      {bagian.isi.map((langkah, j) => (
-                        <li key={j} className="pl-1">
-                          {langkah}
-                        </li>
-                      ))}
-                    </Daftar>
-                  </div>
-                );
-              })}
-            </div>
-          )}
+            {caraPakai.length > 0 && (
+              <div className="mt-10 border-t border-ink/10 pt-8">
+                <h2 className="font-mono text-[13px] tracking-[0.28em] text-stone-500 uppercase">
+                  Cara pakai
+                </h2>
+                {caraPakai.map((bagian, i) => {
+                  const Daftar = bagian.poin ? "ul" : "ol";
 
-          <dl className="mt-10 grid grid-cols-2 gap-x-8 gap-y-4 border-t border-ink/10 pt-8 text-sm">
-            <div>
-              <dt className="font-mono text-[12px] tracking-[0.2em] text-stone-500 uppercase">
-                Berat
-              </dt>
-              <dd className="mt-1 text-ink">{produk.beratG} g</dd>
-            </div>
-            <div>
-              <dt className="font-mono text-[12px] tracking-[0.2em] text-stone-500 uppercase">
-                Kategori
-              </dt>
-              <dd className="mt-1 text-ink">{kategoriLabel[produk.kategori]}</dd>
-            </div>
-            <div className="col-span-2">
-              <dt className="font-mono text-[12px] tracking-[0.2em] text-stone-500 uppercase">
-                Keamanan
-              </dt>
-              <dd className="mt-1 leading-relaxed text-ink">
-                Berbahan dasar alami. Simpan di luar jangkauan anak dan
-                jangan sampai termakan.
-              </dd>
-            </div>
-          </dl>
+                  return (
+                    <div key={i} className="mt-5">
+                      {bagian.judul && (
+                        <h3 className="text-sm font-semibold text-ink">{bagian.judul}</h3>
+                      )}
+                      <Daftar
+                        className={`mt-2 space-y-2 pl-5 leading-relaxed text-stone-600 marker:text-stone-400 ${
+                          bagian.poin ? "list-disc" : "list-decimal"
+                        }`}
+                      >
+                        {bagian.isi.map((langkah, j) => (
+                          <li key={j} className="pl-1">
+                            {langkah}
+                          </li>
+                        ))}
+                      </Daftar>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            <dl className="mt-10 grid grid-cols-2 gap-x-8 gap-y-4 border-t border-ink/10 pt-8 text-sm">
+              <div>
+                <dt className="font-mono text-[12px] tracking-[0.2em] text-stone-500 uppercase">
+                  Berat
+                </dt>
+                <dd className="mt-1 text-ink">{produk.beratG} g</dd>
+              </div>
+              <div>
+                <dt className="font-mono text-[12px] tracking-[0.2em] text-stone-500 uppercase">
+                  Kategori
+                </dt>
+                <dd className="mt-1 text-ink">{labelKategori}</dd>
+              </div>
+              <div className="col-span-2">
+                <dt className="font-mono text-[12px] tracking-[0.2em] text-stone-500 uppercase">
+                  Keamanan
+                </dt>
+                <dd className="mt-1 leading-relaxed text-ink">
+                  Berbahan dasar alami. Simpan di luar jangkauan anak dan
+                  jangan sampai termakan.
+                </dd>
+              </div>
+            </dl>
+          </div>
         </div>
-      </div>
+      </PilihanUkuran>
 
       {produk.ulasan && produk.ulasan.length > 0 && (
         <ProductReviews
@@ -241,7 +223,7 @@ export default async function DetailProdukPage({ params }: Props) {
       )}
 
       <Suspense fallback={<KerangkaSerupa />}>
-        <ProdukSerupa kategori={produk.kategori} slug={produk.slug} />
+        <ProdukSerupa kategori={produk.kategori} label={labelKategori} slug={produk.slug} />
       </Suspense>
     </div>
   );
@@ -322,9 +304,11 @@ function KerangkaSerupa() {
 
 async function ProdukSerupa({
   kategori,
+  label,
   slug,
 }: {
   kategori: Produk["kategori"];
+  label: string;
   slug: string;
 }) {
   const sekategori = await ambilProduk({ kategori, limit: 4 });
@@ -338,7 +322,7 @@ async function ProdukSerupa({
         Masalah yang sama
       </p>
       <h2 className="mt-3 text-2xl font-semibold tracking-tight text-ink">
-        Pilihan lain untuk {kategoriLabel[kategori].toLowerCase()}
+        Pilihan lain untuk {label.toLowerCase()}
       </h2>
 
       <div className="mt-10 grid grid-cols-2 gap-6 lg:grid-cols-3">

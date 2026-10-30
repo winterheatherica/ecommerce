@@ -7,6 +7,9 @@ const menu = [
   { href: "/admin", label: "Ringkasan" },
   { href: "/admin/pesanan", label: "Pesanan" },
   { href: "/admin/produk", label: "Produk" },
+  { href: "/admin/kategori", label: "Kategori" },
+  { href: "/admin/faq", label: "FAQ" },
+  { href: "/admin/toko", label: "Info toko" },
 ];
 
 export default function AdminNav({ urlKeluar }: { urlKeluar: string }) {

@@ -1,6 +1,4 @@
-import type { Kategori } from "../data/produk";
-
-const bentuk: Partial<Record<Kategori, React.ReactNode>> = {
+const bentuk: Record<string, React.ReactNode> = {
   kucing: (
     <>
       <path d="M14 18 L12 8 L20 13" />
@@ -145,7 +143,7 @@ const bentuk: Partial<Record<Kategori, React.ReactNode>> = {
   ),
 };
 
-export default function IkonHama({ kategori }: { kategori: Kategori }) {
+export default function IkonHama({ kategori }: { kategori: string }) {
   const isi = bentuk[kategori];
   if (!isi) return null;
 

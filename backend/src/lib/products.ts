@@ -1,26 +1,4 @@
-export const KATEGORI = [
-  "kucing",
-  "tikus",
-  "kecoa",
-  "cicak",
-  "nyamuk",
-  "ular",
-  "lalat",
-  "semut",
-  "musang",
-  "laba-laba",
-  "rayap",
-  "siput",
-  "kutu-kasur",
-  "perilaku-anjing",
-  "perawatan-hewan",
-  "perawatan-kulit",
-  "pembersih-rumah",
-  "aroma-rumah",
-  "paket",
-] as const;
-
-export type Kategori = (typeof KATEGORI)[number];
+import { periksaDaftarFoto, type FotoBaru, type FotoBersih } from "./cloudinary";
 
 const POLA_SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
@@ -44,9 +22,10 @@ export type ProdukBaru = {
   sort_order?: number;
   is_active?: boolean;
   usage_instructions?: string | null;
+  images?: FotoBaru[];
 };
 
-export type PerubahanProduk = Partial<Omit<ProdukBaru, "slug">>;
+export type PerubahanProduk = Partial<Omit<ProdukBaru, "slug" | "images">>;
 
 export type ProdukBersih = {
   slug: string;
@@ -61,10 +40,11 @@ export type ProdukBersih = {
   sort_order: number | null;
   is_active: boolean;
   usage_instructions: string | null;
+  images: FotoBersih[];
 };
 
 export type PerubahanBersih = Partial<
-  Omit<ProdukBersih, "slug" | "sort_order" | "price" | "weight_g" | "stock">
+  Omit<ProdukBersih, "slug" | "sort_order" | "price" | "weight_g" | "stock" | "images">
 > & {
   sort_order?: number;
 };
@@ -80,19 +60,17 @@ export function rapikanCaraPakai(teks: string | null): string | null {
   return baris.length > 0 ? baris.join("\n") : null;
 }
 
-function periksaKategori(kategori: string): Gagal | null {
-  if (!(KATEGORI as readonly string[]).includes(kategori)) {
-    return {
-      status: 422,
-      badan: {
-        error: "invalid_category",
-        message: `Kategori harus salah satu dari: ${KATEGORI.join(", ")}`,
-        field: "category",
-      },
-    };
-  }
+export const GALAT_KATEGORI: Gagal = {
+  status: 422,
+  badan: {
+    error: "invalid_category",
+    message: "Kategori tidak ditemukan. Pilih kategori yang ada di halaman Kategori",
+    field: "category",
+  },
+};
 
-  return null;
+function periksaKategori(kategori: string): Gagal | null {
+  return POLA_SLUG.test(kategori) && kategori.length <= 40 ? null : GALAT_KATEGORI;
 }
 
 function periksaTurunan(p: PerubahanProduk): Gagal | null {
@@ -128,8 +106,12 @@ export function periksaProdukBaru(
     };
   }
 
-  const galatKategori = periksaKategori(data.category);
+  const kategori = data.category.trim().toLowerCase();
+  const galatKategori = periksaKategori(kategori);
   if (galatKategori) return { ok: false, ...galatKategori };
+
+  const foto = periksaDaftarFoto(data.images);
+  if (!foto.ok) return foto;
 
   return {
     ok: true,
@@ -140,12 +122,13 @@ export function periksaProdukBaru(
       price: data.price,
       weight_g: data.weight_g,
       stock: data.stock ?? 0,
-      category: data.category,
+      category: kategori,
       is_featured: data.is_featured ?? false,
       sold_per_month: data.sold_per_month ?? 0,
       sort_order: data.sort_order ?? null,
       is_active: data.is_active ?? true,
       usage_instructions: rapikanCaraPakai(data.usage_instructions ?? null),
+      images: foto.bersih,
     },
   };
 }
@@ -156,8 +139,9 @@ export function periksaPerubahan(
   const galatTurunan = periksaTurunan(p);
   if (galatTurunan) return { ok: false, ...galatTurunan };
 
-  if (p.category !== undefined) {
-    const galat = periksaKategori(p.category);
+  const kategori = p.category?.trim().toLowerCase();
+  if (kategori !== undefined) {
+    const galat = periksaKategori(kategori);
     if (galat) return { ok: false, ...galat };
   }
 
@@ -165,7 +149,7 @@ export function periksaPerubahan(
 
   if (p.name !== undefined) bersih.name = p.name.trim();
   if (p.description !== undefined) bersih.description = p.description.trim();
-  if (p.category !== undefined) bersih.category = p.category;
+  if (kategori !== undefined) bersih.category = kategori;
   if (p.is_featured !== undefined) bersih.is_featured = p.is_featured;
   if (p.sold_per_month !== undefined) bersih.sold_per_month = p.sold_per_month;
   if (p.sort_order !== undefined) bersih.sort_order = p.sort_order;

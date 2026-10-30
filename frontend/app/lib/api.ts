@@ -2,9 +2,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { cache } from "react";
 
-import { PUNYA_GAMBAR, urlGambar } from "@/app/data/gambar";
 import type {
-  Kategori,
   Produk,
   RatingVarian,
   RingkasanRating,
@@ -13,6 +11,8 @@ import type {
   Varian,
 } from "@/app/data/produk";
 import { petakanUlasan, type UlasanAPI } from "@/app/lib/ulasan";
+import { petakanFoto, type FotoAPI } from "@/app/lib/foto";
+import { petakanSitus, type Situs, type SitusAPI } from "@/app/lib/situs";
 import type { StatusPesanan } from "@/app/data/status-pesanan";
 import { kepalaCookie } from "@/app/lib/akun";
 import { kepalaPengunjung } from "@/app/lib/pengunjung";
@@ -78,6 +78,7 @@ type ProdukAPI = {
   sold_per_month: number;
   sort_order: number;
   variants?: VarianAPI[];
+  images?: FotoAPI[];
   shopee_rating?: number | null;
   shopee_rating_count?: number;
   tokopedia_rating?: number | null;
@@ -113,6 +114,7 @@ function ringkasanRating(
 }
 
 function petakan(p: ProdukAPI): Produk {
+  const foto = (p.images ?? []).map(petakanFoto);
   const varian: Varian[] = (p.variants ?? []).map((v) => ({
     slug: v.slug,
     sku: v.sku,
@@ -122,7 +124,7 @@ function petakan(p: ProdukAPI): Produk {
     promoSampai: v.promo_visible_until ?? undefined,
     beratG: v.weight_g,
     stok: v.stock,
-    gambar: PUNYA_GAMBAR.has(v.slug) ? urlGambar(v.slug) : undefined,
+    gambar: foto.find((f) => f.varianSlug === v.slug)?.url,
     aktif: v.is_active,
     paketBeratG: v.package_weight_g ?? null,
     paketDimensi: dimensiPaket(v),
@@ -150,10 +152,6 @@ function petakan(p: ProdukAPI): Produk {
     .filter((v) => v.aktif !== false)
     .reduce<Varian | null>((m, v) => (!m || v.harga < m.harga ? v : m), null);
 
-  const berfoto = PUNYA_GAMBAR.has(p.slug)
-    ? urlGambar(p.slug)
-    : varian.find((v) => v.gambar)?.gambar;
-
   return {
     slug: p.slug,
     nama: p.name,
@@ -161,13 +159,14 @@ function petakan(p: ProdukAPI): Produk {
     caraPakai: p.usage_instructions ?? null,
     harga: termurah?.harga ?? p.price,
     hargaNormal: termurah?.hargaNormal,
-    kategori: p.category as Kategori,
+    kategori: p.category,
     beratG: p.weight_g,
     stok: p.stock,
     terjualPerBulan: p.sold_per_month,
     unggulan: p.is_featured,
     aktif: p.is_active,
-    gambar: berfoto,
+    gambar: foto[0]?.url,
+    foto,
     varian,
     ratingShopee: ringkasanRating(p.shopee_rating, p.shopee_rating_count),
     ratingTokopedia: ringkasanRating(p.tokopedia_rating, p.tokopedia_rating_count),
@@ -175,6 +174,23 @@ function petakan(p: ProdukAPI): Produk {
     ulasan: p.reviews?.map(petakanUlasan),
     ringkasanUlasan: p.reviews_summary,
   };
+}
+
+export const ambilSitus = cache(async (): Promise<Situs> => {
+  const res = await fetch(`${basis()}/api/site`, {
+    cache: "no-store",
+    headers: await kepalaPengunjung(),
+  });
+
+  if (!res.ok) throw new Error(`Gagal mengambil data toko (${res.status})`);
+  return petakanSitus((await res.json()) as SitusAPI);
+});
+
+export async function ambilSitusAdmin(): Promise<SitusAPI> {
+  const res = await ambilAdmin(`${basis()}/api/admin/site`);
+
+  if (!res.ok) throw new Error(`Gagal mengambil data toko (${res.status})`);
+  return (await res.json()) as SitusAPI;
 }
 
 export type OpsiDaftar = {

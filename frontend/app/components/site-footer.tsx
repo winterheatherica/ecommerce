@@ -1,34 +1,12 @@
 import Image from "next/image";
 import Link from "next/link";
 
-import { KELOMPOK_FAQ } from "@/app/data/faq";
-import { KONTAK, SOSIAL, WA_URL } from "@/app/data/kontak";
+import { renderSVG } from "uqr";
+
 import { LOGO } from "@/app/data/logo-bayar";
-import {
-  GRUP,
-  KATEGORI,
-  SEMUA_GRUP,
-  kategoriDalamGrup,
-} from "@/app/data/produk";
-
-const produk = [
-  ...SEMUA_GRUP.map((g) => ({
-    label: GRUP[g].judul,
-    href: `/produk?grup=${g}`,
-  })),
-  ...kategoriDalamGrup("hama")
-    .slice(0, 3)
-    .map((k) => ({
-      label: KATEGORI[k].judul,
-      href: `/produk?kategori=${k}`,
-    })),
-];
-
-const bantuan = [
-  { label: "Pertanyaan Umum", href: "/faq" },
-  ...KELOMPOK_FAQ.map((k) => ({ label: k.judul, href: `/faq#${k.id}` })),
-  { label: "Lacak Pesanan", href: "/order" },
-];
+import { ambilSitus } from "@/app/lib/api";
+import { NAMA_SITUS } from "@/app/lib/seo";
+import { kategoriDalamGrup } from "@/app/lib/situs";
 
 const pembayaran = [
   LOGO.qris,
@@ -46,7 +24,25 @@ const pembayaran = [
 
 const skalaLogo = 0.65;
 
-export default function SiteFooter() {
+export default async function SiteFooter() {
+  const situs = await ambilSitus();
+  const { toko } = situs;
+
+  const produk = [
+    ...situs.grup.map((g) => ({ label: g.judul, href: `/produk?grup=${g.slug}` })),
+    ...kategoriDalamGrup(situs, situs.grup[0]?.slug ?? "")
+      .slice(0, 3)
+      .map((k) => ({ label: k.judul, href: `/produk?kategori=${k.slug}` })),
+  ];
+
+  const bantuan = [
+    { label: "Pertanyaan Umum", href: "/faq" },
+    ...situs.faq.map((k) => ({ label: k.judul, href: `/faq#${k.id}` })),
+    { label: "Lacak Pesanan", href: "/order" },
+  ];
+
+  const qr = `data:image/svg+xml,${encodeURIComponent(renderSVG(toko.waUrl, { border: 1 }))}`;
+
   return (
     <footer id="kontak">
       <section className="relative isolate overflow-hidden">
@@ -76,7 +72,7 @@ export default function SiteFooter() {
             </p>
             <div className="mt-8 flex flex-wrap items-center gap-x-8 gap-y-6">
               <a
-                href={WA_URL}
+                href={toko.waUrl}
                 className="inline-block border border-ink px-8 py-3.5 font-mono text-[13px] tracking-[0.22em] indent-[0.22em] text-ink uppercase transition-colors hover:bg-ink hover:text-white"
               >
                 Chat WhatsApp
@@ -84,8 +80,8 @@ export default function SiteFooter() {
 
               <div className="hidden items-center gap-4 lg:flex">
                 <Image
-                  src="/wa-qr.png"
-                  alt="Kode QR untuk chat WhatsApp Menik Store"
+                  src={qr}
+                  alt={`Kode QR untuk chat WhatsApp ${NAMA_SITUS}`}
                   width={144}
                   height={144}
                   unoptimized
@@ -112,7 +108,7 @@ export default function SiteFooter() {
                 dihindari hama, bukan dengan racun.
               </p>
               <ul className="mt-7 flex flex-wrap gap-x-5 gap-y-2">
-                {SOSIAL.map((s) => (
+                {toko.sosial.map((s) => (
                   <li key={s.label}>
                     <a
                       href={s.href}
@@ -168,21 +164,25 @@ export default function SiteFooter() {
                 </p>
                 <ul className="mt-6 space-y-4 text-sm text-white/70">
                   <li>
-                    <a href={WA_URL} className="transition-colors hover:text-white">
-                      {KONTAK.waTampil}
+                    <a href={toko.waUrl} className="transition-colors hover:text-white">
+                      {toko.waTampil}
                     </a>
                   </li>
                   <li className="leading-relaxed text-white/55">
-                    {KONTAK.alamatBaris.map((baris) => (
+                    {toko.alamatBaris.map((baris) => (
                       <span key={baris} className="block">
                         {baris}
                       </span>
                     ))}
                   </li>
                   <li className="leading-relaxed text-white/55">
-                    <span className="block">{KONTAK.hari}</span>
-                    <span className="block">{KONTAK.jam}</span>
-                    <span className="block">Libur {KONTAK.libur}</span>
+                    <span className="block">{toko.hari}</span>
+                    <span className="block">{toko.jam}</span>
+                    {toko.libur && (
+                      <span className="block">
+                        {toko.libur.startsWith("libur") ? `Tutup saat ${toko.libur}` : `Libur ${toko.libur}`}
+                      </span>
+                    )}
                   </li>
                 </ul>
               </div>

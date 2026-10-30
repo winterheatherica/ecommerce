@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 
 import JsonLd from "@/app/components/json-ld";
-import { KELOMPOK_FAQ } from "@/app/data/faq";
+import { ambilSitus } from "@/app/lib/api";
+import { isiPenanda } from "@/app/lib/situs";
 import { metaHalaman, skemaFaq } from "@/app/lib/seo";
 
 export const metadata: Metadata = metaHalaman({
@@ -11,10 +12,16 @@ export const metadata: Metadata = metaHalaman({
   path: "/faq",
 });
 
-export default function FaqPage() {
+export default async function FaqPage() {
+  const { toko, faq } = await ambilSitus();
+  const kelompok = faq.map((k) => ({
+    ...k,
+    isi: k.isi.map((x) => ({ tanya: isiPenanda(x.tanya, toko), jawab: isiPenanda(x.jawab, toko) })),
+  }));
+
   return (
     <section className="mx-auto w-full max-w-3xl px-6 pt-32 pb-24">
-      <JsonLd data={skemaFaq(KELOMPOK_FAQ.flatMap((k) => k.isi))} />
+      <JsonLd data={skemaFaq(kelompok.flatMap((k) => k.isi))} />
 
       <p className="font-mono text-[13px] tracking-[0.28em] text-accent-600 uppercase">
         Bantuan
@@ -27,8 +34,8 @@ export default function FaqPage() {
         rata-rata dalam satu jam pada hari kerja.
       </p>
 
-      {KELOMPOK_FAQ.map((k) => (
-        <div key={k.judul} id={k.id} className="mt-16 scroll-mt-28">
+      {kelompok.map((k) => (
+        <div key={k.id} id={k.id} className="mt-16 scroll-mt-28">
           <h2 className="font-mono text-[13px] tracking-[0.28em] text-brand-600 uppercase">
             {k.judul}
           </h2>
@@ -49,7 +56,7 @@ export default function FaqPage() {
                     <path strokeLinecap="round" d="M12 5v14M5 12h14" />
                   </svg>
                 </summary>
-                <p className="pb-6 text-sm leading-relaxed text-stone-600">
+                <p className="pb-6 text-sm leading-relaxed whitespace-pre-line text-stone-600">
                   {item.jawab}
                 </p>
               </details>

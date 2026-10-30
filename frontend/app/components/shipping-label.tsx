@@ -2,7 +2,8 @@
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
-import { PENGIRIM_LABEL } from "@/app/data/kontak";
+import { useSitus } from "@/app/components/situs-konteks";
+import { NAMA_SITUS } from "@/app/lib/seo";
 import type { Pesanan } from "@/app/lib/api";
 import { beratPaket } from "@/app/lib/paket";
 
@@ -49,6 +50,7 @@ function tanggalRapi(iso: string): string {
 }
 
 export default function ShippingLabel({ pesanan }: { pesanan: Pesanan }) {
+  const { toko } = useSitus();
   const kurir = NAMA_KURIR[pesanan.courier.toUpperCase()] ?? pesanan.courier;
   const totalQty = pesanan.items.reduce((s, i) => s + i.qty, 0);
   const berat = beratPaket(pesanan.items);
@@ -114,9 +116,9 @@ export default function ShippingLabel({ pesanan }: { pesanan: Pesanan }) {
         <div className="min-w-0 border-l-[0.3mm] border-black pl-[3mm]">
           <p className={kecil}>Pengirim</p>
           <p className="mt-[1mm] text-[10pt] leading-tight font-bold break-words">
-            {PENGIRIM_LABEL.nama}
+            {NAMA_SITUS}
           </p>
-          <p className="mt-[0.8mm] font-mono text-[9pt]">{PENGIRIM_LABEL.hp}</p>
+          <p className="mt-[0.8mm] font-mono text-[9pt]">{toko.waTampil}</p>
         </div>
       </section>
 

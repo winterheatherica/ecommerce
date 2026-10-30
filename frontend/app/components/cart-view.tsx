@@ -13,7 +13,7 @@ import {
   ubahQty,
   useKeranjang,
 } from "@/app/lib/keranjang";
-import { WA_URL } from "@/app/data/kontak";
+import { LinkWa } from "@/app/components/situs-konteks";
 import { beratKirim } from "@/app/lib/paket";
 import {
   cariVarian,
@@ -197,9 +197,9 @@ export default function CartView({ produk }: { produk: Produk[] }) {
               <p className="mt-6 text-sm leading-relaxed text-red-600">
                 Maksimal {MAKS_PER_PESANAN} barang dalam satu pesanan. Kurangi
                 jumlahnya, atau{" "}
-                <a href={WA_URL} className="underline underline-offset-2">
+                <LinkWa className="underline underline-offset-2">
                   pesan lewat WhatsApp
-                </a>{" "}
+                </LinkWa>{" "}
                 untuk pembelian lebih banyak.
               </p>
             )}

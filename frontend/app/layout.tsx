@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
+import { SitusProvider } from "@/app/components/situs-konteks";
+import { ambilSitus } from "@/app/lib/api";
+
 import {
   GAMBAR_BAGI,
   NAMA_SITUS,
@@ -77,17 +80,21 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const { toko, grup, kategori } = await ambilSitus();
+
   return (
     <html
       lang="id"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="flex min-h-full flex-col">{children}</body>
+      <body className="flex min-h-full flex-col">
+        <SitusProvider situs={{ toko, grup, kategori }}>{children}</SitusProvider>
+      </body>
     </html>
   );
 }

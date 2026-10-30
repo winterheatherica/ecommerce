@@ -3,7 +3,7 @@ import Image from "next/image";
 import ProblemPicker from "@/app/components/problem-picker";
 import FeaturedProducts from "@/app/components/featured-products";
 import JsonLd from "@/app/components/json-ld";
-import { ambilSemuaProduk } from "@/app/lib/api";
+import { ambilSemuaProduk, ambilSitus } from "@/app/lib/api";
 import { NAMA_SITUS, RINGKASAN, metaHalaman, skemaToko } from "@/app/lib/seo";
 
 export function generateMetadata(): Metadata {
@@ -16,11 +16,11 @@ export function generateMetadata(): Metadata {
 }
 
 export default async function Home() {
-  const produk = await ambilSemuaProduk();
+  const [produk, { toko }] = await Promise.all([ambilSemuaProduk(), ambilSitus()]);
 
   return (
     <>
-      <JsonLd data={skemaToko()} />
+      <JsonLd data={skemaToko(toko)} />
       <section className="relative h-svh w-full overflow-hidden">
         <div className="absolute inset-0 lg:left-[56%]">
           <Image

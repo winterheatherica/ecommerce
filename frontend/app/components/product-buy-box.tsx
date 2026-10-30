@@ -1,24 +1,19 @@
 "use client";
 
-import { WA_URL } from "@/app/data/kontak";
+import { LinkWa } from "@/app/components/situs-konteks";
 import Link from "next/link";
 import { useState } from "react";
 
 import HargaCoret from "@/app/components/harga-coret";
+import { usePilihanUkuran } from "@/app/components/pilihan-ukuran";
 import { MAKS_PER_UKURAN, tambahKeKeranjang } from "@/app/lib/keranjang";
 import { angkaRating, jumlahLengkap, NAMA_MARKETPLACE, SATUAN_RATING } from "@/app/lib/rating";
 import { tanggalWib } from "@/app/lib/waktu-wib";
 import { rupiah, type Produk, type Varian } from "@/app/data/produk";
 
-function varianAwal(daftar: Varian[]): Varian | null {
-  if (daftar.length === 0) return null;
-  return daftar.find((v) => v.stok > 0) ?? daftar[0];
-}
-
 export default function ProductBuyBox({ produk }: { produk: Produk }) {
-  const [dipilih, setDipilih] = useState<Varian | null>(() =>
-    varianAwal(produk.varian),
-  );
+  const { ukuran, pilihUkuran } = usePilihanUkuran();
+  const dipilih = produk.varian.find((v) => v.slug === ukuran) ?? null;
   const [qty, setQty] = useState(1);
   const [baruDitambah, setBaruDitambah] = useState(false);
 
@@ -42,7 +37,7 @@ export default function ProductBuyBox({ produk }: { produk: Produk }) {
   };
 
   const pilih = (v: Varian) => {
-    setDipilih(v);
+    pilihUkuran(v.slug);
     setQty(1);
     setBaruDitambah(false);
   };
@@ -147,12 +142,11 @@ export default function ProductBuyBox({ produk }: { produk: Produk }) {
               ? "Ukuran ini sedang kosong. Coba ukuran lain, atau chat kami di WhatsApp untuk tahu kapan tersedia lagi."
               : "Produk ini sedang kosong. Chat kami di WhatsApp untuk tahu kapan tersedia lagi."}
           </p>
-          <a
-            href={WA_URL}
+          <LinkWa
             className="mt-6 inline-block border border-ink px-8 py-3.5 font-mono text-[13px] tracking-[0.22em] indent-[0.22em] text-ink uppercase transition-colors hover:bg-ink hover:text-white"
           >
             Tanya stok
-          </a>
+          </LinkWa>
         </div>
       </div>
     );
@@ -199,9 +193,9 @@ export default function ProductBuyBox({ produk }: { produk: Produk }) {
       {qty >= MAKS_PER_UKURAN && stok > MAKS_PER_UKURAN && (
         <p className="mt-3 text-sm text-stone-600">
           Maksimal {MAKS_PER_UKURAN} per ukuran dalam satu pesanan. Butuh lebih banyak?{" "}
-          <a href={WA_URL} className="underline underline-offset-2">
+          <LinkWa className="underline underline-offset-2">
             Chat WhatsApp
-          </a>
+          </LinkWa>
           .
         </p>
       )}

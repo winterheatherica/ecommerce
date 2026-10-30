@@ -11,7 +11,8 @@ import {
 } from "@/app/lib/api-client";
 import { LOGO_BAYAR } from "@/app/data/logo-bayar";
 import { rupiah } from "@/app/data/produk";
-import { waPesan } from "@/app/data/kontak";
+import { useSitus } from "@/app/components/situs-konteks";
+import { waPesan } from "@/app/lib/situs";
 
 type Props = {
   orderNo: string;
@@ -24,6 +25,7 @@ type Muatan =
   | { keadaan: "gagal"; pesan: string };
 
 export default function PaymentPicker({ orderNo, total }: Props) {
+  const { toko } = useSitus();
   const [muatan, setMuatan] = useState<Muatan>({ keadaan: "memuat" });
   const [memproses, setMemproses] = useState(false);
   const [galat, setGalat] = useState<string | null>(null);
@@ -106,7 +108,7 @@ export default function PaymentPicker({ orderNo, total }: Props) {
             WhatsApp, dan nomor rekening akan kami kirimkan di sana.
           </p>
           <a
-            href={waPesan(pesan)}
+            href={waPesan(toko, pesan)}
             className="mt-7 inline-block border border-brand-500 bg-brand-500 px-8 py-4 font-mono text-[13px] tracking-[0.22em] indent-[0.22em] text-white uppercase transition-colors hover:border-brand-600 hover:bg-brand-600"
           >
             Lanjutkan di WhatsApp

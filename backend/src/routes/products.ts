@@ -2,6 +2,7 @@ import { env } from "cloudflare:workers";
 import { Elysia, t } from "elysia";
 
 import { buatKoneksi, tutup } from "../lib/db";
+import { namaAwan, produkDenganUrl } from "../lib/cloudinary";
 import { daftarProduk, satuProduk } from "../db/produk";
 import { ULASAN_PER_HALAMAN, URUTAN_ULASAN, halamanUlasan } from "../db/ulasan";
 
@@ -32,7 +33,9 @@ export const productRoutes = new Elysia({ prefix: "/api/products" })
           offset,
         });
 
-        return { ...hasil, limit, offset };
+        const awan = namaAwan(env as unknown as Record<string, unknown>);
+
+        return { ...hasil, data: hasil.data.map((p) => produkDenganUrl(awan, p)), limit, offset };
       } finally {
         await tutup(sql);
       }
@@ -60,7 +63,7 @@ export const productRoutes = new Elysia({ prefix: "/api/products" })
           return { error: "not_found", message: "Produk tidak ditemukan" };
         }
 
-        return produk;
+        return produkDenganUrl(namaAwan(env as unknown as Record<string, unknown>), produk);
       } finally {
         await tutup(sql);
       }

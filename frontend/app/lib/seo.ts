@@ -1,18 +1,27 @@
 import type { Metadata } from "next";
 
-import type { GambarBagi } from "@/app/data/gambar";
-import { INSTAGRAM_URL, KONTAK, WA_URL } from "@/app/data/kontak";
-import { kategoriJudul, type Produk } from "@/app/data/produk";
+import type { Produk } from "@/app/data/produk";
+import { HARI_SCHEMA, type InfoToko } from "@/app/lib/situs";
 
 export const NAMA_SITUS = "Menik Store";
 
 export const RINGKASAN =
   "Pengusir hama berbahan dasar alami. Bekerja dengan aroma yang dihindari hama, bukan dengan racun.";
 
+export type GambarBagi = { url: string; lebar: number; tinggi: number };
+
 export const GAMBAR_BAGI: GambarBagi = { url: "/og-persegi.jpg", lebar: 1200, tinggi: 1200 };
 
 export function jenisKartu(g: GambarBagi): "summary" | "summary_large_image" {
   return g.lebar > g.tinggi ? "summary_large_image" : "summary";
+}
+
+export function gambarBagiFoto(url: string): GambarBagi {
+  return {
+    url: url.replace("/image/upload/", "/image/upload/f_jpg,q_auto,c_pad,w_1200,h_630,b_auto/"),
+    lebar: 1200,
+    tinggi: 630,
+  };
 }
 
 const CADANGAN_URL = "https://menikstore.my.id";
@@ -80,7 +89,7 @@ export function metaHalaman(o: OpsiMeta): Metadata {
   };
 }
 
-export function skemaToko() {
+export function skemaToko(toko: InfoToko) {
   return {
     "@context": "https://schema.org",
     "@type": "Store",
@@ -89,39 +98,32 @@ export function skemaToko() {
     description: RINGKASAN,
     url: tautan("/"),
     image: tautan(GAMBAR_BAGI.url),
-    telephone: KONTAK.waInternasional,
+    telephone: toko.waInternasional,
     currenciesAccepted: "IDR",
     paymentAccepted: "QRIS, Virtual Account, Indomaret, Alfamart",
     areaServed: { "@type": "Country", name: "Indonesia" },
     address: {
       "@type": "PostalAddress",
-      streetAddress: `${KONTAK.alamat.jalan}, ${KONTAK.alamat.kelurahan}, Kec. ${KONTAK.alamat.kecamatan}`,
-      addressLocality: KONTAK.alamat.kota,
-      addressRegion: KONTAK.alamat.provinsi,
-      postalCode: KONTAK.alamat.kodePos,
+      streetAddress: `${toko.alamat.jalan}, ${toko.alamat.kelurahan}, Kec. ${toko.alamat.kecamatan}`,
+      addressLocality: toko.alamat.kota,
+      addressRegion: toko.alamat.provinsi,
+      postalCode: toko.alamat.kodePos,
       addressCountry: "ID",
     },
-    hasMap: KONTAK.maps,
+    ...(toko.maps ? { hasMap: toko.maps } : {}),
     openingHoursSpecification: [
       {
         "@type": "OpeningHoursSpecification",
-        dayOfWeek: [
-          "Monday",
-          "Tuesday",
-          "Wednesday",
-          "Thursday",
-          "Friday",
-          "Saturday",
-        ],
-        opens: "09:00",
-        closes: "17:00",
+        dayOfWeek: toko.hariBuka.map((h) => HARI_SCHEMA[h]),
+        opens: toko.buka,
+        closes: toko.tutup,
       },
     ],
-    sameAs: [WA_URL, INSTAGRAM_URL],
+    sameAs: toko.sosial.map((s) => s.href),
   };
 }
 
-export function skemaProduk(produk: Produk) {
+export function skemaProduk(produk: Produk, kategori: string) {
   const path = `/produk/${produk.slug}`;
 
   return {
@@ -130,9 +132,9 @@ export function skemaProduk(produk: Produk) {
     "@id": tautan(`${path}#produk`),
     name: produk.nama,
     description: potong(produk.deskripsi, 400),
-    ...(produk.gambar ? { image: [produk.gambar] } : {}),
+    ...(produk.foto.length > 0 ? { image: produk.foto.map((f) => f.url) } : {}),
     sku: produk.slug,
-    category: kategoriJudul[produk.kategori],
+    category: kategori,
     url: tautan(path),
     weight: {
       "@type": "QuantitativeValue",

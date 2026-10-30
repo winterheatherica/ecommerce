@@ -4,18 +4,9 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import ProductCard from "./product-card";
-import {
-  GRUP,
-  SEMUA_GRUP,
-  grupDariKategori,
-  grupSah,
-  kategoriDalamGrup,
-  kategoriJudul,
-  kategoriLabel,
-  kategoriSah,
-  type Grup,
-  type Produk,
-} from "../data/produk";
+import { useSitus } from "./situs-konteks";
+import type { Produk } from "../data/produk";
+import { cariGrup, cariKategori, grupDariKategori, kategoriDalamGrup } from "../lib/situs";
 
 type Props = {
   produk: Produk[];
@@ -39,8 +30,11 @@ export default function ProductCatalog({
   const router = useRouter();
   const [cari, setCari] = useState("");
 
-  const kategori = kategoriSah(kategoriMentah);
-  const grup = kategori ? grupDariKategori(kategori) : grupSah(grupMentah);
+  const situs = useSitus();
+  const infoKategori = cariKategori(situs, kategoriMentah);
+  const infoGrup = cariGrup(situs, infoKategori ? infoKategori.grup : grupMentah);
+  const kategori = infoKategori?.slug ?? "";
+  const grup = infoGrup?.slug ?? "";
   const urut = opsiUrut.some((o) => o.nilai === urutMentah)
     ? urutMentah
     : "populer";
@@ -56,7 +50,7 @@ export default function ProductCatalog({
     router.replace(query ? `/produk?${query}` : "/produk", { scroll: false });
   };
 
-  const pilihGrup = (g: Grup | "") => pergi("", g, urut);
+  const pilihGrup = (g: string) => pergi("", g, urut);
   const pilihKategori = (k: string) => pergi(k, grup, urut);
   const pilihUrut = (u: string) => pergi(kategori, grup, u);
 
@@ -71,7 +65,7 @@ export default function ProductCatalog({
     const disaring = produk.filter((p) => {
       const cocokKategori = kategori
         ? p.kategori === kategori
-        : !grup || grupDariKategori(p.kategori) === grup;
+        : !grup || grupDariKategori(situs, p.kategori) === grup;
       const cocokKata = !kata || p.nama.toLowerCase().includes(kata);
       return cocokKategori && cocokKata;
     });
@@ -79,12 +73,12 @@ export default function ProductCatalog({
     if (urut === "termurah") return [...disaring].sort((a, b) => a.harga - b.harga);
     if (urut === "termahal") return [...disaring].sort((a, b) => b.harga - a.harga);
     return [...disaring].sort((a, b) => b.terjualPerBulan - a.terjualPerBulan);
-  }, [produk, cari, kategori, grup, urut]);
+  }, [produk, cari, kategori, grup, urut, situs]);
 
   const adaSaringan = Boolean(kategori || grup) || cari.trim() !== "";
 
-  const jumlahGrup = (g: Grup) =>
-    produk.filter((p) => grupDariKategori(p.kategori) === g).length;
+  const jumlahGrup = (g: string) =>
+    produk.filter((p) => grupDariKategori(situs, p.kategori) === g).length;
 
   return (
     <section className="mx-auto w-full max-w-6xl px-6 pt-32 pb-24">
@@ -92,16 +86,12 @@ export default function ProductCatalog({
         Katalog
       </p>
       <h1 className="mt-3 text-3xl leading-tight font-semibold tracking-tight text-ink sm:text-4xl">
-        {kategori
-          ? kategoriJudul[kategori]
-          : grup
-            ? GRUP[grup].judul
-            : "Semua produk"}
+        {infoKategori ? infoKategori.judul : infoGrup ? infoGrup.judul : "Semua produk"}
       </h1>
 
-      {grup && !kategori && (
+      {infoGrup && !infoKategori && (
         <p className="mt-4 max-w-xl leading-relaxed text-stone-600">
-          {GRUP[grup].ringkasan}
+          {infoGrup.ringkasan}
         </p>
       )}
 
@@ -156,18 +146,18 @@ export default function ProductCatalog({
           Semua
         </button>
 
-        {SEMUA_GRUP.filter((g) => jumlahGrup(g) > 0).map((g) => (
+        {situs.grup.filter((g) => jumlahGrup(g.slug) > 0).map((g) => (
           <button
-            key={g}
+            key={g.slug}
             type="button"
-            onClick={() => pilihGrup(g)}
+            onClick={() => pilihGrup(g.slug)}
             className={`border px-4 py-2 font-mono text-[13px] tracking-[0.18em] indent-[0.18em] uppercase transition-colors ${
-              grup === g
+              grup === g.slug
                 ? "border-brand-500 bg-brand-500 text-white"
                 : "border-ink/15 text-stone-600 hover:border-brand-400 hover:bg-brand-50 hover:text-brand-600"
             }`}
           >
-            {GRUP[g].label}
+            {g.label}
           </button>
         ))}
       </div>
@@ -183,25 +173,25 @@ export default function ProductCatalog({
                 : "border-ink/15 text-stone-600 hover:border-brand-500 hover:text-brand-600"
             }`}
           >
-            Semua {GRUP[grup].label}
+            Semua {infoGrup?.label}
           </button>
 
-          {kategoriDalamGrup(grup)
+          {kategoriDalamGrup(situs, grup)
             .filter(
-              (k) => produk.some((p) => p.kategori === k) || kategori === k,
+              (k) => produk.some((p) => p.kategori === k.slug) || kategori === k.slug,
             )
             .map((k) => (
               <button
-                key={k}
+                key={k.slug}
                 type="button"
-                onClick={() => pilihKategori(k)}
+                onClick={() => pilihKategori(k.slug)}
                 className={`border px-3 py-1.5 font-mono text-[12px] tracking-[0.16em] indent-[0.16em] uppercase transition-colors ${
-                  kategori === k
+                  kategori === k.slug
                     ? "border-ink bg-ink text-white"
                     : "border-ink/15 text-stone-600 hover:border-brand-500 hover:text-brand-600"
                 }`}
               >
-                {kategoriLabel[k]}
+                {k.label}
               </button>
             ))}
         </div>
@@ -209,11 +199,7 @@ export default function ProductCatalog({
 
       <p className="mt-8 font-mono text-[13px] tracking-[0.18em] text-stone-500 uppercase">
         <span className="text-brand-600">{hasil.length}</span> produk
-        {kategori
-          ? ` · ${kategoriLabel[kategori]}`
-          : grup
-            ? ` · ${GRUP[grup].label}`
-            : ""}
+        {infoKategori ? ` · ${infoKategori.label}` : infoGrup ? ` · ${infoGrup.label}` : ""}
       </p>
 
       {hasil.length > 0 ? (

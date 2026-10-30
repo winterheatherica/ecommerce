@@ -1,6 +1,8 @@
 "use client";
 
-import type { StatusPromo, Ulasan } from "@/app/data/produk";
+import type { Foto, StatusPromo, Ulasan } from "@/app/data/produk";
+import { petakanFoto, type FotoAPI, type FotoUnggahan } from "@/app/lib/foto";
+import type { GrupAPI, KategoriAPI, SitusAPI, TokoAPI } from "@/app/lib/situs";
 import { petakanUlasan, type UlasanAPI } from "@/app/lib/ulasan";
 
 export type Wilayah = {
@@ -291,6 +293,7 @@ export type IsiProdukBaru = {
   sold_per_month: number;
   is_featured: boolean;
   usage_instructions: string | null;
+  images: Omit<FotoUnggahan, "url">[];
 };
 
 export type IsiProdukUbah = {
@@ -428,4 +431,104 @@ export async function ubahTampilUlasan(id: number, sembunyi: boolean): Promise<v
   });
 
   await pastikanOk(res);
+}
+
+export async function unggahFoto(berkas: File): Promise<FotoUnggahan> {
+  const form = new FormData();
+  form.set("file", berkas);
+
+  const res = await fetch("/api/admin/images", { method: "POST", body: form });
+
+  await pastikanOk(res);
+  return (await res.json()) as FotoUnggahan;
+}
+
+export async function pasangFoto(
+  produkSlug: string,
+  foto: FotoUnggahan,
+  varianSlug: string | null,
+): Promise<Foto> {
+  const res = await fetch(`/api/admin/products/${encodeURIComponent(produkSlug)}/images`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      cloudinary_id: foto.cloudinary_id,
+      version: foto.version,
+      width: foto.width,
+      height: foto.height,
+      variant_slug: varianSlug,
+    }),
+  });
+
+  await pastikanOk(res);
+  return petakanFoto((await res.json()) as FotoAPI);
+}
+
+export async function ubahUkuranFoto(id: number, varianSlug: string | null): Promise<Foto> {
+  const res = await fetch(`/api/admin/images/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ variant_slug: varianSlug }),
+  });
+
+  await pastikanOk(res);
+  return petakanFoto((await res.json()) as FotoAPI);
+}
+
+export async function urutkanFoto(produkSlug: string, ids: number[]): Promise<void> {
+  const res = await fetch(`/api/admin/products/${encodeURIComponent(produkSlug)}/images/order`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ ids }),
+  });
+
+  await pastikanOk(res);
+}
+
+export async function hapusFoto(id: number): Promise<void> {
+  const res = await fetch(`/api/admin/images/${id}`, { method: "DELETE" });
+
+  await pastikanOk(res);
+}
+
+export type IsiInfoToko = Omit<TokoAPI, "updated_at">;
+
+export async function simpanInfoToko(isi: IsiInfoToko): Promise<TokoAPI> {
+  const res = await fetch("/api/admin/store", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(isi),
+  });
+
+  await pastikanOk(res);
+  return (await res.json()) as TokoAPI;
+}
+
+export type IsiKategoriToko = {
+  groups: GrupAPI[];
+  categories: Omit<KategoriAPI, "product_count">[];
+};
+
+export async function simpanKategoriToko(isi: IsiKategoriToko): Promise<SitusAPI> {
+  const res = await fetch("/api/admin/categories", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(isi),
+  });
+
+  await pastikanOk(res);
+  return (await res.json()) as SitusAPI;
+}
+
+export type IsiFaqToko = { slug: string; title: string; items: { question: string; answer: string }[] }[];
+
+export async function simpanFaqToko(groups: IsiFaqToko): Promise<SitusAPI> {
+  const res = await fetch("/api/admin/faq", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ groups }),
+  });
+
+  await pastikanOk(res);
+  return (await res.json()) as SitusAPI;
 }
