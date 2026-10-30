@@ -5,6 +5,7 @@ import {
   dasarDoku,
   hpInternasional,
   kepalaPermintaan,
+  teksAmanDoku,
   type KabarDoku,
   type KonfigDoku,
 } from "./doku";
@@ -47,7 +48,7 @@ export function badanCheckout(req: PermintaanBayar) {
       line_items: req.items.map((i) => ({
         id: i.sku,
         sku: i.sku,
-        name: i.name.slice(0, 255),
+        name: teksAmanDoku(i.name, i.sku).slice(0, 255),
         price: i.price,
         quantity: i.quantity,
       })),
@@ -57,7 +58,7 @@ export function badanCheckout(req: PermintaanBayar) {
       payment_method_types: METODE_BAYAR.map((m) => m.code),
     },
     customer: {
-      name: req.customer.name.slice(0, 255),
+      name: teksAmanDoku(req.customer.name, "Pelanggan").slice(0, 128),
       ...(req.customer.email ? { email: req.customer.email.slice(0, 128) } : {}),
       phone: hpInternasional(req.customer.phone).slice(0, 16),
       country: "ID",

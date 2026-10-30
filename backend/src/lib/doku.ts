@@ -21,6 +21,7 @@ export type KabarDoku = {
 };
 
 export const METODE_BAYAR = [
+  { code: "QRIS", name: "QRIS", group: "QR" },
   { code: "VIRTUAL_ACCOUNT_BNI", name: "BNI", group: "Virtual Account" },
   { code: "VIRTUAL_ACCOUNT_BRI", name: "BRI", group: "Virtual Account" },
   { code: "VIRTUAL_ACCOUNT_BANK_MANDIRI", name: "Mandiri", group: "Virtual Account" },
@@ -184,6 +185,17 @@ export async function notifikasiSah(
 export function namaMetode(channelId?: string | null): string | null {
   if (!channelId) return null;
   return NAMA_METODE[channelId] ?? channelId;
+}
+
+export function teksAmanDoku(teks: string, cadangan: string): string {
+  const bersih = teks
+    .normalize("NFKD")
+    .replace(/[̀-ͯ'’`]/g, "")
+    .replace(/[^A-Za-z0-9 ]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  return bersih || cadangan;
 }
 
 export function hpInternasional(hp: string): string {

@@ -8,6 +8,7 @@ const logo = (berkas: string, nama: string, lebar: number, tinggi: number): Logo
 });
 
 export const LOGO = {
+  qris: logo("qris", "QRIS", 54, 21),
   bni: logo("bni", "BNI", 65, 19),
   bri: logo("bri", "BRI", 57, 22),
   mandiri: logo("mandiri", "Mandiri", 65, 19),
@@ -22,6 +23,7 @@ export const LOGO = {
 };
 
 export const LOGO_BAYAR: Record<string, LogoBayar | undefined> = {
+  QRIS: LOGO.qris,
   VIRTUAL_ACCOUNT_BNI: LOGO.bni,
   VIRTUAL_ACCOUNT_BRI: LOGO.bri,
   VIRTUAL_ACCOUNT_BANK_MANDIRI: LOGO.mandiri,

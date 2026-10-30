@@ -31,6 +31,7 @@ const bantuan = [
 ];
 
 const pembayaran = [
+  LOGO.qris,
   LOGO.bni,
   LOGO.bri,
   LOGO.mandiri,
@@ -202,7 +203,7 @@ export default function SiteFooter() {
             </p>
             <ul aria-label="Metode pembayaran" className="flex flex-wrap gap-2">
               {pembayaran.map((l) => (
-                <li key={l.src} className="flex h-8 items-center bg-white px-2">
+                <li key={l.src} className="flex h-8 items-center bg-white px-1.5">
                   <Image
                     src={l.src}
                     alt={l.nama}

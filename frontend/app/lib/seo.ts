@@ -91,7 +91,7 @@ export function skemaToko() {
     image: tautan(GAMBAR_BAGI.url),
     telephone: KONTAK.waInternasional,
     currenciesAccepted: "IDR",
-    paymentAccepted: "Virtual Account, Indomaret, Alfamart",
+    paymentAccepted: "QRIS, Virtual Account, Indomaret, Alfamart",
     areaServed: { "@type": "Country", name: "Indonesia" },
     address: {
       "@type": "PostalAddress",

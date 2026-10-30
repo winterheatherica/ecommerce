@@ -37,8 +37,9 @@ afterEach(() => {
 });
 
 describe("badanCheckout", () => {
-  it("menawarkan VA dan minimarket yang sudah aktif di akun DOKU", () => {
+  it("menawarkan QRIS, VA, dan minimarket yang sudah aktif di akun DOKU", () => {
     expect(badanCheckout(permintaan()).payment.payment_method_types).toEqual([
+      "QRIS",
       "VIRTUAL_ACCOUNT_BNI",
       "VIRTUAL_ACCOUNT_BRI",
       "VIRTUAL_ACCOUNT_BANK_MANDIRI",
@@ -77,6 +78,21 @@ describe("badanCheckout", () => {
 
     expect(badan.customer.phone).toBe("6281234567890");
     expect("email" in badan.customer).toBe(false);
+  });
+
+  it("nama pembeli dan barang dibersihkan dari karakter yang ditolak DOKU", () => {
+    const nama = (name: string) =>
+      badanCheckout(permintaan({ customer: { name, email: null, phone: "0812" } })).customer.name;
+
+    expect(nama("[QRIS TEST]")).toBe("QRIS TEST");
+    expect(nama("Ma'ruf  Amin")).toBe("Maruf Amin");
+    expect(nama("José-María")).toBe("Jose Maria");
+    expect(nama("M. Rizky")).toBe("M Rizky");
+    expect(nama("🙂")).toBe("Pelanggan");
+    expect(badanCheckout(permintaan()).order.line_items.map((i) => i.name)).toEqual([
+      "Bye Bye Cat Gel 50 g",
+      "Ongkir JNE REG",
+    ]);
   });
 });
 

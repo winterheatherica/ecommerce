@@ -56,6 +56,12 @@ export const webhookRoutes = new Elysia().post(
     );
 
     if (!sah) {
+      console.warn("[doku] notifikasi ditolak", {
+        query: new URL(request.url).search.slice(0, 500),
+        tipe: headers["content-type"] ?? null,
+        adaSignature: Boolean(headers["signature"]),
+        isi: mentah.slice(0, 500),
+      });
       set.status = 401;
       return { error: "invalid_signature" };
     }

@@ -50,7 +50,7 @@ export const KELOMPOK_FAQ: KelompokFaq[] = [
       {
         tanya: "Metode pembayaran apa saja yang diterima?",
         jawab:
-          "Virtual Account BNI, BRI, Mandiri, BSI, CIMB Niaga, Permata, Danamon, BTN, dan DOKU, serta bayar tunai di kasir Indomaret atau Alfamart. Semua pilihan itu muncul di halaman pembayaran setelah checkout.",
+          "QRIS, yang bisa dibayar dari aplikasi m-banking atau e-wallet yang mendukung QRIS; Virtual Account BNI, BRI, Mandiri, BSI, CIMB Niaga, Permata, Danamon, BTN, dan DOKU; serta bayar tunai di kasir Indomaret atau Alfamart. Semua pilihan itu muncul di halaman pembayaran setelah checkout.",
       },
       {
         tanya: "Bisa bayar di tempat (COD)?",
