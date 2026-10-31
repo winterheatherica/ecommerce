@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Script from "next/script";
+
+import KolomPassword from "@/app/components/kolom-password";
 
 import { alamatApi } from "@/app/lib/akun";
 import { ambilKunciCaptcha } from "@/app/lib/captcha";
@@ -21,9 +24,9 @@ type Props = {
   searchParams: Promise<{ galat?: string; next?: string }>;
 };
 
-const label = "block font-mono text-[12px] tracking-[0.2em] text-stone-500 uppercase";
+const label = "block text-[15px] font-bold text-ink";
 const kotak =
-  "mt-2 w-full border border-ink/15 bg-white px-4 py-3 text-sm text-ink outline-none transition-colors focus:border-brand-500";
+  "mt-2 min-h-11 w-full rounded-xl border-2 border-ink/15 bg-white px-4 py-2.5 text-[16px] text-ink outline-none transition-colors focus:border-brand-500";
 
 export default async function MasukAdminPage({ searchParams }: Props) {
   const { galat, next } = await searchParams;
@@ -35,15 +38,16 @@ export default async function MasukAdminPage({ searchParams }: Props) {
       <form
         method="post"
         action={`${alamatApi()}/api/auth/admin/login`}
-        className="w-full max-w-sm border border-ink/10 bg-white p-8 shadow-sm"
+        className="w-full max-w-sm rounded-3xl border border-ink/10 bg-white p-8 shadow-sm"
       >
-        <p className="font-mono text-[12px] tracking-[0.28em] text-accent-600 uppercase">
+        <p className="flex items-center gap-3 text-[17px] font-extrabold tracking-tight text-ink">
+          <Image src="/logo-96.webp" alt="" width={40} height={40} className="h-10 w-10" priority />
           Menik Store
         </p>
         <h1 className="mt-3 text-2xl font-semibold tracking-tight text-ink">Masuk admin</h1>
 
         {pesan && (
-          <p role="alert" className="mt-6 border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">
+          <p role="alert" className="mt-6 rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">
             {pesan}
           </p>
         )}
@@ -68,15 +72,7 @@ export default async function MasukAdminPage({ searchParams }: Props) {
           <label className={label} htmlFor="password">
             Password
           </label>
-          <input
-            id="password"
-            name="password"
-            type="password"
-            autoComplete="current-password"
-            required
-            maxLength={200}
-            className={kotak}
-          />
+          <KolomPassword id="password" name="password" maxLength={200} />
         </div>
 
         {kunci && (
@@ -88,7 +84,7 @@ export default async function MasukAdminPage({ searchParams }: Props) {
 
         <button
           type="submit"
-          className="mt-8 w-full border border-brand-500 bg-brand-500 px-8 py-3.5 font-mono text-[13px] tracking-[0.22em] indent-[0.22em] text-white uppercase transition-colors hover:border-brand-600 hover:bg-brand-600"
+          className="mt-8 w-full tombol"
         >
           Masuk
         </button>

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
+import KolomPilih from "@/app/components/kolom-pilih";
 import { simpanKategoriToko } from "@/app/lib/api-client";
 import {
   kelasKotak,
@@ -289,21 +290,18 @@ export default function AdminCategoryEditor({ awal }: { awal: SitusAPI }) {
                         petunjuk={k.baru ? `Alamatnya nanti /produk?kategori=${k.slug || "..."}` : "Tidak bisa diubah, sudah dipakai di link"}
                       />
                       <div>
-                        <label className={kelasLabel} htmlFor={`kat-grup-${i}`}>
+                        <label className={kelasLabel} htmlFor={`kat-grup-${i}`} id={`kat-grup-${i}-label`}>
                           Grup
                         </label>
-                        <select
+                        <KolomPilih
                           id={`kat-grup-${i}`}
-                          value={k.group_slug}
-                          onChange={(e) => ubahKategori(i, "group_slug", e.target.value)}
+                          labelId={`kat-grup-${i}-label`}
+                          nilai={k.group_slug}
+                          opsi={grup.map((g) => ({ nilai: g.slug, label: g.label || g.slug || "Grup baru" }))}
+                          ubah={(v) => ubahKategori(i, "group_slug", v)}
+                          bulat={false}
                           className={kelasKotak}
-                        >
-                          {grup.map((g, j) => (
-                            <option key={j} value={g.slug}>
-                              {g.label || g.slug || "Grup baru"}
-                            </option>
-                          ))}
-                        </select>
+                        />
                       </div>
                       <Kolom id={`kat-judul-${i}`} nama="Judul halaman" nilai={k.title} ubah={(v) => ubahKategori(i, "title", v)} />
                       <Kolom

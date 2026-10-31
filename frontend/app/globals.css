@@ -4,10 +4,17 @@
   --color-brand-50: #eff7ff;
   --color-brand-100: #daedff;
   --color-brand-200: #b5dbff;
+  --color-brand-300: #6cb8ff;
   --color-brand-400: #0088fe;
-  --color-brand-500: #0a6fcc;
-  --color-brand-600: #0b63b4;
+  --color-brand-500: #0076dd;
+  --color-brand-600: #0063b9;
   --color-brand-700: #0d5a9f;
+
+  --color-oranye-50: #fff4ed;
+  --color-oranye-100: #ffe3d1;
+  --color-oranye-500: #e84501;
+  --color-oranye-600: #d84001;
+  --color-oranye-700: #bf3901;
 
   --color-accent-50: #eef3f9;
   --color-accent-100: #d6e3f0;
@@ -30,7 +37,7 @@
   --text-lg: 1.1875rem;
   --text-lg--line-height: 1.8125rem;
 
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-jakarta);
   --font-mono: var(--font-geist-mono);
 }
 
@@ -38,4 +45,60 @@ body {
   background: #ffffff;
   color: var(--color-ink);
   font-family: var(--font-sans), system-ui, sans-serif;
+}
+
+@layer base {
+  button:not(:disabled),
+  [role="button"],
+  summary,
+  select,
+  label[for] {
+    cursor: pointer;
+  }
+
+  :focus-visible {
+    outline: 3px solid var(--color-brand-400);
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  .tombol,
+  .tombol-garis,
+  .tombol-oranye,
+  .tombol-putih {
+    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-full border-2 px-7 py-2.5 text-center text-[16px] leading-tight font-bold transition-colors disabled:cursor-not-allowed;
+  }
+
+  .tombol {
+    @apply border-brand-500 bg-brand-500 text-white hover:border-brand-600 hover:bg-brand-600 disabled:border-stone-300 disabled:bg-stone-300;
+  }
+
+  .tombol-garis {
+    @apply border-brand-500 bg-white text-brand-600 hover:bg-brand-50 disabled:border-stone-300 disabled:text-stone-400 disabled:hover:bg-white;
+  }
+
+  .tombol-oranye {
+    @apply border-oranye-600 bg-oranye-600 text-white hover:border-oranye-700 hover:bg-oranye-700 disabled:border-stone-300 disabled:bg-stone-300;
+  }
+
+  .tombol-putih {
+    @apply border-white bg-white text-brand-600 hover:border-brand-50 hover:bg-brand-50;
+  }
+
+  .tombol-kecil {
+    @apply min-h-10 px-4 py-1.5 text-sm;
+  }
+
+  .chip {
+    @apply inline-flex min-h-11 items-center justify-center rounded-full bg-brand-50 px-4 py-2 text-sm leading-tight font-bold text-brand-700 transition-colors hover:bg-brand-100 sm:min-h-10;
+  }
+
+  .chip-aktif {
+    @apply bg-brand-500 text-white hover:bg-brand-600;
+  }
+
+  .tautan {
+    @apply font-bold text-brand-600 underline decoration-brand-200 decoration-2 underline-offset-4 transition-colors hover:text-brand-700 hover:decoration-brand-500;
+  }
 }

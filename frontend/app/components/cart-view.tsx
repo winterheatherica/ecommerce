@@ -52,7 +52,7 @@ export default function CartView({ produk }: { produk: Produk[] }) {
   if (baris.length === 0) {
     return (
       <div className="mx-auto w-full max-w-3xl px-6 pt-32 pb-24">
-        <p className="font-mono text-[13px] tracking-[0.28em] text-accent-600 uppercase">
+        <p className="text-[15px] text-oranye-600 font-semibold">
           Keranjang
         </p>
         <h1 className="mt-3 text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
@@ -64,7 +64,7 @@ export default function CartView({ produk }: { produk: Produk[] }) {
         </p>
         <Link
           href="/produk"
-          className="mt-8 inline-block border border-ink px-8 py-3.5 font-mono text-[13px] tracking-[0.22em] indent-[0.22em] text-ink uppercase transition-colors hover:bg-ink hover:text-white"
+          className="mt-8 tombol"
         >
           Lihat produk
         </Link>
@@ -74,7 +74,7 @@ export default function CartView({ produk }: { produk: Produk[] }) {
 
   return (
     <div className="mx-auto w-full max-w-5xl px-6 pt-32 pb-24">
-      <p className="font-mono text-[13px] tracking-[0.28em] text-accent-600 uppercase">
+      <p className="text-[15px] text-oranye-600 font-semibold">
         Keranjang
       </p>
       <h1 className="mt-3 text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
@@ -90,7 +90,7 @@ export default function CartView({ produk }: { produk: Produk[] }) {
               <li key={varian.slug} className="flex gap-5 py-6">
                 <Link
                   href={`/produk/${produk.slug}`}
-                  className="relative aspect-square w-24 shrink-0 overflow-hidden border border-brand-100 bg-brand-50 sm:w-28"
+                  className="relative aspect-square w-24 shrink-0 overflow-hidden rounded-xl border border-brand-100 bg-brand-50 sm:w-28"
                 >
                   {(varian.gambar ?? produk.gambar) ? (
                     <Image
@@ -101,7 +101,7 @@ export default function CartView({ produk }: { produk: Produk[] }) {
                       className="object-cover"
                     />
                   ) : (
-                    <span className="absolute inset-0 flex items-center justify-center font-mono text-[11px] tracking-[0.16em] text-brand-300 uppercase">
+                    <span className="absolute inset-0 flex items-center justify-center text-[13px] text-brand-300 font-semibold">
                       Foto
                     </span>
                   )}
@@ -110,11 +110,11 @@ export default function CartView({ produk }: { produk: Produk[] }) {
                 <div className="flex min-w-0 flex-1 flex-col">
                   <Link
                     href={`/produk/${produk.slug}`}
-                    className="text-sm leading-relaxed text-ink transition-colors hover:text-brand-600"
+                    className="text-[15px] leading-snug font-semibold text-ink transition-colors hover:text-brand-600 sm:text-base"
                   >
                     {namaDenganUkuran({ produk, varian })}
                   </Link>
-                  <p className="mt-1 font-mono text-sm text-brand-600">
+                  <p className="mt-1 text-[15px] font-bold text-brand-600">
                     <HargaCoret harga={varian.harga} normal={varian.hargaNormal} kecil />
                   </p>
 
@@ -128,17 +128,17 @@ export default function CartView({ produk }: { produk: Produk[] }) {
 
                   <div className="mt-auto flex flex-wrap items-center gap-4 pt-4">
                     <div className="flex items-stretch gap-4">
-                      <div className="flex items-center border border-ink/15">
+                      <div className="flex items-center rounded-full border-2 border-ink/15">
                         <button
                           type="button"
                           onClick={() => ubahQty(varian.slug, qty - 1, varian.stok)}
                           disabled={qty <= 1}
                           aria-label={`Kurangi ${produk.nama}`}
-                          className="px-3 py-2 leading-none text-stone-600 transition-colors hover:text-brand-600 disabled:cursor-not-allowed disabled:text-stone-300"
+                          className="flex min-h-10 min-w-10 items-center justify-center text-lg leading-none font-bold text-ink transition-colors hover:text-brand-600 disabled:cursor-not-allowed disabled:text-stone-300"
                         >
                           &minus;
                         </button>
-                        <span className="w-10 text-center font-mono text-sm text-ink">
+                        <span className="w-9 text-center text-base font-bold text-ink">
                           {qty}
                         </span>
                         <button
@@ -146,7 +146,7 @@ export default function CartView({ produk }: { produk: Produk[] }) {
                           onClick={() => ubahQty(varian.slug, qty + 1, varian.stok)}
                           disabled={qty >= Math.min(varian.stok, MAKS_PER_UKURAN)}
                           aria-label={`Tambah ${produk.nama}`}
-                          className="px-3 py-2 leading-none text-stone-600 transition-colors hover:text-brand-600 disabled:cursor-not-allowed disabled:text-stone-300"
+                          className="flex min-h-10 min-w-10 items-center justify-center text-lg leading-none font-bold text-ink transition-colors hover:text-brand-600 disabled:cursor-not-allowed disabled:text-stone-300"
                         >
                           +
                         </button>
@@ -156,13 +156,13 @@ export default function CartView({ produk }: { produk: Produk[] }) {
                         type="button"
                         onClick={() => hapusDariKeranjang(varian.slug)}
                         aria-label={`Hapus ${produk.nama} dari keranjang`}
-                        className="inline-flex items-center border border-red-300 bg-red-50 px-3 font-mono text-[12px] tracking-[0.18em] indent-[0.18em] text-red-700 uppercase transition-colors hover:border-red-600 hover:bg-red-600 hover:text-white"
+                        className="inline-flex min-h-10 items-center rounded-full border-2 border-red-200 bg-white px-4 text-[14px] font-bold text-red-700 transition-colors hover:border-red-600 hover:bg-red-600 hover:text-white"
                       >
                         Hapus
                       </button>
                     </div>
 
-                    <span className="ml-auto font-mono text-sm font-semibold text-ink">
+                    <span className="ml-auto text-base font-bold text-ink">
                       {rupiah(varian.harga * qty)}
                     </span>
                   </div>
@@ -173,19 +173,19 @@ export default function CartView({ produk }: { produk: Produk[] }) {
         </ul>
 
         <aside className="lg:sticky lg:top-28 lg:self-start">
-          <div className="border border-ink/10 bg-stone-50 p-6">
-            <h2 className="font-mono text-[13px] tracking-[0.28em] text-stone-500 uppercase">
+          <div className="rounded-2xl border border-ink/10 bg-stone-50 p-6">
+            <h2 className="text-[15px] font-bold text-ink">
               Ringkasan
             </h2>
 
             <dl className="mt-6 space-y-3 text-sm">
               <div className="flex justify-between">
                 <dt className="text-stone-600">Subtotal</dt>
-                <dd className="font-mono text-ink">{rupiah(subtotal)}</dd>
+                <dd className="font-semibold text-ink">{rupiah(subtotal)}</dd>
               </div>
               <div className="flex justify-between">
                 <dt className="text-stone-600">Berat kirim</dt>
-                <dd className="font-mono text-ink">{beratTotal} g</dd>
+                <dd className="font-semibold text-ink">{beratTotal} g</dd>
               </div>
               <div className="flex justify-between border-t border-ink/10 pt-3">
                 <dt className="text-stone-600">Ongkos kirim</dt>
@@ -197,7 +197,7 @@ export default function CartView({ produk }: { produk: Produk[] }) {
               <p className="mt-6 text-sm leading-relaxed text-red-600">
                 Maksimal {MAKS_PER_PESANAN} barang dalam satu pesanan. Kurangi
                 jumlahnya, atau{" "}
-                <LinkWa className="underline underline-offset-2">
+                <LinkWa className="tautan">
                   pesan lewat WhatsApp
                 </LinkWa>{" "}
                 untuk pembelian lebih banyak.
@@ -207,18 +207,14 @@ export default function CartView({ produk }: { produk: Produk[] }) {
             <Link
               href="/checkout"
               aria-disabled={tertahan}
-              className={`mt-8 block border px-8 py-3.5 text-center font-mono text-[13px] tracking-[0.22em] indent-[0.22em] uppercase transition-colors ${
-                tertahan
-                  ? "pointer-events-none border-stone-300 bg-stone-300 text-white"
-                  : "border-brand-500 bg-brand-500 text-white hover:border-brand-600 hover:bg-brand-600"
-              }`}
+              className={`tombol-oranye mt-8 w-full ${tertahan ? "pointer-events-none border-stone-300 bg-stone-300" : ""}`}
             >
               Lanjut ke checkout
             </Link>
 
             <Link
               href="/produk"
-              className="mt-4 block text-center font-mono text-[12px] tracking-[0.18em] text-stone-500 uppercase transition-colors hover:text-brand-600"
+              className="tombol-garis mt-3 w-full"
             >
               Lanjut belanja
             </Link>

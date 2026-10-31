@@ -52,7 +52,7 @@ export default function PaymentCheck({ orderNo }: { orderNo: string }) {
         type="button"
         onClick={() => void periksa()}
         disabled={memeriksa}
-        className="font-mono text-[12px] tracking-[0.16em] text-stone-500 uppercase transition-colors hover:text-brand-600 disabled:cursor-wait"
+        className="text-[14px] text-stone-500 transition-colors hover:text-brand-600 disabled:cursor-wait font-semibold"
       >
         {memeriksa ? "Mengecek pembayaran..." : "Sudah bayar? Cek status"}
       </button>

@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useState, type Dispatch, type ReactNode, type SetStateAction } from "react";
 
+import KolomPilih from "@/app/components/kolom-pilih";
 import { hapusFoto, pasangFoto, ubahUkuranFoto, unggahFoto, urutkanFoto } from "@/app/lib/api-client";
 import type { FotoUnggahan } from "@/app/lib/foto";
 import type { Foto, Produk } from "@/app/data/produk";
@@ -334,21 +335,21 @@ export default function AdminPhotoEditor({ produk }: { produk: Produk }) {
               onHapus={() => hapus(f)}
             >
               {banyakUkuran && (
-                <select
-                  value={f.varianSlug ?? ""}
-                  onChange={(e) => tandai(f, e.target.value)}
+                <KolomPilih
+                  nilai={f.varianSlug ?? ""}
+                  opsi={[
+                    { nilai: "", label: "Semua ukuran" },
+                    ...produk.varian.map((v) => ({
+                      nilai: v.slug,
+                      label: `${v.label}${v.aktif === false ? " (nonaktif)" : ""}`,
+                    })),
+                  ]}
+                  ubah={(v) => tandai(f, v)}
                   disabled={mati}
-                  aria-label={`Ukuran untuk foto ${i + 1}`}
+                  ariaLabel={`Ukuran untuk foto ${i + 1}`}
+                  bulat={false}
                   className="w-full border border-ink/15 bg-white px-2 py-1.5 text-xs text-ink outline-none focus:border-brand-500 disabled:bg-stone-100"
-                >
-                  <option value="">Semua ukuran</option>
-                  {produk.varian.map((v) => (
-                    <option key={v.slug} value={v.slug}>
-                      {v.label}
-                      {v.aktif === false ? " (nonaktif)" : ""}
-                    </option>
-                  ))}
-                </select>
+                />
               )}
             </KartuFoto>
           ))}

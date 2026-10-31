@@ -91,14 +91,14 @@ function BagianKurir({ pesanan, aktif }: { pesanan: Pesanan; aktif: boolean }) {
   return (
     <div className="mt-3">
       <div className="flex flex-wrap items-center gap-2">
-        <p className="inline-block border border-brand-200 bg-brand-50 px-4 py-2 font-mono text-sm text-brand-700">
+        <p className="inline-block rounded-full border border-brand-200 bg-brand-50 px-4 py-2 font-mono text-[15px] font-semibold text-brand-700">
           {namaKurir(pesanan.courier)} &middot; {resi}
         </p>
         <CopyButton nilai={resi} label="nomor resi" />
       </div>
 
       {aktif && sampai && (
-        <div className="mt-5 max-w-md border border-emerald-200 bg-emerald-50 px-5 py-4">
+        <div className="mt-5 max-w-md rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4">
           <p className="text-sm font-medium text-emerald-800">
             Paket sudah sampai &middot; {waktuKurir(sampai)}
           </p>
@@ -161,14 +161,14 @@ function catatanLangkah(
 function PerluMasuk({ orderNo }: { orderNo: string }) {
   return (
     <div className="mx-auto w-full max-w-3xl px-6 pt-32 pb-24">
-      <p className="font-mono text-[13px] tracking-[0.28em] text-accent-600 uppercase">
+      <p className="text-[15px] text-oranye-600 font-semibold">
         Status pesanan
       </p>
       <h1 className="mt-3 font-mono text-2xl tracking-[0.1em] text-ink uppercase sm:text-3xl">
         {orderNo}
       </h1>
 
-      <div className="mt-10 border border-ink/10 bg-white px-6 py-8">
+      <div className="mt-10 rounded-2xl border border-ink/10 bg-white px-6 py-8">
         <p className="font-medium text-ink">Pesanan ini terhubung ke akun</p>
         <p className="mt-2 max-w-lg text-sm leading-relaxed text-stone-600">
           Supaya data pembeli tetap aman, pesanan yang dibuat saat masuk dengan
@@ -190,7 +190,7 @@ function BantuanAkun() {
     <p className="mt-8 max-w-lg text-sm leading-relaxed text-stone-500">
       Lupa akun mana yang dipakai waktu memesan?{" "}
       <LinkWa
-        className="border-b border-stone-400 pb-0.5 text-ink transition-colors hover:border-brand-600 hover:text-brand-600"
+        className="tautan"
       >
         Chat WhatsApp
       </LinkWa>
@@ -202,14 +202,14 @@ function BantuanAkun() {
 function AkunLain({ orderNo, email }: { orderNo: string; email: string | null }) {
   return (
     <div className="mx-auto w-full max-w-3xl px-6 pt-32 pb-24">
-      <p className="font-mono text-[13px] tracking-[0.28em] text-accent-600 uppercase">
+      <p className="text-[15px] text-oranye-600 font-semibold">
         Status pesanan
       </p>
       <h1 className="mt-3 font-mono text-2xl tracking-[0.1em] text-ink uppercase sm:text-3xl">
         {orderNo}
       </h1>
 
-      <div className="mt-10 border border-amber-200 bg-amber-50/60 px-6 py-8">
+      <div className="mt-10 rounded-2xl border border-amber-200 bg-amber-50/60 px-6 py-8">
         <p className="font-medium text-ink">Pesanan ini milik akun lain</p>
         <p className="mt-2 max-w-lg text-sm leading-relaxed text-stone-600">
           {email ? (
@@ -226,7 +226,7 @@ function AkunLain({ orderNo, email }: { orderNo: string; email: string | null })
           <GoogleButton href={urlMasukGoogle(`/order/${orderNo}`)} label="Ganti akun Google" />
           <Link
             href="/akun"
-            className="border-b border-stone-400 pb-0.5 text-sm text-ink transition-colors hover:border-brand-600 hover:text-brand-600"
+            className="tautan text-sm"
           >
             Lihat pesanan di akun ini
           </Link>
@@ -268,7 +268,7 @@ export default async function StatusPesananPage({ params }: Props) {
 
   return (
     <div className="mx-auto w-full max-w-3xl px-6 pt-32 pb-24">
-      <p className="font-mono text-[13px] tracking-[0.28em] text-accent-600 uppercase">
+      <p className="text-[15px] text-oranye-600 font-semibold">
         Status pesanan
       </p>
       <h1 className="mt-3 font-mono text-2xl tracking-[0.1em] text-ink sm:text-3xl">
@@ -279,7 +279,7 @@ export default async function StatusPesananPage({ params }: Props) {
       </p>
       {pesanan.dilihat_admin && (
         <div className="mt-3">
-          <p className="inline-block border border-amber-300 bg-amber-50 px-3 py-1 font-mono text-[11px] tracking-[0.16em] indent-[0.16em] text-amber-800 uppercase">
+          <p className="inline-block rounded-full border border-amber-300 bg-amber-50 px-3 py-1 text-[13px] font-bold text-amber-800">
             Dilihat sebagai admin
           </p>
           <p className="mt-2 text-sm text-stone-600">
@@ -303,8 +303,8 @@ export default async function StatusPesananPage({ params }: Props) {
       )}
 
       {batal ? (
-        <div className="mt-10 border border-stone-300 bg-stone-100 px-6 py-8">
-          <p className="font-mono text-[13px] tracking-[0.2em] text-stone-600 uppercase">
+        <div className="mt-10 rounded-2xl border border-stone-300 bg-stone-100 px-6 py-8">
+          <p className="text-[15px] text-stone-600 font-semibold">
             {statusLabel[pesanan.status]}
           </p>
           <p className="mt-3 text-sm leading-relaxed text-stone-600">
@@ -338,7 +338,7 @@ export default async function StatusPesananPage({ params }: Props) {
                 </span>
 
                 <p
-                  className={`font-mono text-[13px] tracking-[0.2em] uppercase ${
+                  className={`text-[15px] font-semibold ${
                     sekarang ? "text-brand-600" : lewat ? "text-ink" : "text-stone-400"
                   }`}
                 >
@@ -357,7 +357,7 @@ export default async function StatusPesananPage({ params }: Props) {
                 {sekarang && l.status === "PENDING" && (
                   <Link
                     href={`/bayar/${pesanan.order_no}`}
-                    className="mt-4 inline-block border border-brand-500 bg-brand-500 px-8 py-3 font-mono text-[13px] tracking-[0.22em] indent-[0.22em] text-white uppercase transition-colors hover:border-brand-600 hover:bg-brand-600"
+                    className="mt-4 tombol-oranye"
                   >
                     Bayar sekarang
                   </Link>
@@ -374,7 +374,7 @@ export default async function StatusPesananPage({ params }: Props) {
 
       <div className="mt-16 grid gap-10 border-t border-ink/10 pt-10 sm:grid-cols-2">
         <div>
-          <h2 className="font-mono text-[13px] tracking-[0.28em] text-stone-500 uppercase">
+          <h2 className="text-[15px] text-stone-500 font-semibold">
             Dikirim ke
           </h2>
           <p className="mt-4 text-sm leading-relaxed text-ink">
@@ -396,7 +396,7 @@ export default async function StatusPesananPage({ params }: Props) {
               aman.{" "}
               <a
                 href={urlMasukGoogle(`/order/${pesanan.order_no}`)}
-                className="border-b border-stone-400 text-ink transition-colors hover:border-brand-600 hover:text-brand-600"
+                className="tautan"
               >
                 Masuk dengan Google
               </a>{" "}
@@ -419,7 +419,7 @@ export default async function StatusPesananPage({ params }: Props) {
         </div>
 
         <div>
-          <h2 className="font-mono text-[13px] tracking-[0.28em] text-stone-500 uppercase">
+          <h2 className="text-[15px] text-stone-500 font-semibold">
             Rincian
           </h2>
           <ul className="mt-4 space-y-2">
@@ -438,7 +438,7 @@ export default async function StatusPesananPage({ params }: Props) {
                     it.name_snapshot
                   )}
                 </span>
-                <span className="text-right font-mono whitespace-nowrap text-stone-500">
+                <span className="text-right font-semibold whitespace-nowrap text-stone-600">
                   {it.list_price_snapshot && (
                     <s className="mr-2 text-xs text-stone-400">
                       {rupiah(it.list_price_snapshot * it.qty)}
@@ -450,7 +450,7 @@ export default async function StatusPesananPage({ params }: Props) {
             ))}
           </ul>
 
-          <dl className="mt-4 space-y-1.5 border-t border-ink/10 pt-4 font-mono text-sm">
+          <dl className="mt-4 space-y-1.5 border-t border-ink/10 pt-4 text-sm font-semibold">
             <div className="flex justify-between text-stone-500">
               <dt>Subtotal</dt>
               <dd>{rupiah(pesanan.subtotal)}</dd>
@@ -459,7 +459,7 @@ export default async function StatusPesananPage({ params }: Props) {
               <dt>Ongkir</dt>
               <dd>{rupiah(pesanan.shipping_cost)}</dd>
             </div>
-            <div className="flex justify-between pt-1.5 text-base font-semibold text-brand-600">
+            <div className="flex justify-between pt-1.5 text-lg font-bold text-brand-600">
               <dt>Total</dt>
               <dd>{rupiah(pesanan.total)}</dd>
             </div>
@@ -484,7 +484,7 @@ export default async function StatusPesananPage({ params }: Props) {
 
       {pesanan.status === "DELIVERED" && (
         <div className="mt-12 border-t border-ink/10 pt-10">
-          <h2 className="font-mono text-[13px] tracking-[0.28em] text-stone-500 uppercase">
+          <h2 className="text-[15px] text-stone-500 font-semibold">
             Butuh lagi?
           </h2>
           <p className="mt-3 max-w-lg text-sm leading-relaxed text-stone-600">
@@ -498,7 +498,7 @@ export default async function StatusPesananPage({ params }: Props) {
       <p className="mt-12 border-t border-ink/10 pt-8 text-sm leading-relaxed text-stone-500">
         Ada yang perlu ditanyakan soal pesanan ini?{" "}
         <LinkWa
-          className="border-b border-stone-400 pb-0.5 text-ink transition-colors hover:border-brand-600 hover:text-brand-600"
+          className="tautan"
         >
           Chat WhatsApp
         </LinkWa>

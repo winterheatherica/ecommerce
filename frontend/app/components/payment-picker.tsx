@@ -65,7 +65,7 @@ export default function PaymentPicker({ orderNo, total }: Props) {
 
   if (muatan.keadaan === "memuat") {
     return (
-      <p className="mt-10 font-mono text-[12px] tracking-[0.18em] text-stone-400 uppercase">
+      <p className="mt-10 text-[14px] text-stone-400 font-semibold">
         Memuat metode pembayaran...
       </p>
     );
@@ -76,13 +76,13 @@ export default function PaymentPicker({ orderNo, total }: Props) {
       <div className="mt-10">
         <p
           role="alert"
-          className="border border-amber-300 bg-amber-50 px-4 py-3 text-sm leading-relaxed text-amber-800"
+          className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm leading-relaxed text-amber-800"
         >
           {muatan.pesan}
         </p>
         <Link
           href={`/order/${orderNo}`}
-          className="mt-6 inline-block font-mono text-[12px] tracking-[0.18em] text-stone-500 uppercase transition-colors hover:text-brand-600"
+          className="tautan mt-6 inline-block"
         >
           Lihat status pesanan
         </Link>
@@ -97,8 +97,8 @@ export default function PaymentPicker({ orderNo, total }: Props) {
 
     return (
       <div className="mt-10">
-        <div className="border border-brand-200 bg-brand-50 px-6 py-7">
-          <p className="font-mono text-[12px] tracking-[0.2em] text-brand-700 uppercase">
+        <div className="rounded-2xl border border-brand-200 bg-brand-50 px-6 py-7">
+          <p className="text-[15px] font-bold text-brand-700">
             Pembayaran otomatis belum aktif
           </p>
           <p className="mt-4 text-sm leading-relaxed text-ink">
@@ -109,7 +109,7 @@ export default function PaymentPicker({ orderNo, total }: Props) {
           </p>
           <a
             href={waPesan(toko, pesan)}
-            className="mt-7 inline-block border border-brand-500 bg-brand-500 px-8 py-4 font-mono text-[13px] tracking-[0.22em] indent-[0.22em] text-white uppercase transition-colors hover:border-brand-600 hover:bg-brand-600"
+            className="mt-7 tombol"
           >
             Lanjutkan di WhatsApp
           </a>
@@ -117,7 +117,7 @@ export default function PaymentPicker({ orderNo, total }: Props) {
 
         <Link
           href={`/order/${orderNo}`}
-          className="mt-6 inline-block font-mono text-[12px] tracking-[0.18em] text-stone-500 uppercase transition-colors hover:text-brand-600"
+          className="tautan mt-6 inline-block"
         >
           Lihat status dan batas waktu pesanan
         </Link>
@@ -132,19 +132,19 @@ export default function PaymentPicker({ orderNo, total }: Props) {
   return (
     <div className="mt-10">
       {info.sandbox && (
-        <p className="mb-8 border border-amber-300 bg-amber-50 px-4 py-3 text-sm leading-relaxed text-amber-800">
+        <p className="mb-8 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm leading-relaxed text-amber-800">
           <span className="font-semibold">Mode uji.</span> Halaman berikutnya
           memakai sandbox DOKU dan tidak menagih uang sungguhan.
         </p>
       )}
 
-      <p className="font-mono text-[12px] tracking-[0.2em] text-stone-500 uppercase">
+      <p className="text-[15px] font-bold text-ink">
         Bisa dibayar dengan
       </p>
       <dl className="mt-4 space-y-5">
         {kelompok.map((g) => (
           <div key={g}>
-            <dt className="font-mono text-[12px] tracking-[0.16em] text-stone-400 uppercase">
+            <dt className="text-[14px] font-semibold text-stone-600">
               {g}
             </dt>
             <dd className="mt-2">
@@ -157,7 +157,7 @@ export default function PaymentPicker({ orderNo, total }: Props) {
                     return (
                       <li
                         key={c.code}
-                        className="flex h-12 min-w-0 items-center justify-center border border-ink/10 px-1.5"
+                        className="flex h-12 min-w-0 items-center justify-center rounded-xl border border-ink/10 bg-white px-1.5"
                       >
                         {logo ? (
                           <Image
@@ -187,7 +187,7 @@ export default function PaymentPicker({ orderNo, total }: Props) {
         type="button"
         onClick={bayar}
         disabled={memproses}
-        className="mt-10 w-full border border-brand-500 bg-brand-500 px-8 py-4 font-mono text-[13px] tracking-[0.22em] indent-[0.22em] text-white uppercase transition-colors hover:border-brand-600 hover:bg-brand-600 disabled:cursor-not-allowed disabled:border-stone-300 disabled:bg-stone-300 sm:w-auto"
+        className="mt-10 w-full tombol-oranye sm:w-auto"
       >
         {memproses ? "Menyiapkan..." : `Bayar ${rupiah(total)}`}
       </button>
@@ -205,7 +205,7 @@ export default function PaymentPicker({ orderNo, total }: Props) {
 
       <Link
         href={`/order/${orderNo}`}
-        className="mt-6 block font-mono text-[12px] tracking-[0.18em] text-stone-500 uppercase transition-colors hover:text-brand-600"
+        className="tautan mt-6 inline-block"
       >
         Bayar nanti
       </Link>
@@ -213,7 +213,7 @@ export default function PaymentPicker({ orderNo, total }: Props) {
       {galat && (
         <p
           role="alert"
-          className="mt-6 border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700"
+          className="mt-6 rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700"
         >
           {galat}
         </p>

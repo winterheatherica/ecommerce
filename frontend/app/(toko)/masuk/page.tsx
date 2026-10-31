@@ -40,7 +40,7 @@ export default async function MasukPage({ searchParams }: Props) {
 
   return (
     <div className="mx-auto w-full max-w-xl px-6 pt-32 pb-24">
-      <p className="font-mono text-[13px] tracking-[0.28em] text-accent-600 uppercase">
+      <p className="text-[15px] text-oranye-600 font-semibold">
         Akun
       </p>
       <h1 className="mt-3 text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
@@ -55,7 +55,7 @@ export default async function MasukPage({ searchParams }: Props) {
       {pesanGalat && (
         <p
           role="alert"
-          className="mt-8 border border-amber-300 bg-amber-50 px-4 py-3 text-sm leading-relaxed text-amber-800"
+          className="mt-8 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm leading-relaxed text-amber-800"
         >
           {pesanGalat}
         </p>
@@ -76,7 +76,7 @@ export default async function MasukPage({ searchParams }: Props) {
         </p>
         <Link
           href={tujuan === "/checkout" ? "/checkout" : "/produk"}
-          className="mt-4 inline-block font-mono text-[12px] tracking-[0.18em] text-stone-500 uppercase transition-colors hover:text-brand-600"
+          className="tautan mt-4 inline-block"
         >
           {tujuan === "/checkout" ? "Lanjut sebagai tamu" : "Lihat produk"} &rarr;
         </Link>

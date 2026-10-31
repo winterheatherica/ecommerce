@@ -60,7 +60,7 @@ export default async function SiteFooter() {
 
         <div className="relative mx-auto max-w-6xl px-6 pt-28 pb-56">
           <div className="max-w-lg">
-            <p className="font-mono text-[13px] tracking-[0.28em] text-brand-700 uppercase">
+            <p className="text-[15px] font-bold text-oranye-700">
               Butuh bantuan?
             </p>
             <h2 className="mt-5 text-3xl leading-tight font-semibold tracking-tight text-ink sm:text-4xl">
@@ -73,7 +73,7 @@ export default async function SiteFooter() {
             <div className="mt-8 flex flex-wrap items-center gap-x-8 gap-y-6">
               <a
                 href={toko.waUrl}
-                className="inline-block border border-ink px-8 py-3.5 font-mono text-[13px] tracking-[0.22em] indent-[0.22em] text-ink uppercase transition-colors hover:bg-ink hover:text-white"
+                className="tombol"
               >
                 Chat WhatsApp
               </a>
@@ -85,7 +85,7 @@ export default async function SiteFooter() {
                   width={144}
                   height={144}
                   unoptimized
-                  className="h-36 w-36 border border-ink/10 bg-white p-1.5"
+                  className="h-36 w-36 rounded-2xl border border-ink/10 bg-white p-2"
                 />
                 <p className="max-w-36 text-sm leading-relaxed text-stone-600">
                   Atau pindai pakai kamera HP untuk langsung chat.
@@ -100,8 +100,9 @@ export default async function SiteFooter() {
         <div className="mx-auto max-w-6xl px-6 pt-16 pb-16">
           <div className="flex flex-col gap-14 lg:flex-row lg:gap-20">
             <div className="lg:w-72 lg:shrink-0">
-              <p className="font-mono text-sm tracking-[0.35em] text-white uppercase">
-                Menik Store
+              <p className="flex items-center gap-3 text-[19px] font-extrabold tracking-tight text-white">
+                <Image src="/logo-96.webp" alt="" width={44} height={44} className="h-11 w-11" />
+                {NAMA_SITUS}
               </p>
               <p className="mt-5 max-w-xs text-sm leading-relaxed text-white/55">
                 Pengusir hama berbahan dasar alami. Bekerja dengan aroma yang
@@ -112,7 +113,7 @@ export default async function SiteFooter() {
                   <li key={s.label}>
                     <a
                       href={s.href}
-                      className="font-mono text-[13px] tracking-[0.18em] text-white/60 uppercase transition-colors hover:text-brand-400"
+                      className="text-[15px] font-bold text-white/80 transition-colors hover:text-white"
                     >
                       {s.label}
                     </a>
@@ -123,7 +124,7 @@ export default async function SiteFooter() {
 
             <div className="grid flex-1 gap-x-8 gap-y-12 sm:grid-cols-3">
               <div>
-                <p className="font-mono text-[13px] tracking-[0.28em] text-white/40 uppercase">
+                <p className="text-[15px] font-bold text-white/60">
                   Produk
                 </p>
                 <ul className="mt-6 space-y-3">
@@ -131,7 +132,7 @@ export default async function SiteFooter() {
                     <li key={p.href}>
                       <Link
                         href={p.href}
-                        className="text-sm text-white/70 transition-colors hover:text-white"
+                        className="text-[15px] text-white/80 transition-colors hover:text-white"
                       >
                         {p.label}
                       </Link>
@@ -141,7 +142,7 @@ export default async function SiteFooter() {
               </div>
 
               <div>
-                <p className="font-mono text-[13px] tracking-[0.28em] text-white/40 uppercase">
+                <p className="text-[15px] font-bold text-white/60">
                   Bantuan
                 </p>
                 <ul className="mt-6 space-y-3">
@@ -149,7 +150,7 @@ export default async function SiteFooter() {
                     <li key={b.label}>
                       <Link
                         href={b.href}
-                        className="text-sm text-white/70 transition-colors hover:text-white"
+                        className="text-[15px] text-white/80 transition-colors hover:text-white"
                       >
                         {b.label}
                       </Link>
@@ -159,23 +160,23 @@ export default async function SiteFooter() {
               </div>
 
               <div>
-                <p className="font-mono text-[13px] tracking-[0.28em] text-white/40 uppercase">
+                <p className="text-[15px] font-bold text-white/60">
                   Kontak
                 </p>
-                <ul className="mt-6 space-y-4 text-sm text-white/70">
+                <ul className="mt-6 space-y-4 text-[15px] text-white/80">
                   <li>
                     <a href={toko.waUrl} className="transition-colors hover:text-white">
                       {toko.waTampil}
                     </a>
                   </li>
-                  <li className="leading-relaxed text-white/55">
+                  <li className="leading-relaxed text-white/70">
                     {toko.alamatBaris.map((baris) => (
                       <span key={baris} className="block">
                         {baris}
                       </span>
                     ))}
                   </li>
-                  <li className="leading-relaxed text-white/55">
+                  <li className="leading-relaxed text-white/70">
                     <span className="block">{toko.hari}</span>
                     <span className="block">{toko.jam}</span>
                     {toko.libur && (
@@ -192,7 +193,7 @@ export default async function SiteFooter() {
 
         <div className="border-t border-white/10">
           <div className="mx-auto flex max-w-6xl flex-col gap-6 px-6 py-8 sm:flex-row sm:items-center sm:justify-between">
-            <p className="font-mono text-[13px] tracking-[0.18em] text-white/40 uppercase">
+            <p className="text-[15px] font-bold text-white/60">
               &copy; 2026 Menik Store &middot;{" "}
               <Link
                 href="/privasi"
@@ -203,7 +204,7 @@ export default async function SiteFooter() {
             </p>
             <ul aria-label="Metode pembayaran" className="flex flex-wrap gap-2">
               {pembayaran.map((l) => (
-                <li key={l.src} className="flex h-8 items-center bg-white px-1.5">
+                <li key={l.src} className="flex h-8 items-center rounded-md bg-white px-1.5">
                   <Image
                     src={l.src}
                     alt={l.nama}

@@ -16,7 +16,7 @@ export default function TokoError({
 
   return (
     <div className="mx-auto w-full max-w-3xl px-6 pt-32 pb-24">
-      <p className="font-mono text-[13px] tracking-[0.28em] text-brand-600 uppercase">
+      <p className="text-[15px] text-brand-600 font-semibold">
         Ada yang bermasalah
       </p>
       <h1 className="mt-3 text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
@@ -28,16 +28,16 @@ export default function TokoError({
       </p>
 
       <div className="mt-8 flex flex-wrap gap-4">
-        <button type="button" onClick={reset} className="inline-block border border-ink px-8 py-3.5 font-mono text-[13px] tracking-[0.22em] indent-[0.22em] text-ink uppercase transition-colors hover:bg-ink hover:text-white">
+        <button type="button" onClick={reset} className="tombol">
           Coba lagi
         </button>
-        <Link href="/" className="inline-block border border-ink px-8 py-3.5 font-mono text-[13px] tracking-[0.22em] indent-[0.22em] text-ink uppercase transition-colors hover:bg-ink hover:text-white">
+        <Link href="/" className="tombol-garis">
           Ke beranda
         </Link>
       </div>
 
       {error.digest && (
-        <p className="mt-10 font-mono text-[12px] tracking-[0.18em] text-stone-400 uppercase">
+        <p className="mt-10 text-[14px] text-stone-400 font-semibold">
           Kode: {error.digest}
         </p>
       )}

@@ -37,7 +37,7 @@ export default async function AkunPage() {
 
   return (
     <div className="mx-auto w-full max-w-3xl px-6 pt-32 pb-24">
-      <p className="font-mono text-[13px] tracking-[0.28em] text-accent-600 uppercase">
+      <p className="text-[15px] text-oranye-600 font-semibold">
         Akun
       </p>
       <div className="mt-3 flex flex-wrap items-end justify-between gap-6">
@@ -51,19 +51,19 @@ export default async function AkunPage() {
         <form method="post" action={urlKeluar()}>
           <button
             type="submit"
-            className="border border-ink/15 px-5 py-2.5 font-mono text-[12px] tracking-[0.18em] indent-[0.18em] text-stone-600 uppercase transition-colors hover:border-ink hover:text-ink"
+            className="tombol-garis tombol-kecil"
           >
             Keluar
           </button>
         </form>
       </div>
 
-      <h2 className="mt-14 font-mono text-[13px] tracking-[0.2em] text-stone-500 uppercase">
+      <h2 className="mt-14 text-[15px] text-stone-500 font-semibold">
         Riwayat pesanan
       </h2>
 
       {riwayat.length === 0 ? (
-        <div className="mt-6 border border-ink/10 bg-stone-50 px-6 py-10">
+        <div className="mt-6 rounded-2xl border border-ink/10 bg-stone-50 px-6 py-10">
           <p className="text-sm leading-relaxed text-stone-600">
             Belum ada pesanan. Pesanan yang kamu buat sambil masuk akan muncul
             di sini, begitu juga pesanan lama yang dulu dibuat dengan email{" "}
@@ -71,7 +71,7 @@ export default async function AkunPage() {
           </p>
           <Link
             href="/produk"
-            className="mt-6 inline-block border border-ink px-6 py-3 font-mono text-[12px] tracking-[0.2em] indent-[0.2em] text-ink uppercase transition-colors hover:bg-ink hover:text-white"
+            className="mt-6 tombol"
           >
             Lihat produk
           </Link>
@@ -92,9 +92,9 @@ export default async function AkunPage() {
                     {tanggal(p.created_at)} &middot; {p.item_count} barang
                   </span>
                 </span>
-                <span className="font-mono text-sm text-ink">{rupiah(p.total)}</span>
+                <span className="text-base font-bold text-ink">{rupiah(p.total)}</span>
                 <span
-                  className={`border px-2 py-0.5 font-mono text-[12px] tracking-[0.12em] uppercase ${
+                  className={`rounded-full border px-3 py-1 text-[14px] font-bold ${
                     p.status === "SHIPPED" && p.delivered_at
                       ? statusWarna.DELIVERED
                       : statusWarna[p.status]

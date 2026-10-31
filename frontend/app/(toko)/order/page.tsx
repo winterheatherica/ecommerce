@@ -14,7 +14,7 @@ export const metadata: Metadata = metaHalaman({
 export default function LacakPesananPage() {
   return (
     <div className="mx-auto w-full max-w-3xl px-6 pt-32 pb-24">
-      <p className="font-mono text-[13px] tracking-[0.28em] text-accent-600 uppercase">
+      <p className="text-[15px] text-oranye-600 font-semibold">
         Lacak pesanan
       </p>
       <h1 className="mt-3 text-3xl leading-tight font-semibold tracking-tight text-ink sm:text-4xl">
@@ -32,7 +32,7 @@ export default function LacakPesananPage() {
       <p className="mt-10 text-sm leading-relaxed text-stone-500">
         Lupa nomor pesanannya?{" "}
         <LinkWa
-          className="border-b border-stone-400 pb-0.5 text-ink transition-colors hover:border-brand-600 hover:text-brand-600"
+          className="tautan"
         >
           Chat WhatsApp
         </LinkWa>{" "}

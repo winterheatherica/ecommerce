@@ -79,7 +79,7 @@ export default async function PrivasiPage() {
 
   return (
     <section className="mx-auto w-full max-w-3xl px-6 pt-32 pb-24">
-      <p className="font-mono text-[13px] tracking-[0.28em] text-accent-600 uppercase">
+      <p className="text-[15px] text-oranye-600 font-semibold">
         Kebijakan
       </p>
       <h1 className="mt-3 text-3xl leading-tight font-semibold tracking-tight text-ink sm:text-4xl">
@@ -104,7 +104,7 @@ export default async function PrivasiPage() {
         </div>
       ))}
 
-      <div className="mt-12 border border-brand-200 bg-brand-50 px-8 py-8">
+      <div className="mt-12 rounded-2xl border border-brand-200 bg-brand-50 px-8 py-8">
         <h2 className="text-lg font-semibold tracking-tight text-ink">
           Menghubungi kami
         </h2>
@@ -112,7 +112,7 @@ export default async function PrivasiPage() {
           Pertanyaan soal data pribadi bisa disampaikan lewat WhatsApp{" "}
           <a
             href={toko.waUrl}
-            className="border-b border-ink/30 transition-colors hover:border-brand-600 hover:text-brand-600"
+            className="tautan"
           >
             {toko.waTampil}
           </a>

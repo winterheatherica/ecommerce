@@ -23,12 +23,12 @@ export default function OrderLookup() {
         onChange={(e) => setNomor(e.target.value)}
         placeholder="MNK-123456789012"
         aria-label="Nomor pesanan"
-        className="flex-1 border border-ink/15 px-4 py-3.5 font-mono text-sm tracking-[0.1em] text-ink uppercase outline-none transition-colors placeholder:font-sans placeholder:tracking-normal placeholder:normal-case placeholder:text-stone-400 focus:border-brand-500 sm:flex-none sm:w-72"
+        className="min-h-11 flex-1 rounded-full border-2 border-ink/15 px-5 py-2.5 font-mono text-[16px] tracking-[0.06em] text-ink uppercase outline-none transition-colors placeholder:font-sans placeholder:tracking-normal placeholder:normal-case placeholder:text-stone-400 focus:border-brand-500 sm:w-72 sm:flex-none"
       />
       <button
         type="submit"
         disabled={!nomor.trim()}
-        className="border border-brand-500 bg-brand-500 px-8 py-3.5 font-mono text-[13px] tracking-[0.22em] indent-[0.22em] text-white uppercase transition-colors hover:border-brand-600 hover:bg-brand-600 disabled:cursor-not-allowed disabled:border-stone-300 disabled:bg-stone-300"
+        className="tombol"
       >
         Lacak
       </button>

@@ -10,7 +10,7 @@ export default function ProductGallery({ nama, habis }: { nama: string; habis: b
 
   return (
     <div>
-      <div className="relative aspect-square overflow-hidden border border-brand-100 bg-brand-50">
+      <div className="relative aspect-square overflow-hidden rounded-2xl border border-brand-100 bg-brand-50">
         {utama ? (
           <Image
             src={utama.url}
@@ -21,14 +21,14 @@ export default function ProductGallery({ nama, habis }: { nama: string; habis: b
             className="object-cover"
           />
         ) : (
-          <span className="absolute inset-0 flex items-center justify-center font-mono text-[13px] tracking-[0.2em] text-brand-300 uppercase">
+          <span className="absolute inset-0 flex items-center justify-center text-[15px] text-brand-300 font-semibold">
             Foto produk
           </span>
         )}
 
         {habis && (
-          <span className="absolute inset-0 flex items-center justify-center bg-white/70 font-mono text-xs tracking-[0.2em] text-ink uppercase">
-            Stok habis
+          <span className="absolute inset-0 flex items-center justify-center bg-white/60">
+            <span className="rounded-full bg-ink px-5 py-2 text-base font-bold text-white">Stok habis</span>
           </span>
         )}
       </div>
@@ -45,7 +45,7 @@ export default function ProductGallery({ nama, habis }: { nama: string; habis: b
                   onClick={() => setIndeksFoto(i)}
                   aria-label={`Lihat foto ${i + 1} dari ${foto.length}`}
                   aria-pressed={aktif}
-                  className={`relative block aspect-square w-full overflow-hidden border bg-brand-50 transition-colors ${
+                  className={`relative block aspect-square w-full overflow-hidden rounded-xl border-2 bg-brand-50 transition-colors ${
                     aktif ? "border-brand-500" : "border-brand-100 hover:border-brand-300"
                   }`}
                 >

@@ -42,7 +42,7 @@ export default function ReorderButton({ items, tersedia, label }: Props) {
         type="button"
         onClick={pesanLagi}
         disabled={memproses}
-        className="border border-brand-500 bg-brand-500 px-8 py-3.5 font-mono text-[13px] tracking-[0.22em] indent-[0.22em] text-white uppercase transition-colors hover:border-brand-600 hover:bg-brand-600 disabled:cursor-not-allowed disabled:border-stone-300 disabled:bg-stone-300"
+        className="tombol"
       >
         {memproses ? "Menyiapkan..." : (label ?? "Pesan lagi")}
       </button>

@@ -21,7 +21,7 @@ export default async function Home() {
   return (
     <>
       <JsonLd data={skemaToko(toko)} />
-      <section className="relative h-svh w-full overflow-hidden">
+      <section className="relative w-full overflow-hidden">
         <div className="absolute inset-0 lg:left-[56%]">
           <Image
             src="/banner.webp"
@@ -37,13 +37,13 @@ export default async function Home() {
 
         <div className="absolute inset-y-0 left-0 hidden w-[56%] bg-brand-600 lg:block" />
 
-        <div className="relative z-10 mx-auto flex h-full max-w-6xl flex-col justify-center px-6 lg:pt-[4.5rem]">
-          <div className="max-w-xl lg:max-w-lg xl:max-w-[38rem]">
-            <p className="font-mono text-[11px] tracking-[0.28em] text-brand-600 uppercase lg:text-brand-200 xl:text-[13px]">
+        <div className="relative z-10 mx-auto flex min-h-svh max-w-6xl flex-col justify-center px-6 pt-28 pb-14 lg:pt-[calc(4.8rem+2rem)] lg:pb-8">
+          <div className="w-full max-w-xl lg:max-w-lg xl:max-w-[38rem]">
+            <p className="text-sm font-bold tracking-[0.18em] text-brand-600 uppercase lg:text-[length:clamp(0.9375rem,2.1svh,1.125rem)] lg:text-brand-100">
               Pengusir hama alami
             </p>
 
-            <h1 className="mt-6 text-5xl leading-[1.05] font-semibold tracking-tight text-ink sm:text-7xl lg:text-white xl:text-[length:clamp(4.5rem,12svh,5.5rem)] xl:whitespace-nowrap">
+            <h1 className="mt-4 text-5xl leading-[1.05] font-bold tracking-tight text-ink sm:text-7xl lg:text-[length:clamp(3.25rem,9.5svh,4.5rem)] lg:text-white xl:text-[length:clamp(3.5rem,10.5svh,5.5rem)] xl:whitespace-nowrap">
               Rumah bersih,
               <br />
               <span className="text-brand-600 lg:text-brand-200">
@@ -51,30 +51,27 @@ export default async function Home() {
               </span>
             </h1>
 
-            <p className="mt-6 max-w-md leading-relaxed text-stone-600 sm:text-[18px] lg:text-white/85">
+            <p className="mt-5 max-w-md text-[17px] leading-relaxed font-medium text-stone-700 sm:text-[19px] lg:max-w-lg lg:text-[length:clamp(1.0625rem,2.6svh,1.4375rem)] lg:text-white/90">
               Pengusir hama berbahan dasar alami. Bekerja dengan aroma yang
               dihindari hama, bukan dengan racun.
             </p>
 
-            <div className="mt-10 flex flex-wrap items-center gap-x-8 gap-y-4">
-              <a
-                href="#produk"
-                className="border border-ink px-8 py-3.5 font-mono text-[11px] tracking-[0.22em] indent-[0.22em] text-ink uppercase transition-colors hover:bg-ink hover:text-white lg:border-white lg:text-white lg:hover:bg-white lg:hover:text-brand-700 xl:px-10 xl:py-4 xl:text-[13px]"
-              >
+            <div className="mt-8 flex flex-wrap items-center gap-3 sm:gap-4">
+              <a href="#produk" className="tombol-oranye px-8 py-3 text-[17px] lg:px-10 lg:py-3.5 lg:text-[19px]">
                 Lihat Produk
               </a>
               <a
                 href="#kontak"
-                className="font-mono text-[11px] tracking-[0.22em] text-stone-600 uppercase transition-colors hover:text-brand-600 lg:text-white/80 lg:hover:text-white xl:text-[13px]"
+                className="tombol-garis px-8 py-3 text-[17px] lg:border-white lg:bg-transparent lg:px-10 lg:py-3.5 lg:text-[19px] lg:text-white lg:hover:bg-white/10"
               >
-                Chat WhatsApp &rarr;
+                Chat WhatsApp
               </a>
             </div>
 
-            <div className="mt-14 space-y-2 font-mono text-[11px] tracking-[0.18em] text-stone-500 uppercase lg:text-white/65 xl:text-[13px]">
-              <p>Berbahan dasar alami</p>
-              <p>Mengusir, bukan membunuh</p>
-            </div>
+            <ul className="mt-8 space-y-1.5 text-[15px] font-semibold text-stone-700 lg:text-[length:clamp(1rem,2.2svh,1.1875rem)] lg:text-white/85">
+              <li>Berbahan dasar alami</li>
+              <li>Mengusir, bukan membunuh</li>
+            </ul>
           </div>
         </div>
 

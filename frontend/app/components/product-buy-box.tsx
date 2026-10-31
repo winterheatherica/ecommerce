@@ -50,7 +50,7 @@ export default function ProductBuyBox({ produk }: { produk: Produk }) {
 
   const pemilih = banyakUkuran && (
     <fieldset className="mt-8">
-      <legend className="font-mono text-[13px] tracking-[0.2em] text-stone-500 uppercase">
+      <legend className="text-[15px] text-stone-500 font-semibold">
         Pilih ukuran
       </legend>
       <div className="mt-4 flex flex-wrap gap-3">
@@ -64,21 +64,24 @@ export default function ProductBuyBox({ produk }: { produk: Produk }) {
               type="button"
               onClick={() => pilih(v)}
               aria-pressed={aktif}
-              className={`border px-5 py-3 text-left transition-colors ${
+              className={`min-h-11 rounded-2xl border-2 px-5 py-2.5 text-left transition-colors ${
                 aktif
-                  ? "border-brand-500 bg-brand-50"
-                  : "border-ink/15 hover:border-brand-400"
+                  ? "border-brand-500 bg-brand-500 text-white"
+                  : "border-ink/15 bg-white text-ink hover:border-brand-400"
               }`}
             >
-              <span
-                className={`block text-sm font-medium ${
-                  aktif ? "text-brand-700" : "text-ink"
-                }`}
-              >
-                {v.label}
-              </span>
-              <span className="mt-0.5 block font-mono text-[12px] text-stone-500">
-                {kosong ? "Stok habis" : <HargaCoret harga={v.harga} normal={v.hargaNormal} kecil />}
+              <span className="block text-[16px] font-bold">{v.label}</span>
+              <span className={`mt-0.5 block text-[14px] font-medium ${aktif ? "text-white" : "text-stone-600"}`}>
+                {kosong ? (
+                  "Stok habis"
+                ) : (
+                  <HargaCoret
+                    harga={v.harga}
+                    normal={v.hargaNormal}
+                    kecil
+                    kelasNormal={aktif ? "text-white/80" : "text-stone-400"}
+                  />
+                )}
               </span>
             </button>
           );
@@ -115,7 +118,7 @@ export default function ProductBuyBox({ produk }: { produk: Produk }) {
                       href={r.url}
                       target="_blank"
                       rel="noopener nofollow"
-                      className="border-b border-stone-400 font-mono text-[12px] tracking-[0.14em] text-ink uppercase transition-colors hover:border-brand-600 hover:text-brand-600"
+                      className="tautan"
                     >
                       Lihat di {NAMA_MARKETPLACE[m]} &#8599;
                     </a>
@@ -133,8 +136,8 @@ export default function ProductBuyBox({ produk }: { produk: Produk }) {
     return (
       <div className="mt-10">
         {pemilih}
-        <div className="mt-8 border border-ink/12 bg-stone-50 px-6 py-8">
-          <p className="font-mono text-[13px] tracking-[0.2em] text-stone-500 uppercase">
+        <div className="mt-8 rounded-2xl border border-ink/12 bg-stone-50 px-6 py-8">
+          <p className="text-[15px] text-stone-500 font-semibold">
             Stok habis
           </p>
           <p className="mt-3 text-sm leading-relaxed text-stone-600">
@@ -143,7 +146,7 @@ export default function ProductBuyBox({ produk }: { produk: Produk }) {
               : "Produk ini sedang kosong. Chat kami di WhatsApp untuk tahu kapan tersedia lagi."}
           </p>
           <LinkWa
-            className="mt-6 inline-block border border-ink px-8 py-3.5 font-mono text-[13px] tracking-[0.22em] indent-[0.22em] text-ink uppercase transition-colors hover:bg-ink hover:text-white"
+            className="mt-6 tombol"
           >
             Tanya stok
           </LinkWa>
@@ -157,17 +160,17 @@ export default function ProductBuyBox({ produk }: { produk: Produk }) {
       {pemilih}
 
       <div className="mt-8 flex flex-wrap items-center gap-4">
-        <div className="flex items-center border border-ink/15">
+        <div className="flex items-center rounded-full border-2 border-ink/15">
           <button
             type="button"
             onClick={() => ubah(-1)}
             disabled={qty <= 1}
             aria-label="Kurangi jumlah"
-            className="px-4 py-3 text-lg leading-none text-stone-600 transition-colors hover:text-brand-600 disabled:cursor-not-allowed disabled:text-stone-300"
+            className="flex min-h-11 min-w-12 items-center justify-center rounded-l-full text-xl leading-none font-bold text-ink transition-colors hover:text-brand-600 disabled:cursor-not-allowed disabled:text-stone-300"
           >
             &minus;
           </button>
-          <span className="w-12 text-center font-mono text-sm text-ink" aria-live="polite">
+          <span className="w-10 text-center text-[17px] font-bold text-ink" aria-live="polite">
             {qty}
           </span>
           <button
@@ -175,7 +178,7 @@ export default function ProductBuyBox({ produk }: { produk: Produk }) {
             onClick={() => ubah(1)}
             disabled={qty >= maksimal}
             aria-label="Tambah jumlah"
-            className="px-4 py-3 text-lg leading-none text-stone-600 transition-colors hover:text-brand-600 disabled:cursor-not-allowed disabled:text-stone-300"
+            className="flex min-h-11 min-w-12 items-center justify-center rounded-r-full text-xl leading-none font-bold text-ink transition-colors hover:text-brand-600 disabled:cursor-not-allowed disabled:text-stone-300"
           >
             +
           </button>
@@ -184,7 +187,7 @@ export default function ProductBuyBox({ produk }: { produk: Produk }) {
         <button
           type="button"
           onClick={tambah}
-          className="flex-1 border border-brand-500 bg-brand-500 px-8 py-3.5 font-mono text-[13px] tracking-[0.22em] indent-[0.22em] text-white uppercase transition-colors hover:border-brand-600 hover:bg-brand-600 sm:flex-none"
+          className="tombol-oranye flex-1 px-10 text-[17px] sm:flex-none"
         >
           Tambah ke keranjang
         </button>
@@ -200,7 +203,7 @@ export default function ProductBuyBox({ produk }: { produk: Produk }) {
         </p>
       )}
 
-      <p className="mt-4 font-mono text-[13px] tracking-[0.16em] text-stone-500 uppercase">
+      <p className="mt-4 text-[15px] text-stone-500 font-semibold">
         Subtotal {rupiah(harga * qty)}
         {dipilih && banyakUkuran ? ` · ${dipilih.label}` : ""}
         {hargaNormal && hargaNormal > harga ? ` · Hemat ${rupiah((hargaNormal - harga) * qty)}` : ""}
@@ -215,10 +218,10 @@ export default function ProductBuyBox({ produk }: { produk: Produk }) {
       {baruDitambah && (
         <p
           role="status"
-          className="mt-4 border border-brand-200 bg-brand-50 px-4 py-3 text-sm text-brand-700"
+          className="mt-4 rounded-xl border border-brand-200 bg-brand-50 px-4 py-3 text-sm font-medium text-brand-700"
         >
           Ditambahkan ke keranjang.{" "}
-          <Link href="/keranjang" className="font-medium underline underline-offset-2">
+          <Link href="/keranjang" className="tautan">
             Lihat keranjang
           </Link>
         </p>

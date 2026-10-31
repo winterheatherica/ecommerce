@@ -13,7 +13,7 @@ export default function ProductCard({ produk }: { produk: Produk }) {
 
   return (
     <Link href={`/produk/${produk.slug}`} className="group flex flex-col">
-      <div className="relative aspect-square overflow-hidden border border-brand-100 bg-brand-50 transition-colors group-hover:border-brand-300">
+      <div className="relative aspect-square overflow-hidden rounded-2xl border border-brand-100 bg-brand-50 transition-colors group-hover:border-brand-300">
         {produk.gambar ? (
           <Image
             src={produk.gambar}
@@ -23,29 +23,29 @@ export default function ProductCard({ produk }: { produk: Produk }) {
             className="object-cover transition-transform duration-500 group-hover:scale-105"
           />
         ) : (
-          <span className="absolute inset-0 flex items-center justify-center font-mono text-[12px] tracking-[0.2em] text-brand-300 uppercase">
+          <span className="absolute inset-0 flex items-center justify-center text-[14px] text-brand-300 font-semibold">
             Foto produk
           </span>
         )}
 
         {habis && (
-          <span className="absolute inset-0 flex items-center justify-center bg-white/70 font-mono text-[13px] tracking-[0.2em] text-ink uppercase">
-            Stok habis
+          <span className="absolute inset-0 flex items-center justify-center bg-white/60">
+            <span className="rounded-full bg-ink px-4 py-1.5 text-[14px] font-bold text-white">Stok habis</span>
           </span>
         )}
       </div>
 
-      <p className="mt-4 line-clamp-2 text-sm leading-relaxed text-ink transition-colors group-hover:text-brand-600">
+      <p className="mt-3 line-clamp-2 text-[15px] leading-snug font-semibold text-ink transition-colors group-hover:text-brand-600 sm:text-base lg:text-[19px]">
         {produk.nama}
       </p>
 
       {produk.rating && (
-        <p className="mt-1.5 flex flex-wrap items-baseline gap-x-1.5 font-mono text-[12px] text-stone-500">
+        <p className="mt-1.5 flex flex-wrap items-baseline gap-x-1.5 text-[13px] font-medium text-stone-500 lg:text-[15px]">
           <span className="sr-only">Rating di {sumber}</span>
           <span aria-hidden="true" className="text-amber-500">
             &#9733;
           </span>
-          <span className="text-ink">{angkaRating(produk.rating.rata)}</span>
+          <span className="font-bold text-ink">{angkaRating(produk.rating.rata)}</span>
           <span>({jumlahSingkat(produk.rating.jumlah)})</span>
           <span aria-hidden="true">di {sumber}</span>
         </p>
@@ -55,10 +55,10 @@ export default function ProductCard({ produk }: { produk: Produk }) {
         <HargaCoret
           harga={produk.harga}
           normal={produk.hargaNormal}
-          kelasHarga="text-lg font-semibold tracking-tight text-brand-600"
+          kelasHarga="text-lg font-extrabold tracking-tight text-brand-600 lg:text-[23px]"
           kecil
         />
-        <span className="font-mono text-[12px] tracking-[0.14em] text-stone-400 uppercase">
+        <span className="text-[13px] font-medium text-stone-500 lg:text-[15px]">
           {produk.terjualPerBulan} terjual/bln
         </span>
       </div>

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 
+import KolomPilih from "@/app/components/kolom-pilih";
 import { tambahUlasanImpor, ubahTampilUlasan } from "@/app/lib/api-client";
 import { ambilUlasanLanjutan, tanggalUlasan } from "@/app/lib/ulasan";
 import type { Produk, Ulasan } from "@/app/data/produk";
@@ -199,36 +200,43 @@ export default function AdminReviews({ produk }: { produk: Produk }) {
           <fieldset disabled={menyimpan} className="mt-6 space-y-6">
             <div className="grid gap-6 sm:grid-cols-5">
               <div>
-                <label className={label} htmlFor="ulasan-sumber">Dari</label>
-                <select
+                <label className={label} htmlFor="ulasan-sumber" id="ulasan-sumber-label">Dari</label>
+                <KolomPilih
                   id="ulasan-sumber"
-                  value={sumber}
-                  onChange={(e) => setSumber(e.target.value as "shopee" | "tokopedia")}
+                  labelId="ulasan-sumber-label"
+                  nilai={sumber}
+                  opsi={[
+                    { nilai: "shopee", label: "Shopee" },
+                    { nilai: "tokopedia", label: "Tokopedia" },
+                  ]}
+                  ubah={(v) => setSumber(v as "shopee" | "tokopedia")}
+                  bulat={false}
                   className={kotak}
-                >
-                  <option value="shopee">Shopee</option>
-                  <option value="tokopedia">Tokopedia</option>
-                </select>
+                />
               </div>
               <div>
-                <label className={label} htmlFor="ulasan-ukuran">Ukuran</label>
-                <select id="ulasan-ukuran" value={ukuran} onChange={(e) => setUkuran(e.target.value)} className={kotak}>
-                  {produk.varian.map((v) => (
-                    <option key={v.slug} value={v.slug}>
-                      {v.label}
-                    </option>
-                  ))}
-                </select>
+                <label className={label} htmlFor="ulasan-ukuran" id="ulasan-ukuran-label">Ukuran</label>
+                <KolomPilih
+                  id="ulasan-ukuran"
+                  labelId="ulasan-ukuran-label"
+                  nilai={ukuran}
+                  opsi={produk.varian.map((v) => ({ nilai: v.slug, label: v.label }))}
+                  ubah={setUkuran}
+                  bulat={false}
+                  className={kotak}
+                />
               </div>
               <div>
-                <label className={label} htmlFor="ulasan-bintang">Bintang</label>
-                <select id="ulasan-bintang" value={bintang} onChange={(e) => setBintang(e.target.value)} className={kotak}>
-                  {[5, 4, 3, 2, 1].map((b) => (
-                    <option key={b} value={b}>
-                      {b}
-                    </option>
-                  ))}
-                </select>
+                <label className={label} htmlFor="ulasan-bintang" id="ulasan-bintang-label">Bintang</label>
+                <KolomPilih
+                  id="ulasan-bintang"
+                  labelId="ulasan-bintang-label"
+                  nilai={bintang}
+                  opsi={["5", "4", "3", "2", "1"].map((b) => ({ nilai: b, label: b }))}
+                  ubah={setBintang}
+                  bulat={false}
+                  className={kotak}
+                />
               </div>
               <div>
                 <label className={label} htmlFor="ulasan-nama">Nama pengulas</label>

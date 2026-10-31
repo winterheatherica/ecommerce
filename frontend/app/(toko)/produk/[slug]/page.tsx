@@ -93,7 +93,7 @@ export default async function DetailProdukPage({ params }: Props) {
 
       <nav
         aria-label="Breadcrumb"
-        className="font-mono text-[13px] tracking-[0.18em] text-stone-500 uppercase"
+        className="text-[15px] text-stone-500 font-semibold"
       >
         <Link href="/produk" className="transition-colors hover:text-brand-600">
           Produk
@@ -112,7 +112,7 @@ export default async function DetailProdukPage({ params }: Props) {
           <ProductGallery nama={produk.nama} habis={habis} />
 
           <div>
-            <p className="font-mono text-[13px] tracking-[0.28em] text-accent-600 uppercase">
+            <p className="text-[15px] text-oranye-600 font-semibold">
               {judulKategori}
             </p>
 
@@ -136,7 +136,7 @@ export default async function DetailProdukPage({ params }: Props) {
               )}
             </p>
 
-            <p className="mt-3 font-mono text-[13px] tracking-[0.16em] text-stone-500 uppercase">
+            <p className="mt-3 text-[15px] text-stone-500 font-semibold">
               {habis ? "Stok kosong" : `${produk.stok} tersedia`}
               <span className="mx-2 text-stone-300">&middot;</span>
               {produk.terjualPerBulan} terjual/bln
@@ -145,7 +145,7 @@ export default async function DetailProdukPage({ params }: Props) {
             <ProductBuyBox produk={produk} />
 
             <div className="mt-12 border-t border-ink/10 pt-8">
-              <h2 className="font-mono text-[13px] tracking-[0.28em] text-stone-500 uppercase">
+              <h2 className="text-[15px] text-stone-500 font-semibold">
                 Deskripsi
               </h2>
               <p className="mt-4 leading-relaxed text-stone-600">{produk.deskripsi}</p>
@@ -153,7 +153,7 @@ export default async function DetailProdukPage({ params }: Props) {
 
             {caraPakai.length > 0 && (
               <div className="mt-10 border-t border-ink/10 pt-8">
-                <h2 className="font-mono text-[13px] tracking-[0.28em] text-stone-500 uppercase">
+                <h2 className="text-[15px] text-stone-500 font-semibold">
                   Cara pakai
                 </h2>
                 {caraPakai.map((bagian, i) => {
@@ -183,19 +183,19 @@ export default async function DetailProdukPage({ params }: Props) {
 
             <dl className="mt-10 grid grid-cols-2 gap-x-8 gap-y-4 border-t border-ink/10 pt-8 text-sm">
               <div>
-                <dt className="font-mono text-[12px] tracking-[0.2em] text-stone-500 uppercase">
+                <dt className="text-[14px] text-stone-500 font-semibold">
                   Berat
                 </dt>
                 <dd className="mt-1 text-ink">{produk.beratG} g</dd>
               </div>
               <div>
-                <dt className="font-mono text-[12px] tracking-[0.2em] text-stone-500 uppercase">
+                <dt className="text-[14px] text-stone-500 font-semibold">
                   Kategori
                 </dt>
                 <dd className="mt-1 text-ink">{labelKategori}</dd>
               </div>
               <div className="col-span-2">
-                <dt className="font-mono text-[12px] tracking-[0.2em] text-stone-500 uppercase">
+                <dt className="text-[14px] text-stone-500 font-semibold">
                   Keamanan
                 </dt>
                 <dd className="mt-1 leading-relaxed text-ink">
@@ -230,7 +230,7 @@ export default async function DetailProdukPage({ params }: Props) {
 }
 
 const kelasLink =
-  "border-b border-stone-400 font-mono text-[12px] tracking-[0.14em] text-ink uppercase transition-colors hover:border-brand-600 hover:text-brand-600";
+  "tautan";
 
 function RatingMarketplace({ produk }: { produk: Produk }) {
   const rating = produk.rating;
@@ -318,7 +318,7 @@ async function ProdukSerupa({
 
   return (
     <section className="mt-24 border-t border-ink/10 pt-16">
-      <p className="font-mono text-[13px] tracking-[0.28em] text-accent-600 uppercase">
+      <p className="text-[15px] text-oranye-600 font-semibold">
         Masalah yang sama
       </p>
       <h2 className="mt-3 text-2xl font-semibold tracking-tight text-ink">

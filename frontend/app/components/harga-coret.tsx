@@ -5,13 +5,20 @@ type Props = {
   normal?: number;
   kelasHarga?: string;
   kecil?: boolean;
+  kelasNormal?: string;
 };
 
 export function persenHemat(harga: number, normal: number): number {
   return Math.round((1 - harga / normal) * 100);
 }
 
-export default function HargaCoret({ harga, normal, kelasHarga = "", kecil = false }: Props) {
+export default function HargaCoret({
+  harga,
+  normal,
+  kelasHarga = "",
+  kecil = false,
+  kelasNormal = "text-stone-400",
+}: Props) {
   const promo = normal !== undefined && normal > harga;
 
   return (
@@ -19,10 +26,10 @@ export default function HargaCoret({ harga, normal, kelasHarga = "", kecil = fal
       <span className={kelasHarga}>{rupiah(harga)}</span>
       {promo && (
         <>
-          <s className={`text-stone-400 ${kecil ? "text-xs" : "text-sm"}`}>{rupiah(normal)}</s>
+          <s className={`${kelasNormal} ${kecil ? "text-xs lg:text-sm" : "text-sm"}`}>{rupiah(normal)}</s>
           <span
-            className={`bg-red-600 px-1.5 py-0.5 font-mono font-semibold leading-none text-white ${
-              kecil ? "text-[10px]" : "text-[11px]"
+            className={`rounded-full bg-oranye-600 px-2 py-1 leading-none font-bold text-white ${
+              kecil ? "text-[12px]" : "text-[13px]"
             }`}
           >
             -{persenHemat(harga, normal)}%

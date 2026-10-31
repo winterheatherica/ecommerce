@@ -23,7 +23,7 @@ export default async function FaqPage() {
     <section className="mx-auto w-full max-w-3xl px-6 pt-32 pb-24">
       <JsonLd data={skemaFaq(kelompok.flatMap((k) => k.isi))} />
 
-      <p className="font-mono text-[13px] tracking-[0.28em] text-accent-600 uppercase">
+      <p className="text-[15px] text-oranye-600 font-semibold">
         Bantuan
       </p>
       <h1 className="mt-3 text-3xl leading-tight font-semibold tracking-tight text-ink sm:text-4xl">
@@ -36,7 +36,7 @@ export default async function FaqPage() {
 
       {kelompok.map((k) => (
         <div key={k.id} id={k.id} className="mt-16 scroll-mt-28">
-          <h2 className="font-mono text-[13px] tracking-[0.28em] text-brand-600 uppercase">
+          <h2 className="text-[15px] text-brand-600 font-semibold">
             {k.judul}
           </h2>
 

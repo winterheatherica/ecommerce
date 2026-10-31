@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 import AdminMarketplaceRating from "@/app/components/admin-marketplace-rating";
+import KolomPilih from "@/app/components/kolom-pilih";
 import AdminPhotoEditor, {
   AdminPhotoPicker,
   PETUNJUK_FOTO,
@@ -274,21 +275,18 @@ export default function AdminProductForm({ awal }: Props) {
 
           <div className="grid gap-6 sm:grid-cols-2">
             <div>
-              <label className={label} htmlFor="kategori">
+              <label className={label} htmlFor="kategori" id="kategori-label">
                 Kategori
               </label>
-              <select
+              <KolomPilih
                 id="kategori"
-                value={kategori}
-                onChange={(e) => setKategori(e.target.value)}
+                labelId="kategori-label"
+                nilai={kategori}
+                opsi={situs.kategori.map((k) => ({ nilai: k.slug, label: k.label }))}
+                ubah={setKategori}
+                bulat={false}
                 className={kotak}
-              >
-                {situs.kategori.map((k) => (
-                  <option key={k.slug} value={k.slug}>
-                    {k.label}
-                  </option>
-                ))}
-              </select>
+              />
             </div>
             <div>
               <label className={label} htmlFor="terjual">

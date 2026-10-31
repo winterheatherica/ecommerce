@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
+import KolomPilih from "./kolom-pilih";
 import ProductCard from "./product-card";
 import { useSitus } from "./situs-konteks";
 import type { Produk } from "../data/produk";
@@ -82,7 +83,7 @@ export default function ProductCatalog({
 
   return (
     <section className="mx-auto w-full max-w-6xl px-6 pt-32 pb-24">
-      <p className="font-mono text-[13px] tracking-[0.28em] text-accent-600 uppercase">
+      <p className="text-[15px] text-oranye-600 font-semibold">
         Katalog
       </p>
       <h1 className="mt-3 text-3xl leading-tight font-semibold tracking-tight text-ink sm:text-4xl">
@@ -102,46 +103,26 @@ export default function ProductCatalog({
           onChange={(e) => setCari(e.target.value)}
           placeholder="Cari produk..."
           aria-label="Cari produk"
-          className="w-full border border-ink/15 px-4 py-3 text-sm text-ink outline-none transition-colors placeholder:text-stone-400 focus:border-brand-500 sm:max-w-xs"
+          className="min-h-11 w-full rounded-full border-2 border-ink/15 px-5 py-2.5 text-[15px] text-ink outline-none transition-colors placeholder:text-stone-400 focus:border-brand-500 sm:max-w-xs"
         />
 
-        <label className="flex items-center gap-3 font-mono text-[13px] tracking-[0.2em] text-stone-500 uppercase">
-          Urutkan
-          <span className="relative">
-            <select
-              value={urut}
-              onChange={(e) => pilihUrut(e.target.value)}
-              className="appearance-none border border-ink/15 py-2.5 pr-11 pl-4 font-sans text-sm tracking-normal text-ink normal-case outline-none transition-colors hover:border-brand-400 focus:border-brand-500"
-            >
-              {opsiUrut.map((o) => (
-                <option key={o.nilai} value={o.nilai}>
-                  {o.label}
-                </option>
-              ))}
-            </select>
-            <svg
-              className="pointer-events-none absolute top-1/2 right-4 h-3.5 w-3.5 -translate-y-1/2 text-stone-400"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={1.75}
-              aria-hidden="true"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="m6 9 6 6 6-6" />
-            </svg>
-          </span>
-        </label>
+        <div className="flex items-center gap-3 text-[15px] font-semibold text-stone-600">
+          <span id="label-urutkan">Urutkan</span>
+          <KolomPilih
+            labelId="label-urutkan"
+            nilai={urut}
+            opsi={opsiUrut}
+            ubah={pilihUrut}
+            className="min-h-11 rounded-full border-2 border-ink/15 bg-white py-2 pr-4 pl-5 text-[15px] font-bold text-ink outline-none transition-colors hover:border-brand-400 focus:border-brand-500"
+          />
+        </div>
       </div>
 
       <div className="mt-6 flex flex-wrap gap-2">
         <button
           type="button"
           onClick={() => pilihGrup("")}
-          className={`border px-4 py-2 font-mono text-[13px] tracking-[0.18em] indent-[0.18em] uppercase transition-colors ${
-            grup === ""
-              ? "border-brand-500 bg-brand-500 text-white"
-              : "border-ink/15 text-stone-600 hover:border-brand-400 hover:bg-brand-50 hover:text-brand-600"
-          }`}
+          className={`chip ${grup === "" ? "chip-aktif" : ""}`}
         >
           Semua
         </button>
@@ -151,11 +132,7 @@ export default function ProductCatalog({
             key={g.slug}
             type="button"
             onClick={() => pilihGrup(g.slug)}
-            className={`border px-4 py-2 font-mono text-[13px] tracking-[0.18em] indent-[0.18em] uppercase transition-colors ${
-              grup === g.slug
-                ? "border-brand-500 bg-brand-500 text-white"
-                : "border-ink/15 text-stone-600 hover:border-brand-400 hover:bg-brand-50 hover:text-brand-600"
-            }`}
+            className={`chip ${grup === g.slug ? "chip-aktif" : ""}`}
           >
             {g.label}
           </button>
@@ -163,14 +140,12 @@ export default function ProductCatalog({
       </div>
 
       {grup && (
-        <div className="mt-3 flex flex-wrap gap-2 border-t border-ink/5 pt-3">
+        <div className="mt-4 flex flex-wrap gap-2 border-t border-ink/10 pt-4">
           <button
             type="button"
             onClick={() => pilihKategori("")}
-            className={`border px-3 py-1.5 font-mono text-[12px] tracking-[0.16em] indent-[0.16em] uppercase transition-colors ${
-              kategori === ""
-                ? "border-ink bg-ink text-white"
-                : "border-ink/15 text-stone-600 hover:border-brand-500 hover:text-brand-600"
+            className={`inline-flex min-h-11 items-center rounded-full border-2 px-4 py-1.5 text-sm font-bold transition-colors sm:min-h-10 ${
+              kategori === "" ? "border-ink bg-ink text-white" : "border-ink/15 bg-white text-ink hover:border-ink"
             }`}
           >
             Semua {infoGrup?.label}
@@ -185,10 +160,8 @@ export default function ProductCatalog({
                 key={k.slug}
                 type="button"
                 onClick={() => pilihKategori(k.slug)}
-                className={`border px-3 py-1.5 font-mono text-[12px] tracking-[0.16em] indent-[0.16em] uppercase transition-colors ${
-                  kategori === k.slug
-                    ? "border-ink bg-ink text-white"
-                    : "border-ink/15 text-stone-600 hover:border-brand-500 hover:text-brand-600"
+                className={`inline-flex min-h-11 items-center rounded-full border-2 px-4 py-1.5 text-sm font-bold transition-colors sm:min-h-10 ${
+                  kategori === k.slug ? "border-ink bg-ink text-white" : "border-ink/15 bg-white text-ink hover:border-ink"
                 }`}
               >
                 {k.label}
@@ -197,8 +170,8 @@ export default function ProductCatalog({
         </div>
       )}
 
-      <p className="mt-8 font-mono text-[13px] tracking-[0.18em] text-stone-500 uppercase">
-        <span className="text-brand-600">{hasil.length}</span> produk
+      <p className="mt-8 text-[15px] font-semibold text-stone-600">
+        <span className="font-bold text-brand-600">{hasil.length}</span> produk
         {infoKategori ? ` · ${infoKategori.label}` : infoGrup ? ` · ${infoGrup.label}` : ""}
       </p>
 
@@ -209,7 +182,7 @@ export default function ProductCatalog({
           ))}
         </div>
       ) : (
-        <div className="mt-8 border border-ink/12 px-6 py-20 text-center">
+        <div className="mt-8 rounded-2xl border border-ink/12 px-6 py-20 text-center">
           <p className="text-ink">Tidak ada produk yang cocok.</p>
           <p className="mt-2 text-sm text-stone-500">
             Coba kata kunci lain, atau hapus saringannya.
@@ -218,7 +191,7 @@ export default function ProductCatalog({
             <button
               type="button"
               onClick={reset}
-              className="mt-8 border border-ink px-8 py-3 font-mono text-[13px] tracking-[0.22em] indent-[0.22em] text-ink uppercase transition-colors hover:bg-ink hover:text-white"
+              className="mt-8 tombol"
             >
               Hapus saringan
             </button>

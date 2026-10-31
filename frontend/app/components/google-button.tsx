@@ -2,7 +2,7 @@ export default function GoogleButton({ href, label }: { href: string; label: str
   return (
     <a
       href={href}
-      className="inline-flex items-center justify-center gap-3 border border-ink/20 bg-white px-6 py-3.5 text-sm font-medium text-ink transition-colors hover:border-ink/40 hover:bg-stone-50"
+      className="inline-flex min-h-11 items-center justify-center gap-3 rounded-full border-2 border-ink/15 bg-white px-7 py-2.5 text-[16px] font-bold text-ink transition-colors hover:border-ink/30 hover:bg-stone-50"
     >
       <svg viewBox="0 0 48 48" className="h-5 w-5" aria-hidden="true">
         <path

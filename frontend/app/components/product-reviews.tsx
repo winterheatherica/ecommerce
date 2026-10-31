@@ -1,7 +1,8 @@
 "use client";
 
-import { useRef, useState, type ReactNode } from "react";
+import { useId, useRef, useState } from "react";
 
+import KolomPilih, { type OpsiPilih } from "@/app/components/kolom-pilih";
 import type { RingkasanUlasan, SumberUlasan, Ulasan } from "@/app/data/produk";
 import {
   PILIHAN_URUTAN,
@@ -16,8 +17,8 @@ import {
 const AWAL = 5;
 
 const kotakPilih =
-  "w-full appearance-none border border-ink/15 bg-white py-2.5 pr-8 pl-3 text-[13px]/5 text-ink outline-none transition-colors hover:border-brand-400 focus:border-brand-500 disabled:text-stone-400 sm:text-sm";
-const labelPilih = "block font-mono text-[11px] tracking-[0.16em] text-stone-500 uppercase";
+  "min-h-11 w-full rounded-full border-2 border-ink/15 bg-white py-2 pr-2.5 pl-3.5 text-[14px]/5 font-semibold text-ink outline-none transition-colors hover:border-brand-400 focus:border-brand-500 disabled:text-stone-400 sm:px-4 sm:text-[15px]";
+const labelPilih = "block text-[13px] font-bold text-stone-600";
 
 const NAMA_SUMBER: Record<SumberUlasan, string> = {
   shopee: "Shopee",
@@ -40,7 +41,7 @@ function Bintang({ nilai }: { nilai: number }) {
 function LabelSumber({ sumber }: { sumber: Ulasan["sumber"] }) {
   if (sumber === "shopee") {
     return (
-      <span className="border border-orange-300 bg-orange-50 px-2 py-0.5 font-mono text-[11px] tracking-[0.14em] text-orange-700 uppercase">
+      <span className="rounded-full border border-orange-300 bg-orange-50 px-2.5 py-0.5 text-[13px] font-bold text-orange-700">
         Dari Shopee
       </span>
     );
@@ -48,14 +49,14 @@ function LabelSumber({ sumber }: { sumber: Ulasan["sumber"] }) {
 
   if (sumber === "tokopedia") {
     return (
-      <span className="border border-emerald-300 bg-emerald-50 px-2 py-0.5 font-mono text-[11px] tracking-[0.14em] text-emerald-700 uppercase">
+      <span className="rounded-full border border-emerald-300 bg-emerald-50 px-2.5 py-0.5 text-[13px] font-bold text-emerald-700">
         Dari Tokopedia
       </span>
     );
   }
 
   return (
-    <span className="border border-brand-200 bg-brand-50 px-2 py-0.5 font-mono text-[11px] tracking-[0.14em] text-brand-700 uppercase">
+    <span className="rounded-full border border-brand-200 bg-brand-50 px-2.5 py-0.5 text-[13px] font-bold text-brand-700">
       Dari website
     </span>
   );
@@ -83,7 +84,7 @@ function AsalShopee({
   const tujuan = tampilkanUkuran ? `ukuran ${ulasan.ukuran}` : "produk ini";
 
   return (
-    <p className="mt-3 font-mono text-[12px] text-stone-500">
+    <p className="mt-3 text-[13px] text-stone-500">
       {link ? (
         <a
           href={link}
@@ -104,7 +105,7 @@ function AsalTokopedia({ ulasan }: { ulasan: Ulasan }) {
   const teks = `Ulasan Tokopedia & TikTok Shop${ulasan.produkAsal ? ` untuk ${ulasan.produkAsal}` : ""}`;
 
   return (
-    <p className="mt-3 font-mono text-[12px] break-words text-stone-500">
+    <p className="mt-3 text-[13px] break-words text-stone-500">
       {ulasan.urlAsal ? (
         <a
           href={ulasan.urlAsal}
@@ -147,7 +148,7 @@ function Pengantar({ ringkasan, linkShopee }: { ringkasan?: RingkasanUlasan; lin
             href={linkShopee}
             target="_blank"
             rel="noopener nofollow"
-            className="border-b border-stone-400 text-ink transition-colors hover:border-brand-600 hover:text-brand-600"
+            className="tautan"
           >
             Baca semua ulasannya di Shopee
           </a>
@@ -181,27 +182,22 @@ function Saringan({
         nilai={saringan.urut}
         memuat={memuat}
         ubah={(v) => ubah({ ...saringan, urut: v as UrutanUlasan })}
-      >
-        {PILIHAN_URUTAN.map((p) => (
-          <option key={p.nilai} value={p.nilai}>
-            {p.label}
-          </option>
-        ))}
-      </Pilih>
+        opsi={PILIHAN_URUTAN}
+      />
 
       <Pilih
         label="Bintang"
         nilai={String(saringan.bintang ?? "")}
         memuat={memuat}
         ubah={(v) => ubah({ ...saringan, bintang: v ? Number(v) : null })}
-      >
-        <option value="">Semua bintang</option>
-        {([5, 4, 3, 2, 1] as const).map((b) => (
-          <option key={b} value={b}>
-            {b} bintang{ringkasan?.bintang ? ` (${angka(ringkasan.bintang[`${b}`])})` : ""}
-          </option>
-        ))}
-      </Pilih>
+        opsi={[
+          { nilai: "", label: "Semua bintang" },
+          ...([5, 4, 3, 2, 1] as const).map((b) => ({
+            nilai: String(b),
+            label: `${b} bintang${ringkasan?.bintang ? ` (${angka(ringkasan.bintang[`${b}`])})` : ""}`,
+          })),
+        ]}
+      />
 
       {sumberAda.length > 1 && (
         <Pilih
@@ -209,14 +205,11 @@ function Saringan({
           nilai={saringan.sumber ?? ""}
           memuat={memuat}
           ubah={(v) => ubah({ ...saringan, sumber: (v || null) as SumberUlasan | null })}
-        >
-          <option value="">Semua sumber</option>
-          {sumberAda.map((s) => (
-            <option key={s} value={s}>
-              {NAMA_SUMBER[s]} ({angka(ringkasan?.[s] ?? 0)})
-            </option>
-          ))}
-        </Pilih>
+          opsi={[
+            { nilai: "", label: "Semua sumber" },
+            ...sumberAda.map((s) => ({ nilai: s, label: `${NAMA_SUMBER[s]} (${angka(ringkasan?.[s] ?? 0)})` })),
+          ]}
+        />
       )}
 
       {ukuranPilihan.length > 1 && (
@@ -225,14 +218,8 @@ function Saringan({
           nilai={saringan.ukuran ?? ""}
           memuat={memuat}
           ubah={(v) => ubah({ ...saringan, ukuran: v || null })}
-        >
-          <option value="">Semua ukuran</option>
-          {ukuranPilihan.map((u) => (
-            <option key={u.slug} value={u.slug}>
-              {u.label}
-            </option>
-          ))}
-        </Pilih>
+          opsi={[{ nilai: "", label: "Semua ukuran" }, ...ukuranPilihan.map((u) => ({ nilai: u.slug, label: u.label }))]}
+        />
       )}
     </div>
   );
@@ -243,38 +230,30 @@ function Pilih({
   nilai,
   memuat,
   ubah,
-  children,
+  opsi,
 }: {
   label: string;
   nilai: string;
   memuat: boolean;
   ubah: (nilai: string) => void;
-  children: ReactNode;
+  opsi: readonly OpsiPilih[];
 }) {
+  const idLabel = useId();
+
   return (
-    <label className="block min-w-0">
-      <span className={labelPilih}>{label}</span>
-      <span className="relative mt-1.5 block">
-        <select
-          value={nilai}
-          disabled={memuat}
-          onChange={(e) => ubah(e.target.value)}
-          className={kotakPilih}
-        >
-          {children}
-        </select>
-        <svg
-          className="pointer-events-none absolute top-1/2 right-3 h-3.5 w-3.5 -translate-y-1/2 text-stone-400"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={1.75}
-          aria-hidden="true"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" d="m6 9 6 6 6-6" />
-        </svg>
+    <div className="min-w-0">
+      <span id={idLabel} className={labelPilih}>
+        {label}
       </span>
-    </label>
+      <KolomPilih
+        labelId={idLabel}
+        nilai={nilai}
+        opsi={opsi}
+        ubah={ubah}
+        disabled={memuat}
+        className={`mt-1.5 ${kotakPilih}`}
+      />
+    </div>
   );
 }
 
@@ -348,7 +327,7 @@ export default function ProductReviews({
 
   return (
     <section className="mt-24 border-t border-ink/10 pt-16">
-      <p className="font-mono text-[13px] tracking-[0.28em] text-accent-600 uppercase">Ulasan</p>
+      <p className="text-[15px] text-oranye-600 font-semibold">Ulasan</p>
       <h2 className="mt-3 text-2xl font-semibold tracking-tight text-ink">Kata pembeli</h2>
       <Pengantar ringkasan={ringkasan} linkShopee={linkShopee} />
 
@@ -363,7 +342,7 @@ export default function ProductReviews({
       )}
 
       {daftar.length === 0 ? (
-        <p className="mt-8 border border-ink/10 bg-stone-50 px-5 py-6 text-sm text-stone-600">
+        <p className="mt-8 rounded-2xl border border-ink/10 bg-stone-50 px-5 py-6 text-sm text-stone-600">
           {memuat ? "Memuat ulasan..." : "Belum ada ulasan yang cocok dengan pilihan ini."}
         </p>
       ) : (
@@ -372,23 +351,23 @@ export default function ProductReviews({
             <li key={u.id} className="py-6">
               <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
                 <Bintang nilai={u.bintang} />
-                <span className="text-sm font-medium text-ink">{u.nama}</span>
-                <span className="font-mono text-[12px] text-stone-400">{tanggalUlasan(u.pada, u.presisi)}</span>
+                <span className="text-[15px] font-bold text-ink">{u.nama}</span>
+                <span className="text-[13px] text-stone-500">{tanggalUlasan(u.pada, u.presisi)}</span>
                 {tampilkanUkuran && u.sumber === "web" && (
-                  <span className="font-mono text-[12px] text-stone-500">Ukuran {u.ukuran}</span>
+                  <span className="text-[13px] font-semibold text-stone-600">Ukuran {u.ukuran}</span>
                 )}
                 <LabelSumber sumber={u.sumber} />
               </div>
 
               {u.teks && (
-                <p className="mt-3 max-w-3xl text-sm leading-relaxed whitespace-pre-line break-words text-stone-700">
+                <p className="mt-3 max-w-3xl text-[15px] leading-relaxed whitespace-pre-line break-words text-stone-700">
                   {u.teks}
                 </p>
               )}
 
               {u.susulan && (
                 <div className="mt-3 max-w-3xl border-l-2 border-orange-200 pl-4">
-                  <p className="font-mono text-[11px] tracking-[0.14em] text-stone-500 uppercase">
+                  <p className="text-[13px] text-stone-500 font-semibold">
                     Update penilaian{u.susulanPada ? ` · ${tanggalUlasan(u.susulanPada, "day")}` : ""}
                   </p>
                   <p className="mt-1.5 text-sm leading-relaxed whitespace-pre-line break-words text-stone-700">
@@ -422,7 +401,7 @@ export default function ProductReviews({
           <button
             type="button"
             onClick={() => setSemua(true)}
-            className="border border-ink/15 px-6 py-2.5 font-mono text-[13px] tracking-[0.2em] indent-[0.2em] text-stone-600 uppercase transition-colors hover:border-brand-400 hover:text-brand-600"
+            className="tombol-garis tombol-kecil"
           >
             Lihat semua {totalSemua.toLocaleString("id-ID")} ulasan
           </button>
@@ -433,14 +412,14 @@ export default function ProductReviews({
             type="button"
             onClick={() => void muatLagi()}
             disabled={memuat}
-            className="border border-ink/15 px-6 py-2.5 font-mono text-[13px] tracking-[0.2em] indent-[0.2em] text-stone-600 uppercase transition-colors hover:border-brand-400 hover:text-brand-600 disabled:cursor-wait disabled:text-stone-300"
+            className="tombol-garis tombol-kecil disabled:cursor-wait disabled:text-stone-300"
           >
             {memuat ? "Memuat..." : "Muat ulasan lainnya"}
           </button>
         )}
 
         {semua && daftar.length > 0 && (
-          <p className="font-mono text-[12px] text-stone-400">
+          <p className="text-[13px] font-medium text-stone-500">
             Menampilkan {daftar.length.toLocaleString("id-ID")} dari {total.toLocaleString("id-ID")} ulasan
           </p>
         )}
@@ -449,7 +428,7 @@ export default function ProductReviews({
           <button
             type="button"
             onClick={() => setSemua(false)}
-            className="font-mono text-[12px] tracking-[0.14em] text-stone-500 uppercase transition-colors hover:text-brand-600"
+            className="tautan text-[14px]"
           >
             Tampilkan lebih sedikit
           </button>

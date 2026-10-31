@@ -28,9 +28,9 @@ import {
 type Baris = { produk: Produk; varian: Varian; qty: number };
 
 const labelInput =
-  "block font-mono text-[12px] tracking-[0.2em] text-stone-500 uppercase";
+  "block text-[15px] font-bold text-ink";
 const kotakInput =
-  "mt-2 w-full border border-ink/15 px-4 py-3 text-sm text-ink outline-none transition-colors placeholder:text-stone-400 focus:border-brand-500 disabled:bg-stone-100";
+  "mt-2 min-h-11 w-full rounded-xl border-2 border-ink/15 px-4 py-2.5 text-[16px] text-ink outline-none transition-colors placeholder:text-stone-400 focus:border-brand-500 disabled:bg-stone-100";
 
 type Props = {
   produk: Produk[];
@@ -200,7 +200,7 @@ export default function CheckoutForm({ produk, akun, urlMasuk, kunciCaptcha }: P
   if (baris.length === 0) {
     return (
       <div className="mx-auto w-full max-w-3xl px-6 pt-32 pb-24">
-        <p className="font-mono text-[13px] tracking-[0.28em] text-accent-600 uppercase">
+        <p className="text-[15px] text-oranye-600 font-semibold">
           Checkout
         </p>
         <h1 className="mt-3 text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
@@ -211,7 +211,7 @@ export default function CheckoutForm({ produk, akun, urlMasuk, kunciCaptcha }: P
         </p>
         <Link
           href="/produk"
-          className="mt-8 inline-block border border-ink px-8 py-3.5 font-mono text-[13px] tracking-[0.22em] indent-[0.22em] text-ink uppercase transition-colors hover:bg-ink hover:text-white"
+          className="mt-8 tombol"
         >
           Lihat produk
         </Link>
@@ -221,7 +221,7 @@ export default function CheckoutForm({ produk, akun, urlMasuk, kunciCaptcha }: P
 
   return (
     <div className="mx-auto w-full max-w-5xl px-6 pt-32 pb-24">
-      <p className="font-mono text-[13px] tracking-[0.28em] text-accent-600 uppercase">
+      <p className="text-[15px] text-oranye-600 font-semibold">
         Checkout
       </p>
       <h1 className="mt-3 text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
@@ -229,13 +229,13 @@ export default function CheckoutForm({ produk, akun, urlMasuk, kunciCaptcha }: P
       </h1>
 
       {akun ? (
-        <p className="mt-6 border border-brand-200 bg-brand-50 px-5 py-4 text-sm leading-relaxed text-brand-800">
+        <p className="mt-6 rounded-2xl border border-brand-200 bg-brand-50 px-5 py-4 text-sm leading-relaxed text-brand-700">
           Masuk sebagai <span className="font-medium">{akun.user.name}</span> (
           {akun.user.email}). Pesanan ini akan tersimpan di riwayat akunmu
           {terakhir ? ", dan datanya diisi dari pesanan terakhirmu." : "."}
         </p>
       ) : (
-        <div className="mt-6 flex flex-wrap items-center justify-between gap-4 border border-ink/10 bg-stone-50 px-5 py-4">
+        <div className="mt-6 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-ink/10 bg-stone-50 px-5 py-4">
           <p className="max-w-md text-sm leading-relaxed text-stone-600">
             Punya akun Google? Masuk supaya pesanan tersimpan dan data terisi
             otomatis lain kali. Tanpa masuk juga tetap bisa.
@@ -314,13 +314,13 @@ export default function CheckoutForm({ produk, akun, urlMasuk, kunciCaptcha }: P
             />
 
             {mencariWilayah && (
-              <p className="mt-2 font-mono text-[12px] tracking-[0.18em] text-stone-400 uppercase">
+              <p className="mt-2 text-[14px] text-stone-400 font-semibold">
                 Mencari...
               </p>
             )}
 
             {tujuan && (
-              <p className="mt-2 font-mono text-[12px] tracking-[0.18em] text-emerald-700 uppercase">
+              <p className="mt-2 text-[14px] text-emerald-700 font-semibold">
                 Terpilih &middot; {tujuan.label}
               </p>
             )}
@@ -338,7 +338,7 @@ export default function CheckoutForm({ produk, akun, urlMasuk, kunciCaptcha }: P
             {saran.length > 0 && (
               <ul
                 id="saran-wilayah"
-                className="absolute z-10 mt-1 w-full border border-ink/15 bg-white shadow-lg"
+                className="absolute z-10 mt-1 w-full overflow-hidden rounded-xl border border-ink/15 bg-white shadow-lg"
               >
                 {saran.map((w) => (
                   <li key={w.id}>
@@ -393,7 +393,7 @@ export default function CheckoutForm({ produk, akun, urlMasuk, kunciCaptcha }: P
             )}
 
             {tujuan && memuatOngkir && (
-              <p className="mt-4 font-mono text-[12px] tracking-[0.18em] text-stone-400 uppercase">
+              <p className="mt-4 text-[14px] text-stone-400 font-semibold">
                 Menghitung ongkir...
               </p>
             )}
@@ -419,23 +419,23 @@ export default function CheckoutForm({ produk, akun, urlMasuk, kunciCaptcha }: P
                           setLayananDipilih(`${o.courier}|${o.service}`)
                         }
                         aria-pressed={dipilih}
-                        className={`flex w-full items-center justify-between gap-4 border px-4 py-3.5 text-left transition-colors ${
+                        className={`flex min-h-11 w-full items-center justify-between gap-4 rounded-2xl border-2 px-5 py-3 text-left transition-colors ${
                           dipilih
-                            ? "border-brand-500 bg-brand-50"
-                            : "border-ink/15 hover:border-brand-400"
+                            ? "border-brand-500 bg-brand-500 text-white"
+                            : "border-ink/15 bg-white text-ink hover:border-brand-400"
                         }`}
                       >
                         <span>
-                          <span className="text-sm font-medium text-ink">
+                          <span className="text-[16px] font-bold">
                             {namaLayanan(o.courier, o.service)}
                           </span>
                           {o.etd !== "-" && (
-                            <span className="mt-0.5 block font-mono text-[13px] text-stone-500">
+                            <span className={`mt-0.5 block text-[14px] font-medium ${dipilih ? "text-white/85" : "text-stone-600"}`}>
                               estimasi {o.etd}
                             </span>
                           )}
                         </span>
-                        <span className="font-mono text-sm text-brand-600">
+                        <span className={`text-[16px] font-bold ${dipilih ? "text-white" : "text-brand-600"}`}>
                           {rupiah(o.cost)}
                         </span>
                       </button>
@@ -460,7 +460,7 @@ export default function CheckoutForm({ produk, akun, urlMasuk, kunciCaptcha }: P
         </fieldset>
 
         <aside className="lg:sticky lg:top-28 lg:self-start">
-          <div className="border border-ink/10 bg-stone-50 p-6">
+          <div className="rounded-2xl border border-ink/10 bg-stone-50 p-6">
             <h2 className={labelInput}>Ringkasan</h2>
 
             <ul className="mt-5 space-y-2">
@@ -469,7 +469,7 @@ export default function CheckoutForm({ produk, akun, urlMasuk, kunciCaptcha }: P
                   <span className="text-stone-700">
                     {qty}&times; {namaDenganUkuran({ produk: p, varian })}
                   </span>
-                  <span className="font-mono whitespace-nowrap text-stone-500">
+                  <span className="font-semibold whitespace-nowrap text-stone-600">
                     {rupiah(varian.harga * qty)}
                   </span>
                 </li>
@@ -479,45 +479,45 @@ export default function CheckoutForm({ produk, akun, urlMasuk, kunciCaptcha }: P
             <dl className="mt-5 space-y-2 border-t border-ink/10 pt-4 text-sm">
               <div className="flex justify-between">
                 <dt className="text-stone-600">Subtotal</dt>
-                <dd className="font-mono text-ink">{rupiah(subtotal)}</dd>
+                <dd className="font-semibold text-ink">{rupiah(subtotal)}</dd>
               </div>
               {hemat > 0 && (
                 <div className="flex justify-between text-red-700">
                   <dt>Hemat dari promo</dt>
-                  <dd className="font-mono">{rupiah(hemat)}</dd>
+                  <dd className="font-semibold">{rupiah(hemat)}</dd>
                 </div>
               )}
               <div className="flex justify-between">
                 <dt className="text-stone-600">Ongkir</dt>
-                <dd className="font-mono text-ink">
+                <dd className="font-semibold text-ink">
                   {ongkirDipilih ? rupiah(ongkirDipilih.cost) : "-"}
                 </dd>
               </div>
-              <div className="flex justify-between border-t border-ink/10 pt-3 text-base font-semibold">
+              <div className="flex justify-between border-t border-ink/10 pt-3 text-lg font-bold">
                 <dt className="text-ink">Total</dt>
-                <dd className="font-mono text-brand-600">{rupiah(total)}</dd>
+                <dd className="text-brand-600">{rupiah(total)}</dd>
               </div>
             </dl>
 
             <button
               type="submit"
               disabled={mengirim}
-              className="mt-8 w-full border border-brand-500 bg-brand-500 px-8 py-3.5 font-mono text-[13px] tracking-[0.22em] indent-[0.22em] text-white uppercase transition-colors hover:border-brand-600 hover:bg-brand-600 disabled:cursor-not-allowed disabled:border-stone-300 disabled:bg-stone-300"
+              className="mt-8 w-full tombol-oranye"
             >
               {mengirim ? "Memproses..." : "Lanjut ke pembayaran"}
             </button>
 
             <Link
               href="/keranjang"
-              className="mt-4 block text-center font-mono text-[12px] tracking-[0.18em] text-stone-500 uppercase transition-colors hover:text-brand-600"
+              className="tombol-garis mt-3 w-full"
             >
               Kembali ke keranjang
             </Link>
           </div>
 
           {galat.length > 0 && (
-            <div role="alert" className="mt-6 border border-red-300 bg-red-50 p-5">
-              <p className="font-mono text-[12px] tracking-[0.2em] text-red-700 uppercase">
+            <div role="alert" className="mt-6 rounded-2xl border border-red-300 bg-red-50 p-5">
+              <p className="text-[14px] text-red-700 font-semibold">
                 Belum bisa diproses
               </p>
               <ul className="mt-3 space-y-1.5 text-sm text-red-700">

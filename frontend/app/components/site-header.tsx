@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
@@ -8,6 +9,8 @@ import { useKeranjang } from "@/app/lib/keranjang";
 
 const THRESHOLD = 8;
 const TOP_ZONE = 80;
+
+const ikon = "h-[22px] w-[22px]";
 
 export default function SiteHeader({ masuk = false }: { masuk?: boolean }) {
   const [hidden, setHidden] = useState(false);
@@ -21,12 +24,10 @@ export default function SiteHeader({ masuk = false }: { masuk?: boolean }) {
   const aktif = (href: string) =>
     href === "/" ? pathname === "/" : pathname.startsWith(href);
 
-  const sentuh = "py-3 -my-3";
+  const sentuh = "flex min-h-11 min-w-11 items-center justify-center";
 
   const kelasNav = (href: string) =>
-    `${sentuh} ${
-      aktif(href) ? "text-brand-600" : "transition-colors hover:text-brand-600"
-    }`;
+    `${sentuh} ${aktif(href) ? "text-brand-600" : "text-ink transition-colors hover:text-brand-600"}`;
 
   useEffect(() => {
     const onScroll = () => {
@@ -52,36 +53,25 @@ export default function SiteHeader({ masuk = false }: { masuk?: boolean }) {
         "fixed inset-x-0 top-0 z-50 border-b",
         "transition-[translate,background-color,border-color,box-shadow] duration-300 ease-out",
         hidden ? "-translate-y-full" : "translate-y-0",
-        "lg:border-ink/10 lg:bg-white/90 lg:backdrop-blur-md",
-        atTop
-          ? "border-transparent shadow-none"
-          : "border-ink/10 bg-white/90 shadow-sm backdrop-blur-md",
+        "lg:border-ink/10 lg:bg-white/95",
+        atTop ? "border-transparent shadow-none" : "border-ink/10 bg-white/95 shadow-sm",
       ].join(" ")}
     >
-      <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-6">
-        <Link
-          href="/"
-          className={`${sentuh} shrink-0 font-mono text-xs tracking-[0.12em] whitespace-nowrap text-ink uppercase sm:text-sm sm:tracking-[0.35em]`}
-        >
-          Menik Store
+      <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:px-6 sm:py-4">
+        <Link href="/" aria-label="Menik Store, ke beranda" className="flex min-h-11 shrink-0 items-center gap-2.5 text-ink">
+          <Image src="/logo-96.webp" alt="" width={40} height={40} className="h-9 w-9 sm:h-10 sm:w-10" priority />
+          <span className="hidden text-[17px] font-extrabold tracking-tight whitespace-nowrap min-[460px]:inline sm:text-[19px]">Menik Store</span>
         </Link>
 
-        <nav className="flex shrink-0 items-center gap-3 font-mono text-[13px] tracking-[0.16em] text-ink/70 uppercase sm:gap-8 sm:tracking-[0.22em]">
+        <nav className="flex shrink-0 items-center gap-0.5 text-[16px] font-bold sm:gap-2 sm:text-[17px]">
           <Link
             href="/"
             aria-label="Beranda"
             title="Beranda"
             aria-current={aktif("/") ? "page" : undefined}
-            className={`hidden sm:block ${kelasNav("/")}`}
+            className={`hidden sm:flex ${kelasNav("/")}`}
           >
-            <svg
-              className="h-[18px] w-[18px]"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={1.6}
-              aria-hidden="true"
-            >
+            <svg className={ikon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} aria-hidden="true">
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -92,14 +82,14 @@ export default function SiteHeader({ masuk = false }: { masuk?: boolean }) {
           <Link
             href="/produk"
             aria-current={aktif("/produk") ? "page" : undefined}
-            className={kelasNav("/produk")}
+            className={`${kelasNav("/produk")} px-2 sm:px-3`}
           >
             Produk
           </Link>
           <Link
             href="/faq"
             aria-current={aktif("/faq") ? "page" : undefined}
-            className={`hidden min-[360px]:block ${kelasNav("/faq")}`}
+            className={`hidden min-[340px]:flex ${kelasNav("/faq")} px-2 sm:px-3`}
           >
             FAQ
           </Link>
@@ -110,14 +100,7 @@ export default function SiteHeader({ masuk = false }: { masuk?: boolean }) {
             aria-current={aktif(masuk ? "/akun" : "/masuk") ? "page" : undefined}
             className={kelasNav(masuk ? "/akun" : "/masuk")}
           >
-            <svg
-              className="h-[18px] w-[18px]"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={1.6}
-              aria-hidden="true"
-            >
+            <svg className={ikon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} aria-hidden="true">
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -127,21 +110,12 @@ export default function SiteHeader({ masuk = false }: { masuk?: boolean }) {
           </Link>
           <Link
             href="/keranjang"
-            aria-label={
-              jumlahItem > 0 ? `Keranjang, ${jumlahItem} item` : "Keranjang"
-            }
+            aria-label={jumlahItem > 0 ? `Keranjang, ${jumlahItem} item` : "Keranjang"}
             title="Keranjang"
             aria-current={aktif("/keranjang") ? "page" : undefined}
-            className={`relative ${kelasNav("/keranjang")}`}
+            className={`relative ${sentuh} text-brand-400 transition-colors hover:text-brand-600`}
           >
-            <svg
-              className="h-[18px] w-[18px]"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={1.6}
-              aria-hidden="true"
-            >
+            <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden="true">
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -151,7 +125,7 @@ export default function SiteHeader({ masuk = false }: { masuk?: boolean }) {
               <circle cx="16.5" cy="19.5" r="1.25" />
             </svg>
             {jumlahItem > 0 && (
-              <span className="absolute -top-2 -right-2.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-brand-500 px-1 pt-[2px] font-mono text-[11px] leading-none tracking-normal text-white">
+              <span className="absolute top-0.5 right-0 flex h-5 min-w-5 items-center justify-center rounded-full bg-oranye-600 px-1 text-[12px] leading-none font-bold text-white">
                 {jumlahItem}
               </span>
             )}
@@ -160,23 +134,18 @@ export default function SiteHeader({ masuk = false }: { masuk?: boolean }) {
             href="#kontak"
             aria-label="WhatsApp"
             title="WhatsApp"
-            className={`${sentuh} font-semibold text-ink transition-colors hover:text-brand-600`}
+            className={`${sentuh} text-ink transition-colors hover:text-brand-600 sm:hidden`}
           >
-            <svg
-              className="h-[18px] w-[18px] sm:hidden"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={1.6}
-              aria-hidden="true"
-            >
+            <svg className={ikon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} aria-hidden="true">
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 d="M12 20.25c4.97 0 9-3.69 9-8.25s-4.03-8.25-9-8.25S3 7.44 3 12c0 2.1.86 4.02 2.27 5.48.43.45.74 1.04.59 1.64a4.48 4.48 0 0 1-.92 1.79A5.97 5.97 0 0 0 6 21c1.28 0 2.47-.4 3.45-1.09.81.22 1.67.34 2.55.34Z"
               />
             </svg>
-            <span className="hidden sm:inline">WhatsApp</span>
+          </a>
+          <a href="#kontak" className="tombol tombol-kecil ml-2 hidden sm:inline-flex">
+            WhatsApp
           </a>
         </nav>
       </div>

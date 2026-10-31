@@ -13,7 +13,7 @@ export default async function ProblemPicker({ produk }: { produk: Produk[] }) {
 
   return (
     <section id="produk" className="mx-auto w-full max-w-6xl px-6 py-24">
-      <p className="font-mono text-[13px] tracking-[0.28em] text-accent-600 uppercase">
+      <p className="text-[15px] text-oranye-600 font-semibold">
         Cari berdasarkan masalah
       </p>
       <h2 className="mt-3 max-w-xl text-3xl leading-tight font-semibold tracking-tight text-ink sm:text-4xl">
@@ -35,7 +35,7 @@ export default async function ProblemPicker({ produk }: { produk: Produk[] }) {
             <Link
               key={m.slug}
               href={`/produk?kategori=${m.slug}`}
-              className="group flex flex-col border border-ink/12 transition-colors hover:border-brand-500"
+              className="group flex flex-col overflow-hidden rounded-2xl border-2 border-ink/10 bg-white transition-colors hover:border-brand-400"
             >
               <div className="relative aspect-square overflow-hidden bg-brand-50">
                 {m.wakil?.gambar ? (
@@ -54,13 +54,13 @@ export default async function ProblemPicker({ produk }: { produk: Produk[] }) {
               </div>
 
               <div className="flex flex-1 flex-col p-4">
-                <span className="text-base font-semibold tracking-tight text-ink transition-colors group-hover:text-brand-600">
+                <span className="text-[17px] font-bold tracking-tight text-ink transition-colors group-hover:text-brand-600 lg:text-lg">
                   {m.label}
                 </span>
-                <span className="mt-1 text-xs leading-relaxed text-stone-500">
+                <span className="mt-1 text-sm leading-snug text-stone-600">
                   {m.keluhan}
                 </span>
-                <span className="mt-auto pt-3 font-mono text-[12px] tracking-[0.16em] text-stone-400 uppercase">
+                <span className="mt-auto pt-3 text-[14px] font-bold text-brand-600">
                   {m.jumlah} produk
                 </span>
               </div>
@@ -70,15 +70,15 @@ export default async function ProblemPicker({ produk }: { produk: Produk[] }) {
         {grupMasalah && (
           <Link
             href={`/produk?grup=${grupMasalah}`}
-            className="group flex flex-col items-start justify-center border border-dashed border-ink/20 p-5 transition-colors hover:border-brand-500 hover:bg-brand-50"
+            className="group flex flex-col items-start justify-center rounded-2xl border-2 border-dashed border-brand-200 p-5 transition-colors hover:border-brand-400 hover:bg-brand-50"
           >
-            <span className="text-base font-semibold tracking-tight text-ink transition-colors group-hover:text-brand-600">
+            <span className="text-[17px] font-bold tracking-tight text-ink transition-colors group-hover:text-brand-600 lg:text-lg">
               Lihat semua
             </span>
-            <span className="mt-1 text-xs leading-relaxed text-stone-500">
+            <span className="mt-1 text-sm leading-snug text-stone-600">
               Seluruh pengusir hama dalam satu halaman
             </span>
-            <span className="mt-3 font-mono text-sm text-stone-400 transition-colors group-hover:text-brand-600">
+            <span aria-hidden="true" className="mt-3 text-xl font-bold text-brand-600">
               &rarr;
             </span>
           </Link>
@@ -87,17 +87,17 @@ export default async function ProblemPicker({ produk }: { produk: Produk[] }) {
 
       {lainnya.length > 0 && (
         <div className="mt-12 border-t border-ink/10 pt-8">
-          <p className="font-mono text-[13px] tracking-[0.2em] text-stone-500 uppercase">
+          <p className="text-[15px] text-stone-500 font-semibold">
             Bukan soal hama?
           </p>
-          <ul className="mt-4 flex flex-wrap gap-x-8 gap-y-3">
+          <ul className="mt-4 flex flex-wrap gap-2">
             {lainnya.map((g) => (
               <li key={g.slug}>
                 <Link
                   href={`/produk?grup=${g.slug}`}
-                  className="border-b border-stone-300 pb-0.5 text-sm text-ink transition-colors hover:border-brand-600 hover:text-brand-600"
+                  className="chip"
                 >
-                  {g.judul} &rarr;
+                  {g.judul}
                 </Link>
               </li>
             ))}

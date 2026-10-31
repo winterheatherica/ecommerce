@@ -96,13 +96,13 @@ function Form({
   };
 
   return (
-    <form onSubmit={kirim} className="mt-4 border border-ink/10 bg-stone-50 p-5">
-      <p className="font-mono text-[12px] tracking-[0.16em] text-stone-500 uppercase">Bintang</p>
+    <form onSubmit={kirim} className="mt-4 rounded-2xl border border-ink/10 bg-stone-50 p-5">
+      <p className="text-[15px] font-bold text-ink">Bintang</p>
       <div className="mt-2">
         <PilihBintang nilai={bintang} ubah={setBintang} />
       </div>
 
-      <label className="mt-5 block font-mono text-[12px] tracking-[0.16em] text-stone-500 uppercase" htmlFor={`ulasan-${barang.variantSlug}`}>
+      <label className="mt-5 block text-[15px] font-bold text-ink" htmlFor={`ulasan-${barang.variantSlug}`}>
         Ceritakan pengalamanmu <span className="normal-case">(opsional)</span>
       </label>
       <textarea
@@ -112,7 +112,7 @@ function Form({
         rows={4}
         maxLength={3000}
         placeholder="Misalnya dipakai di mana, dan bagaimana hasilnya setelah beberapa hari."
-        className="mt-2 w-full border border-ink/15 bg-white px-4 py-3 text-sm leading-relaxed text-ink outline-none transition-colors placeholder:text-stone-400 focus:border-brand-500"
+        className="mt-2 w-full rounded-xl border-2 border-ink/15 bg-white px-4 py-3 text-[16px] leading-relaxed text-ink outline-none transition-colors placeholder:text-stone-400 focus:border-brand-500"
       />
 
       {siteKey && <Turnstile siteKey={siteKey} ulang={ulang} onToken={setToken} className="mt-5" />}
@@ -127,14 +127,14 @@ function Form({
         <button
           type="submit"
           disabled={!bisaKirim}
-          className="border border-brand-500 bg-brand-500 px-6 py-2.5 font-mono text-[13px] tracking-[0.2em] indent-[0.2em] text-white uppercase transition-colors hover:border-brand-600 hover:bg-brand-600 disabled:cursor-not-allowed disabled:border-stone-300 disabled:bg-stone-300"
+          className="tombol"
         >
           {mengirim ? "Mengirim..." : awal ? "Simpan perubahan" : "Kirim ulasan"}
         </button>
         <button
           type="button"
           onClick={batal}
-          className="font-mono text-[12px] tracking-[0.14em] text-stone-500 uppercase transition-colors hover:text-ink"
+          className="tombol-garis"
         >
           Batal
         </button>
@@ -153,7 +153,7 @@ export default function UlasanPesanan({ orderNo, barang, ulasanAwal, siteKey }: 
 
   return (
     <section className="mt-12 border-t border-ink/10 pt-10">
-      <h2 className="font-mono text-[13px] tracking-[0.28em] text-stone-500 uppercase">Ulas pesananmu</h2>
+      <h2 className="text-lg font-bold text-ink">Ulas pesananmu</h2>
       <p className="mt-3 max-w-xl text-sm leading-relaxed text-stone-600">
         Ulasanmu langsung tampil di halaman produk dengan nama yang disamarkan. Kamu masih bisa
         mengubahnya dalam 3 jam setelah dikirim.
@@ -168,12 +168,12 @@ export default function UlasanPesanan({ orderNo, barang, ulasanAwal, siteKey }: 
           return (
             <li key={b.variantSlug} className="py-5">
               <div className="flex flex-wrap items-start justify-between gap-3">
-                <p className="min-w-0 flex-1 text-sm font-medium text-ink">{b.nama}</p>
+                <p className="min-w-0 flex-1 text-[15px] font-semibold text-ink">{b.nama}</p>
                 {!terbuka && (!u || bisaUbah) && (
                   <button
                     type="button"
                     onClick={() => setDibuka(b.variantSlug)}
-                    className="shrink-0 border border-ink/15 px-4 py-2 font-mono text-[12px] tracking-[0.16em] indent-[0.16em] text-stone-600 uppercase transition-colors hover:border-brand-500 hover:text-brand-600"
+                    className="shrink-0 tombol-garis tombol-kecil"
                   >
                     {u ? "Ubah ulasan" : "Tulis ulasan"}
                   </button>
@@ -191,7 +191,7 @@ export default function UlasanPesanan({ orderNo, barang, ulasanAwal, siteKey }: 
                       {u.body}
                     </p>
                   )}
-                  <p className="mt-2 font-mono text-[12px] text-stone-400">
+                  <p className="mt-2 text-[13px] text-stone-500">
                     Terkirim {tanggal(u.created_at)}
                     {bisaUbah ? ` · bisa diubah sampai ${jam(u.editable_until)} WIB` : ""}
                   </p>
