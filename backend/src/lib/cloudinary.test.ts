@@ -148,6 +148,32 @@ describe("unggahFoto", () => {
     expect(await unggahFoto(KONFIG, berkas(JPEG))).toEqual({ ok: false, pesan: "Invalid Signature" });
   });
 
+  it("menaruh banner promo di folder banner dan menolak jawaban dari folder produk", async () => {
+    const tangkap = vi.fn(async (_url: string, init: RequestInit) => {
+      const form = init.body as FormData;
+
+      return new Response(JSON.stringify({ public_id: form.get("public_id"), version: 2, width: 1200, height: 600 }), {
+        status: 200,
+      });
+    });
+    vi.stubGlobal("fetch", tangkap);
+
+    const hasil = await unggahFoto(KONFIG, berkas(PNG, "image/png"), "banner");
+    const publicId = String((tangkap.mock.calls[0][1].body as FormData).get("public_id"));
+
+    expect(publicId).toMatch(/^menik-store\/banner\/[0-9a-f-]{36}$/);
+    expect(hasil).toEqual({
+      ok: true,
+      foto: { cloudinary_id: publicId, version: 2, width: 1200, height: 600 },
+    });
+
+    vi.stubGlobal("fetch", vi.fn(async () =>
+      new Response(JSON.stringify({ public_id: "menik-store/produk/uji", version: 1 }), { status: 200 }),
+    ));
+
+    expect((await unggahFoto(KONFIG, berkas(PNG, "image/png"), "banner")).ok).toBe(false);
+  });
+
   it("menolak jawaban yang menaruh foto di luar folder produk", async () => {
     vi.stubGlobal("fetch", vi.fn(async () =>
       new Response(JSON.stringify({ public_id: "folder-lain/uji", version: 1 }), { status: 200 }),

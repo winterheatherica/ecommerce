@@ -3,7 +3,7 @@ import { Elysia, t } from "elysia";
 
 import { BADAN_ADMIN_DITOLAK, bypassAdmin } from "../lib/auth";
 import { adminDariCookie } from "../db/admin";
-import { buatKoneksi, kendalaAsing, tutup } from "../lib/db";
+import { buatKoneksi, kendalaAsing, tutup, type Sql } from "../lib/db";
 import { GALAT_KATEGORI, periksaPerubahan, periksaProdukBaru } from "../lib/products";
 import { periksaPerubahanVarian, periksaVarianBaru } from "../lib/variants";
 import {
@@ -27,7 +27,9 @@ import { hapusFoto, tambahFoto, ubahUkuranFoto, urutkanFoto } from "../db/foto";
 import { periksaToko } from "../lib/toko";
 import { periksaIsiKategori } from "../lib/kategori";
 import { periksaFaq } from "../lib/faq";
+import { bannerAdmin, periksaBanner } from "../lib/banner";
 import { ambilSitus, simpanFaq, simpanKategori, simpanToko } from "../db/situs";
+import { simpanBanner } from "../db/banner";
 import { periksaUlasanImpor } from "../lib/ulasan";
 import {
   ULASAN_PER_HALAMAN,
@@ -85,6 +87,11 @@ function koneksi() {
 
 function awan() {
   return namaAwan(env as unknown as Record<string, unknown>);
+}
+
+async function situsAdmin(sql: Sql) {
+  const situs = await ambilSitus(sql, true);
+  return { ...situs, banners: bannerAdmin(awan(), situs.banners) };
 }
 
 const FOTO = {
@@ -320,7 +327,7 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
     const sql = koneksi();
 
     try {
-      return await ambilSitus(sql, true);
+      return await situsAdmin(sql);
     } finally {
       await tutup(sql);
     }
@@ -389,7 +396,7 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
           };
         }
 
-        return await ambilSitus(sql, true);
+        return await situsAdmin(sql);
       } finally {
         await tutup(sql);
       }
@@ -434,7 +441,7 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
 
       try {
         await simpanFaq(sql, periksa.bersih);
-        return await ambilSitus(sql, true);
+        return await situsAdmin(sql);
       } finally {
         await tutup(sql);
       }
@@ -454,6 +461,71 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
         ),
       }),
     },
+  )
+  .put(
+    "/banners",
+    async ({ body, set }) => {
+      const periksa = periksaBanner(body.banners);
+
+      if (!periksa.ok) {
+        set.status = periksa.status;
+        return periksa.badan;
+      }
+
+      const sql = koneksi();
+
+      try {
+        await simpanBanner(sql, periksa.bersih);
+        return await situsAdmin(sql);
+      } finally {
+        await tutup(sql);
+      }
+    },
+    {
+      body: t.Object({
+        banners: t.Array(
+          t.Object({
+            cloudinary_id: t.Optional(t.Union([t.String({ maxLength: 200 }), t.Null()])),
+            static_path: t.Optional(t.Union([t.String({ maxLength: 200 }), t.Null()])),
+            version: t.Optional(t.Union([t.Integer({ minimum: 1 }), t.Null()])),
+            width: t.Optional(t.Union([t.Integer({ minimum: 1, maximum: 50000 }), t.Null()])),
+            height: t.Optional(t.Union([t.Integer({ minimum: 1, maximum: 50000 }), t.Null()])),
+            alt: t.String({ maxLength: 400 }),
+            link: t.Optional(t.Union([t.String({ maxLength: 600 }), t.Null()])),
+          }),
+          { maxItems: 20 },
+        ),
+      }),
+    },
+  )
+  .post(
+    "/banners/images",
+    async ({ body, set }) => {
+      const konfig = bacaKonfigCloudinary(env as unknown as Record<string, unknown>);
+
+      if (!konfig) {
+        set.status = 503;
+        return { error: "upload_unconfigured", message: "Upload foto belum disetel di server" };
+      }
+
+      const salah = await periksaBerkas(body.file);
+
+      if (salah) {
+        set.status = 422;
+        return { error: "invalid_file", message: salah, field: "file" };
+      }
+
+      const hasil = await unggahFoto(konfig, body.file, "banner");
+
+      if (!hasil.ok) {
+        set.status = 502;
+        return { error: "upload_failed", message: `Banner gagal diunggah: ${hasil.pesan}` };
+      }
+
+      set.status = 201;
+      return denganUrl(konfig.awan, hasil.foto);
+    },
+    { body: t.Object({ file: t.File() }) },
   )
   .get(
     "/products",

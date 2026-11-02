@@ -520,6 +520,37 @@ export async function simpanKategoriToko(isi: IsiKategoriToko): Promise<SitusAPI
   return (await res.json()) as SitusAPI;
 }
 
+export async function unggahBanner(berkas: File): Promise<FotoUnggahan> {
+  const form = new FormData();
+  form.set("file", berkas);
+
+  const res = await fetch("/api/admin/banners/images", { method: "POST", body: form });
+
+  await pastikanOk(res);
+  return (await res.json()) as FotoUnggahan;
+}
+
+export type IsiBanner = {
+  cloudinary_id: string | null;
+  static_path: string | null;
+  version: number | null;
+  width: number | null;
+  height: number | null;
+  alt: string;
+  link: string | null;
+};
+
+export async function simpanBannerToko(banners: IsiBanner[]): Promise<SitusAPI> {
+  const res = await fetch("/api/admin/banners", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ banners }),
+  });
+
+  await pastikanOk(res);
+  return (await res.json()) as SitusAPI;
+}
+
 export type IsiFaqToko = { slug: string; title: string; items: { question: string; answer: string }[] }[];
 
 export async function simpanFaqToko(groups: IsiFaqToko): Promise<SitusAPI> {

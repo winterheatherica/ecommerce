@@ -1,3 +1,4 @@
+import type { BarisBanner } from "../lib/banner";
 import type { Sql } from "../lib/db";
 import type { KelompokFaqBaru } from "../lib/faq";
 import type { GrupBaru, IsiKategoriBersih, KategoriBersih } from "../lib/kategori";
@@ -16,6 +17,7 @@ export type Situs = {
   groups: GrupBaru[];
   categories: BarisKategori[];
   faq: BarisKelompokFaq[];
+  banners: BarisBanner[];
 };
 
 export async function ambilSitus(sql: Sql, admin = false): Promise<Situs> {
@@ -66,7 +68,23 @@ export async function ambilSitus(sql: Sql, admin = false): Promise<Situs> {
           order by f.sort_order, f.slug
         )
         from faq_groups f
-      ), '[]'::jsonb) as faq
+      ), '[]'::jsonb) as faq,
+      coalesce((
+        select jsonb_agg(
+          jsonb_build_object(
+            'id', b.id::int,
+            'cloudinary_id', b.cloudinary_id,
+            'static_path', b.static_path,
+            'version', b.version,
+            'width', b.width,
+            'height', b.height,
+            'alt', b.alt,
+            'link', b.link
+          )
+          order by b.sort_order, b.id
+        )
+        from promo_banners b
+      ), '[]'::jsonb) as banners
   `;
 
   return baris;

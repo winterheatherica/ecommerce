@@ -18,6 +18,15 @@ export type FotoBersih = {
 
 export const FOLDER_FOTO = "menik-store/produk";
 export const POLA_ID_FOTO = /^menik-store\/produk\/[A-Za-z0-9_-]{1,120}$/;
+export const FOLDER_BANNER = "menik-store/banner";
+export const POLA_ID_BANNER = /^menik-store\/banner\/[A-Za-z0-9_-]{1,120}$/;
+
+const TUJUAN_UNGGAH = {
+  produk: { folder: FOLDER_FOTO, pola: POLA_ID_FOTO },
+  banner: { folder: FOLDER_BANNER, pola: POLA_ID_BANNER },
+} as const;
+
+export type TujuanUnggah = keyof typeof TUJUAN_UNGGAH;
 export const UKURAN_FOTO_MAKS = 10 * 1024 * 1024;
 export const FOTO_MAKS_PER_PRODUK = 12;
 
@@ -155,9 +164,11 @@ type JawabanUnggah = {
 export async function unggahFoto(
   konfig: KonfigCloudinary,
   berkas: Blob,
+  tujuan: TujuanUnggah = "produk",
 ): Promise<{ ok: true; foto: FotoBersih } | { ok: false; pesan: string }> {
+  const { folder, pola } = TUJUAN_UNGGAH[tujuan];
   const param = {
-    public_id: `${FOLDER_FOTO}/${crypto.randomUUID()}`,
+    public_id: `${folder}/${crypto.randomUUID()}`,
     timestamp: String(Math.floor(Date.now() / 1000)),
   };
 
@@ -174,7 +185,7 @@ export async function unggahFoto(
   });
   const isi = (await res.json().catch(() => ({}))) as JawabanUnggah;
 
-  if (!res.ok || !isi.public_id || !POLA_ID_FOTO.test(isi.public_id)) {
+  if (!res.ok || !isi.public_id || !pola.test(isi.public_id)) {
     return { ok: false, pesan: isi.error?.message ?? `Cloudinary menjawab ${res.status}` };
   }
 

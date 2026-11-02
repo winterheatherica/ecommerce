@@ -35,11 +35,33 @@ export type KelompokFaqAPI = {
   items: { id: number; question: string; answer: string }[];
 };
 
+export type BannerAPI = {
+  id: number;
+  url: string;
+  width: number | null;
+  height: number | null;
+  alt: string;
+  link: string | null;
+  cloudinary_id?: string | null;
+  static_path?: string | null;
+  version?: number | null;
+};
+
 export type SitusAPI = {
   store: TokoAPI | null;
   groups: GrupAPI[];
   categories: KategoriAPI[];
   faq: KelompokFaqAPI[];
+  banners: BannerAPI[];
+};
+
+export type BannerPromo = {
+  id: number;
+  url: string;
+  lebar: number | null;
+  tinggi: number | null;
+  alt: string;
+  link: string | null;
 };
 
 export type TautanSosial = { label: string; href: string };
@@ -88,9 +110,10 @@ export type Situs = {
   grup: GrupKategori[];
   kategori: InfoKategori[];
   faq: KelompokFaq[];
+  banner: BannerPromo[];
 };
 
-export type SitusKlien = Omit<Situs, "faq">;
+export type SitusKlien = Omit<Situs, "faq" | "banner">;
 
 export const NAMA_HARI = ["", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"];
 export const HARI_SCHEMA = ["", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
@@ -194,6 +217,14 @@ export function petakanSitus(s: SitusAPI): Situs {
       id: k.slug,
       judul: k.title,
       isi: k.items.map((x) => ({ tanya: x.question, jawab: x.answer })),
+    })),
+    banner: (s.banners ?? []).map((b) => ({
+      id: b.id,
+      url: b.url,
+      lebar: b.width,
+      tinggi: b.height,
+      alt: b.alt,
+      link: b.link,
     })),
   };
 }

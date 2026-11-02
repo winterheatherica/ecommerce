@@ -61,14 +61,14 @@ export default async function SiteFooter() {
         <div className="relative mx-auto max-w-6xl px-6 pt-28 pb-56">
           <div className="max-w-lg">
             <p className="text-[15px] font-bold text-oranye-700">
-              Butuh bantuan?
+              Hubungi kami
             </p>
             <h2 className="mt-5 text-3xl leading-tight font-semibold tracking-tight text-ink sm:text-4xl">
-              Bingung pilih yang mana?
+              Butuh bantuan sebelum belanja?
             </h2>
             <p className="mt-4 max-w-md leading-relaxed text-stone-600">
-              Ceritakan masalahnya, kami bantu pilihkan. Dibalas rata-rata dalam
-              satu jam pada hari kerja.
+              Kami siap membantu Anda! Tanyakan apa saja seputar produk, pilihan, atau pesanan Anda. Tim kami akan
+              dengan senang hati membantu.
             </p>
             <div className="mt-8 flex flex-wrap items-center gap-x-8 gap-y-6">
               <a

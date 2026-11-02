@@ -9,6 +9,7 @@ const menu = [
   { href: "/admin/produk", label: "Produk" },
   { href: "/admin/kategori", label: "Kategori" },
   { href: "/admin/faq", label: "FAQ" },
+  { href: "/admin/banner", label: "Banner promo" },
   { href: "/admin/toko", label: "Info toko" },
 ];
 
