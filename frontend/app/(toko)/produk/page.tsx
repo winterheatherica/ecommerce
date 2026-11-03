@@ -75,7 +75,7 @@ export async function generateMetadata({
 
 function KerangkaKatalog() {
   return (
-    <div className="mx-auto w-full max-w-6xl px-6 pt-32 pb-24">
+    <div className="mx-auto w-full max-w-6xl px-6 pt-32 pb-8 lg:pb-24">
       <div className="h-3 w-24 animate-pulse bg-stone-200" />
       <div className="mt-5 h-9 w-72 animate-pulse bg-stone-200" />
       <div className="mt-12 grid grid-cols-2 gap-6 lg:grid-cols-3">

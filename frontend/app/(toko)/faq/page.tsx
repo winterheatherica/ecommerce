@@ -20,18 +20,17 @@ export default async function FaqPage() {
   }));
 
   return (
-    <section className="mx-auto w-full max-w-3xl px-6 pt-32 pb-24">
+    <section className="mx-auto w-full max-w-3xl px-6 pt-32 pb-8 lg:pb-24">
       <JsonLd data={skemaFaq(kelompok.flatMap((k) => k.isi))} />
 
       <p className="text-[15px] text-oranye-600 font-semibold">
-        Bantuan
+        Pusat Bantuan
       </p>
       <h1 className="mt-3 text-3xl leading-tight font-semibold tracking-tight text-ink sm:text-4xl">
-        Pertanyaan umum
+        Ada pertanyaan yang lain?
       </h1>
       <p className="mt-4 max-w-xl leading-relaxed text-stone-600">
-        Kalau jawabannya belum ada di sini, chat kami di WhatsApp. Dibalas
-        rata-rata dalam satu jam pada hari kerja.
+        Jangan ragu untuk menghubungi kami melalui WhatsApp. Tim kami dengan senang hati siap membantu.
       </p>
 
       {kelompok.map((k) => (

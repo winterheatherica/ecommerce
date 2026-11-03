@@ -77,7 +77,7 @@ export default async function DetailProdukPage({ params }: Props) {
   const rentang = rentangHarga(produk);
 
   return (
-    <div className="mx-auto w-full max-w-6xl px-6 pt-32 pb-24">
+    <div className="mx-auto w-full max-w-6xl px-6 pt-32 pb-8 lg:pb-24">
       <JsonLd data={skemaProduk(produk, judulKategori)} />
       <JsonLd
         data={skemaRemah([

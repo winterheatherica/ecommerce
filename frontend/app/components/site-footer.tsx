@@ -58,7 +58,7 @@ export default async function SiteFooter() {
         <div className="absolute inset-x-0 top-0 h-40 bg-linear-to-b from-white/45 to-transparent" />
         <div className="absolute inset-x-0 bottom-0 h-40 bg-[linear-gradient(to_top,#012241_0%,#012241db_7%,#012241ba_13%,#0122419c_20%,#01224181_27%,#01224169_33%,#01224154_40%,#01224141_47%,#01224130_53%,#01224123_60%,#01224117_67%,#0122410e_73%,#01224108_80%,#01224103_87%,#01224101_93%,#01224100_100%)]" />
 
-        <div className="relative mx-auto max-w-6xl px-6 pt-28 pb-56">
+        <div className="relative mx-auto max-w-6xl px-6 pt-12 pb-56 lg:pt-28">
           <div className="max-w-lg">
             <p className="text-[15px] font-bold text-oranye-700">
               Hubungi kami

@@ -8,7 +8,7 @@ export default function FeaturedProducts({ produk }: { produk: Produk[] }) {
   if (unggulan.length === 0) return null;
 
   return (
-    <section className="mx-auto w-full max-w-6xl px-6 pb-24">
+    <section className="mx-auto w-full max-w-6xl px-6 pb-8 lg:pb-24">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="text-[15px] text-oranye-600 font-semibold">

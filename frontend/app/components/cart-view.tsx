@@ -51,16 +51,16 @@ export default function CartView({ produk }: { produk: Produk[] }) {
 
   if (baris.length === 0) {
     return (
-      <div className="mx-auto w-full max-w-3xl px-6 pt-32 pb-24">
+      <div className="mx-auto w-full max-w-3xl px-6 pt-32 pb-8 lg:pb-24">
         <p className="text-[15px] text-oranye-600 font-semibold">
-          Keranjang
+          Keranjang Belanja
         </p>
         <h1 className="mt-3 text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
-          Masih kosong
+          Ups... keranjangmu masih kosong!
         </h1>
         <p className="mt-4 leading-relaxed text-stone-600">
-          Belum ada produk yang dimasukkan. Mulai dari masalah yang sedang
-          mengganggu di rumahmu.
+          Ada masalah hama di rumah? Temukan produk alami yang tepat dan masukkan ke keranjangmu. Rumah nyaman dimulai
+          dari langkah kecil.
         </p>
         <Link
           href="/produk"
@@ -73,9 +73,9 @@ export default function CartView({ produk }: { produk: Produk[] }) {
   }
 
   return (
-    <div className="mx-auto w-full max-w-5xl px-6 pt-32 pb-24">
+    <div className="mx-auto w-full max-w-5xl px-6 pt-32 pb-8 lg:pb-24">
       <p className="text-[15px] text-oranye-600 font-semibold">
-        Keranjang
+        Keranjang Belanja
       </p>
       <h1 className="mt-3 text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
         {totalItem} item siap dipesan

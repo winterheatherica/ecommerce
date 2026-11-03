@@ -39,7 +39,7 @@ export default async function MasukPage({ searchParams }: Props) {
   const pesanGalat = galat ? PESAN_GALAT[galat] : undefined;
 
   return (
-    <div className="mx-auto w-full max-w-xl px-6 pt-32 pb-24">
+    <div className="mx-auto w-full max-w-xl px-6 pt-32 pb-8 lg:pb-24">
       <p className="text-[15px] text-oranye-600 font-semibold">
         Akun
       </p>

@@ -160,7 +160,7 @@ function catatanLangkah(
 
 function PerluMasuk({ orderNo }: { orderNo: string }) {
   return (
-    <div className="mx-auto w-full max-w-3xl px-6 pt-32 pb-24">
+    <div className="mx-auto w-full max-w-3xl px-6 pt-32 pb-8 lg:pb-24">
       <p className="text-[15px] text-oranye-600 font-semibold">
         Status pesanan
       </p>
@@ -201,7 +201,7 @@ function BantuanAkun() {
 
 function AkunLain({ orderNo, email }: { orderNo: string; email: string | null }) {
   return (
-    <div className="mx-auto w-full max-w-3xl px-6 pt-32 pb-24">
+    <div className="mx-auto w-full max-w-3xl px-6 pt-32 pb-8 lg:pb-24">
       <p className="text-[15px] text-oranye-600 font-semibold">
         Status pesanan
       </p>
@@ -267,7 +267,7 @@ export default async function StatusPesananPage({ params }: Props) {
   const kunciUlas = pesanan.bisa_ulas ? await ambilKunciCaptcha() : null;
 
   return (
-    <div className="mx-auto w-full max-w-3xl px-6 pt-32 pb-24">
+    <div className="mx-auto w-full max-w-3xl px-6 pt-32 pb-8 lg:pb-24">
       <p className="text-[15px] text-oranye-600 font-semibold">
         Status pesanan
       </p>

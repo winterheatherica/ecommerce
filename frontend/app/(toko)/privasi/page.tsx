@@ -78,7 +78,7 @@ export default async function PrivasiPage() {
   const { toko } = await ambilSitus();
 
   return (
-    <section className="mx-auto w-full max-w-3xl px-6 pt-32 pb-24">
+    <section className="mx-auto w-full max-w-3xl px-6 pt-32 pb-8 lg:pb-24">
       <p className="text-[15px] text-oranye-600 font-semibold">
         Kebijakan
       </p>

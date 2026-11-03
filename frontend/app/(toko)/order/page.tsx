@@ -13,7 +13,7 @@ export const metadata: Metadata = metaHalaman({
 
 export default function LacakPesananPage() {
   return (
-    <div className="mx-auto w-full max-w-3xl px-6 pt-32 pb-24">
+    <div className="mx-auto w-full max-w-3xl px-6 pt-32 pb-8 lg:pb-24">
       <p className="text-[15px] text-oranye-600 font-semibold">
         Lacak pesanan
       </p>

@@ -199,7 +199,7 @@ export default function CheckoutForm({ produk, akun, urlMasuk, kunciCaptcha }: P
 
   if (baris.length === 0) {
     return (
-      <div className="mx-auto w-full max-w-3xl px-6 pt-32 pb-24">
+      <div className="mx-auto w-full max-w-3xl px-6 pt-32 pb-8 lg:pb-24">
         <p className="text-[15px] text-oranye-600 font-semibold">
           Checkout
         </p>
@@ -220,7 +220,7 @@ export default function CheckoutForm({ produk, akun, urlMasuk, kunciCaptcha }: P
   }
 
   return (
-    <div className="mx-auto w-full max-w-5xl px-6 pt-32 pb-24">
+    <div className="mx-auto w-full max-w-5xl px-6 pt-32 pb-8 lg:pb-24">
       <p className="text-[15px] text-oranye-600 font-semibold">
         Checkout
       </p>

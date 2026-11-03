@@ -45,7 +45,7 @@ export default async function Home() {
 
         <div className="absolute inset-y-0 left-0 hidden w-[56%] bg-brand-600 lg:block" />
 
-        <div className="relative z-10 mx-auto flex min-h-svh max-w-6xl flex-col px-6 pt-[5.5rem] pb-12 sm:pt-24 lg:justify-center lg:pt-[calc(4.8rem+2rem)] lg:pb-8">
+        <div className="relative z-10 mx-auto flex min-h-svh max-w-6xl flex-col px-6 pt-[5.5rem] pb-8 sm:pt-24 lg:justify-center lg:pt-[calc(4.8rem+2rem)]">
           {banner.length > 0 && (
             <div className="mb-7 w-full lg:hidden">
               <BannerPromoSlider banner={banner} prioritas />

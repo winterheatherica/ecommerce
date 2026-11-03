@@ -82,7 +82,7 @@ export default function ProductCatalog({
     produk.filter((p) => grupDariKategori(situs, p.kategori) === g).length;
 
   return (
-    <section className="mx-auto w-full max-w-6xl px-6 pt-32 pb-24">
+    <section className="mx-auto w-full max-w-6xl px-6 pt-32 pb-8 lg:pb-24">
       <p className="text-[15px] text-oranye-600 font-semibold">
         Katalog
       </p>

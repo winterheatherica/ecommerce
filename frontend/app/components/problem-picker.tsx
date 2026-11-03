@@ -12,7 +12,7 @@ export default async function ProblemPicker({ produk }: { produk: Produk[] }) {
   const lainnya = situs.grup.filter((g) => !masalah.some((k) => k.grup === g.slug));
 
   return (
-    <section id="produk" className="mx-auto w-full max-w-6xl px-6 py-24">
+    <section id="produk" className="mx-auto w-full max-w-6xl px-6 pt-12 pb-20 lg:py-24">
       <p className="text-[15px] text-oranye-600 font-semibold">
         Cari berdasarkan masalah
       </p>
@@ -88,7 +88,7 @@ export default async function ProblemPicker({ produk }: { produk: Produk[] }) {
       {lainnya.length > 0 && (
         <div className="mt-12 border-t border-ink/10 pt-8">
           <p className="text-[15px] text-stone-500 font-semibold">
-            Bukan soal hama?
+            Cari kebutuhan lainnya?
           </p>
           <ul className="mt-4 flex flex-wrap gap-2">
             {lainnya.map((g) => (
