@@ -4,7 +4,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const menu = [
-  { href: "/admin", label: "Ringkasan" },
+  { href: "/admin", label: "Laporan penjualan" },
+  { href: "/admin/ringkasan", label: "Ringkasan" },
   { href: "/admin/pesanan", label: "Pesanan" },
   { href: "/admin/produk", label: "Produk" },
   { href: "/admin/kategori", label: "Kategori" },
@@ -31,13 +32,13 @@ export default function AdminNav({ urlKeluar }: { urlKeluar: string }) {
           </p>
         </div>
 
-        <nav className="col-span-2 -mx-3 flex gap-1 lg:mx-0 lg:mt-8 lg:flex-col">
+        <nav className="col-span-2 -mx-3 flex gap-1 overflow-x-auto lg:mx-0 lg:mt-8 lg:flex-col lg:overflow-visible">
           {menu.map((m) => (
             <a
               key={m.href}
               href={m.href}
               aria-current={aktif(m.href) ? "page" : undefined}
-              className={`px-3 py-2 text-sm transition-colors lg:-mx-3 ${
+              className={`shrink-0 px-3 py-2 text-sm whitespace-nowrap transition-colors lg:-mx-3 ${
                 aktif(m.href)
                   ? "bg-brand-50 font-medium text-brand-700"
                   : "text-stone-600 hover:bg-stone-100 hover:text-ink"

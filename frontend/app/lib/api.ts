@@ -13,6 +13,7 @@ import type {
 import { petakanUlasan, type UlasanAPI } from "@/app/lib/ulasan";
 import { petakanFoto, type FotoAPI } from "@/app/lib/foto";
 import { petakanSitus, type Situs, type SitusAPI } from "@/app/lib/situs";
+import type { LaporanAPI } from "@/app/lib/laporan";
 import type { StatusPesanan } from "@/app/data/status-pesanan";
 import { kepalaCookie } from "@/app/lib/akun";
 import { kepalaPengunjung } from "@/app/lib/pengunjung";
@@ -185,6 +186,13 @@ export const ambilSitus = cache(async (): Promise<Situs> => {
   if (!res.ok) throw new Error(`Gagal mengambil data toko (${res.status})`);
   return petakanSitus((await res.json()) as SitusAPI);
 });
+
+export async function ambilLaporan(kueri: string): Promise<LaporanAPI> {
+  const res = await ambilAdmin(`${basis()}/api/admin/reports?${kueri}`);
+
+  if (!res.ok) throw new Error(`Gagal mengambil laporan (${res.status})`);
+  return (await res.json()) as LaporanAPI;
+}
 
 export async function ambilSitusAdmin(): Promise<SitusAPI> {
   const res = await ambilAdmin(`${basis()}/api/admin/site`);

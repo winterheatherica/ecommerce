@@ -41,12 +41,15 @@ import {
   batalkanPesanan,
   cariPesanan,
   daftarPesanan,
+  sapuKedaluwarsa,
   tandaiDikirim,
   tandaiSelesai,
   tandaiTerbayar,
   ubahResi,
   type HasilUbahStatus,
 } from "../db/pesanan";
+import { ambilLaporan, awalData, laporanCsv } from "../db/laporan";
+import { hariIniWib, periksaRentang } from "../lib/laporan";
 import { segarkanLacak } from "../db/lacak";
 import { QUERY_ULASAN } from "./products";
 import type { StatusPesanan } from "../lib/orders";
@@ -323,6 +326,69 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
 
     return { sent: true, recipients: surel.ke.map(samarkanEmail) };
   })
+  .get(
+    "/reports",
+    async ({ query, set }) => {
+      const periksa = periksaRentang(query);
+
+      if (!periksa.ok) {
+        set.status = periksa.status;
+        return periksa.badan;
+      }
+
+      const sql = koneksi();
+
+      try {
+        await sapuKedaluwarsa(sql);
+        return await ambilLaporan(sql, periksa.rentang);
+      } finally {
+        await tutup(sql);
+      }
+    },
+    {
+      query: t.Object({
+        from: t.Optional(t.String({ maxLength: 10 })),
+        to: t.Optional(t.String({ maxLength: 10 })),
+        all: t.Optional(t.String({ maxLength: 5 })),
+      }),
+    },
+  )
+  .get(
+    "/reports/orders.csv",
+    async ({ query, set }) => {
+      const periksa = periksaRentang(query);
+
+      if (!periksa.ok) {
+        set.status = periksa.status;
+        return periksa.badan;
+      }
+
+      const sql = koneksi();
+
+      try {
+        await sapuKedaluwarsa(sql);
+        const rentang = periksa.rentang ?? { dari: await awalData(sql), sampai: hariIniWib() };
+        const csv = await laporanCsv(sql, rentang);
+
+        return new Response(csv, {
+          headers: {
+            "Content-Type": "text/csv; charset=utf-8",
+            "Content-Disposition": `attachment; filename="pesanan-menik-store-${rentang.dari}-sd-${rentang.sampai}.csv"`,
+            "Cache-Control": "no-store",
+          },
+        });
+      } finally {
+        await tutup(sql);
+      }
+    },
+    {
+      query: t.Object({
+        from: t.Optional(t.String({ maxLength: 10 })),
+        to: t.Optional(t.String({ maxLength: 10 })),
+        all: t.Optional(t.String({ maxLength: 5 })),
+      }),
+    },
+  )
   .get("/site", async () => {
     const sql = koneksi();
 

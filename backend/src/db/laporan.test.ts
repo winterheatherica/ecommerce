@@ -1,0 +1,249 @@
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
+
+import type { Sql } from "../lib/db";
+import type { OpsiOngkir } from "../lib/shipping";
+import { bersihkan, koneksiTes } from "../test/db";
+import { ambilLaporan, laporanCsv, type Laporan } from "./laporan";
+import { buatPesanan, tandaiDikirim, tandaiSelesai, tandaiTerbayar, type CariOngkir } from "./pesanan";
+
+const sql: Sql = koneksiTes();
+const ONGKIR: OpsiOngkir[] = [{ courier: "JNE", service: "CTC", cost: 9000, etd: "1-2" }];
+const cariOngkir: CariOngkir = async () => ONGKIR;
+const RENTANG = { dari: "2026-10-10", sampai: "2026-10-16" };
+const RESI = "300380022869426";
+
+type Waktu = { dibuat: string; dibayar?: string; dikirim?: string; diterima?: string; status?: string };
+
+async function pesan(phone: string, nama: string, qty: number): Promise<string> {
+  const hasil = await buatPesanan(
+    sql,
+    {
+      customer_name: nama,
+      phone,
+      email: `${nama.toLowerCase()}@contoh.test`,
+      address: "Jl. Uji No. 1",
+      dest_id: "50001",
+      courier: "JNE",
+      service: "CTC",
+      items: [{ slug: "bye-bye-cat-50g", qty }],
+    },
+    1,
+    cariOngkir,
+  );
+  if (!hasil.ok) throw new Error(`Gagal membuat pesanan: ${hasil.badan.error}`);
+  return hasil.pesanan.order_no;
+}
+
+async function atur(nomor: string, w: Waktu): Promise<void> {
+  await sql`
+    update orders set
+      created_at = ${w.dibuat}::timestamptz,
+      paid_at = ${w.dibayar ?? null}::timestamptz,
+      shipped_at = ${w.dikirim ?? null}::timestamptz,
+      delivered_at = ${w.diterima ?? null}::timestamptz,
+      status = coalesce(${w.status ?? null}::text, status)
+    where order_no = ${nomor}
+  `;
+}
+
+async function total(nomor: string) {
+  const [o] = await sql<{ id: number; total: number; subtotal: number }[]>`
+    select id::int as id, total, subtotal from orders where order_no = ${nomor}
+  `;
+  return o;
+}
+
+let laporan: Laporan;
+const nomor: Record<string, string> = {};
+
+beforeAll(async () => {
+  await bersihkan(sql);
+  await sql`truncate users restart identity cascade`;
+
+  nomor.a = await pesan("081200000001", "Ani", 2);
+  await tandaiTerbayar(sql, nomor.a, "QRIS");
+  await tandaiDikirim(sql, nomor.a, RESI);
+  await tandaiSelesai(sql, nomor.a);
+  await atur(nomor.a, {
+    dibuat: "2026-10-10T09:15:00+07:00",
+    dibayar: "2026-10-10T09:30:00+07:00",
+    dikirim: "2026-10-11T10:30:00+07:00",
+    diterima: "2026-10-13T10:30:00+07:00",
+  });
+
+  nomor.b = await pesan("081200000002", "Budi", 1);
+  await tandaiTerbayar(sql, nomor.b, "BNI Virtual Account");
+  await atur(nomor.b, { dibuat: "2026-10-12T20:05:00+07:00", dibayar: "2026-10-12T21:05:00+07:00" });
+
+  nomor.d = await pesan("081200000002", "Budi", 1);
+  await tandaiTerbayar(sql, nomor.d, "QRIS");
+  await atur(nomor.d, { dibuat: "2026-10-05T10:00:00+07:00", dibayar: "2026-10-05T10:10:00+07:00" });
+
+  nomor.e = await pesan("081200000003", "Citra", 1);
+  await atur(nomor.e, { dibuat: "2026-10-14T23:40:00+07:00", status: "EXPIRED" });
+
+  nomor.f = await pesan("081200000003", "Citra", 3);
+  await tandaiTerbayar(sql, nomor.f, "QRIS");
+  await atur(nomor.f, { dibuat: "2026-10-16T22:00:00+07:00", dibayar: "2026-10-17T08:00:00+07:00" });
+
+  const [varian] = await sql<{ id: number }[]>`
+    select v.id::int as id from product_variants v join products p on p.id = v.product_id
+    where p.slug = 'bye-bye-cat-50g' limit 1
+  `;
+  const a = await total(nomor.a);
+  await sql`
+    insert into reviews (variant_id, source, rating, author_name, body, reviewed_at)
+    values (${varian.id}, 'shopee', 4, 'Pembeli Shopee', 'Mantap', '2026-10-11T12:00:00+07:00')
+  `;
+  await sql`
+    insert into reviews (variant_id, source, rating, author_name, body, reviewed_at, order_id)
+    values (${varian.id}, 'web', 5, 'Ani', 'Bagus', '2026-10-14T12:00:00+07:00', ${a.id})
+  `;
+  await sql`
+    insert into users (google_sub, email, name, created_at)
+    values ('uji-1', 'uji@contoh.test', 'Uji', '2026-10-12T08:00:00+07:00')
+  `;
+
+  laporan = await ambilLaporan(sql, RENTANG);
+});
+
+afterAll(async () => {
+  await bersihkan(sql);
+  await sql.end();
+});
+
+describe("ambilLaporan", () => {
+  it("menghitung pendapatan dari pesanan yang dibayar di periode itu saja", async () => {
+    const [a, b] = await Promise.all([total(nomor.a), total(nomor.b)]);
+
+    expect(laporan.summary).toMatchObject({
+      revenue: a.total + b.total,
+      product_sales: a.subtotal + b.subtotal,
+      shipping: 18000,
+      paid_orders: 2,
+      items: 3,
+      buyers: 2,
+      new_buyers: 1,
+      returning_buyers: 1,
+      created_orders: 4,
+      created_paid_orders: 3,
+      aov: Math.round((a.total + b.total) / 2),
+    });
+    expect(laporan.previous_summary).toMatchObject({ paid_orders: 1, buyers: 1, new_buyers: 1 });
+    expect(laporan.range).toEqual({
+      from: "2026-10-10",
+      to: "2026-10-16",
+      days: 7,
+      bucket: "day",
+      all: false,
+      previous: { from: "2026-10-03", to: "2026-10-09" },
+    });
+  });
+
+  it("mengisi tren per hari termasuk hari tanpa penjualan", async () => {
+    const [a, b] = await Promise.all([total(nomor.a), total(nomor.b)]);
+
+    expect(laporan.trend.map((t) => t.start)).toEqual([
+      "2026-10-10",
+      "2026-10-11",
+      "2026-10-12",
+      "2026-10-13",
+      "2026-10-14",
+      "2026-10-15",
+      "2026-10-16",
+    ]);
+    expect(laporan.trend[0]).toEqual({ start: "2026-10-10", revenue: a.total, orders: 1, items: 2 });
+    expect(laporan.trend[2]).toEqual({ start: "2026-10-12", revenue: b.total, orders: 1, items: 1 });
+    expect(laporan.trend[1]).toEqual({ start: "2026-10-11", revenue: 0, orders: 0, items: 0 });
+  });
+
+  it("mengelompokkan status pesanan yang dibuat di periode itu", () => {
+    const status = Object.fromEntries(laporan.statuses.map((s) => [s.status, s.orders]));
+
+    expect(status).toEqual({ DELIVERED: 1, PAID: 2, EXPIRED: 1 });
+  });
+
+  it("merinci produk, kategori, pembayaran, kurir, dan wilayah", async () => {
+    const [a, b] = await Promise.all([total(nomor.a), total(nomor.b)]);
+    const [wilayah] = await sql<{ province: string; city: string }[]>`select province, city from regions where id = '50001'`;
+
+    expect(laporan.top_products).toHaveLength(1);
+    expect(laporan.top_products[0]).toMatchObject({ slug: "bye-bye-cat-50g", qty: 3, revenue: a.subtotal + b.subtotal });
+    expect(laporan.unsold_products.some((p) => p.slug === "bye-bye-cat-50g")).toBe(false);
+    expect(laporan.unsold_products.length).toBeGreaterThan(0);
+    expect(laporan.categories).toHaveLength(1);
+    expect(laporan.categories[0]).toMatchObject({ orders: 2, qty: 3 });
+    expect(laporan.payments.map((p) => [p.method, p.orders])).toEqual(
+      expect.arrayContaining([
+        ["QRIS", 1],
+        ["BNI Virtual Account", 1],
+      ]),
+    );
+    expect(laporan.couriers).toEqual([
+      { courier: "JNE", orders: 2, shipping: 18000, avg_shipping: 9000, avg_weight_g: expect.any(Number) },
+    ]);
+    expect(laporan.provinces).toEqual([{ province: wilayah.province, orders: 2, revenue: a.total + b.total }]);
+    expect(laporan.cities[0]).toMatchObject({ city: wilayah.city, orders: 2 });
+  });
+
+  it("menghitung lama bayar, lama dikirim, dan lama sampai", () => {
+    expect(laporan.durations).toEqual({
+      pay_minutes: 37.5,
+      pay_count: 2,
+      ship_hours: 25,
+      ship_count: 1,
+      deliver_days: 2,
+      deliver_count: 1,
+    });
+  });
+
+  it("merangkum pelanggan, ulasan, dan jam belanja", () => {
+    expect(laporan.customers).toMatchObject({ new_accounts: 1, guest_orders: 2, account_orders: 0 });
+    expect(laporan.customers.top.map((c) => c.name).sort()).toEqual(["Ani", "Budi"]);
+
+    expect(laporan.reviews.by_source).toEqual(
+      expect.arrayContaining([
+        { source: "shopee", count: 1, average: 4 },
+        { source: "web", count: 1, average: 5 },
+      ]),
+    );
+    expect(laporan.reviews.by_rating).toEqual([
+      { rating: 5, count: 1 },
+      { rating: 4, count: 1 },
+    ]);
+    expect(laporan.reviews.all_time).toEqual({ count: 2, average: 4.5 });
+
+    const hariIso = (iso: string) => ((new Date(iso).getUTCDay() + 6) % 7) + 1;
+    expect(laporan.heatmap).toEqual(
+      expect.arrayContaining([
+        { dow: hariIso("2026-10-10T09:15:00+07:00"), hour: 9, orders: 1 },
+        { dow: hariIso("2026-10-12T20:05:00+07:00"), hour: 20, orders: 1 },
+        { dow: hariIso("2026-10-14T23:40:00+07:00"), hour: 23, orders: 1 },
+        { dow: hariIso("2026-10-16T22:00:00+07:00"), hour: 22, orders: 1 },
+      ]),
+    );
+    expect(laporan.heatmap).toHaveLength(4);
+  });
+
+  it("mode semua waktu mulai dari pesanan pertama dan tanpa pembanding", async () => {
+    const semua = await ambilLaporan(sql, null, new Date("2026-10-20T03:00:00Z"));
+
+    expect(semua.range).toMatchObject({ from: "2026-10-05", to: "2026-10-20", all: true, previous: null });
+    expect(semua.previous_summary).toBeNull();
+    expect(semua.summary.paid_orders).toBe(4);
+  });
+});
+
+describe("laporanCsv", () => {
+  it("berisi semua pesanan yang dibuat di periode itu, urut waktu, dengan resi sebagai teks", async () => {
+    const csv = await laporanCsv(sql, RENTANG);
+    const baris = csv.replace(/^﻿/, "").trim().split("\r\n");
+
+    expect(baris).toHaveLength(5);
+    expect(baris[0].split(";").slice(0, 3)).toEqual(["No. pesanan", "Dibuat (WIB)", "Status"]);
+    expect(baris.slice(1).map((b) => b.split(";")[0])).toEqual([nomor.a, nomor.b, nomor.e, nomor.f]);
+    expect(baris[1]).toContain(";2026-10-10 09:15;Selesai;2026-10-10 09:30;");
+    expect(baris[1]).toContain(`"=""${RESI}"""`);
+    expect(baris[3]).toContain(";Kedaluwarsa;");
+  });
+});
