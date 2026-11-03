@@ -6,11 +6,13 @@ import {
   hariIniWib,
   jumlahHari,
   keCsv,
+  labelMetode,
   pilihKelompok,
   rentangSebelumnya,
   type Kelompok,
   type Rentang,
 } from "../lib/laporan";
+import { buatXlsx, type KolomXlsx } from "../lib/xlsx";
 
 type Batas = { awal: string; akhir: string };
 
@@ -406,39 +408,62 @@ export async function ambilLaporan(sql: Sql, masukan: Rentang | null, sekarang: 
   };
 }
 
-export async function laporanCsv(sql: Sql, r: Rentang): Promise<string> {
+type BarisEkspor = {
+  order_no: string;
+  created_at: Date;
+  status: string;
+  paid_at: Date | null;
+  shipped_at: Date | null;
+  delivered_at: Date | null;
+  customer_name: string;
+  phone: string;
+  email: string | null;
+  district: string;
+  city: string;
+  province: string;
+  courier: string;
+  service: string;
+  tracking_number: string | null;
+  payment_channel: string | null;
+  payment_method: string | null;
+  subtotal: number;
+  shipping_cost: number;
+  total: number;
+  items: string | null;
+};
+
+const KOLOM_EKSPOR: KolomXlsx[] = [
+  { judul: "No. pesanan", lebar: 18 },
+  { judul: "Dibuat (WIB)", lebar: 17, jenis: "waktu" },
+  { judul: "Status", lebar: 22 },
+  { judul: "Dibayar (WIB)", lebar: 17, jenis: "waktu" },
+  { judul: "Dikirim (WIB)", lebar: 17, jenis: "waktu" },
+  { judul: "Diterima (WIB)", lebar: 17, jenis: "waktu" },
+  { judul: "Nama pembeli", lebar: 24 },
+  { judul: "No. HP", lebar: 16 },
+  { judul: "Email", lebar: 28 },
+  { judul: "Kecamatan", lebar: 18 },
+  { judul: "Kota/kabupaten", lebar: 24 },
+  { judul: "Provinsi", lebar: 20 },
+  { judul: "Kurir", lebar: 9 },
+  { judul: "Layanan", lebar: 11 },
+  { judul: "Resi", lebar: 20 },
+  { judul: "Kanal bayar", lebar: 14 },
+  { judul: "Metode bayar", lebar: 22 },
+  { judul: "Subtotal produk", lebar: 18, jenis: "rupiah" },
+  { judul: "Ongkir", lebar: 11, jenis: "rupiah" },
+  { judul: "Total", lebar: 13, jenis: "rupiah" },
+  { judul: "Barang", lebar: 60 },
+];
+
+function waktuWib(d: Date | null): string | null {
+  return d ? new Date(d.getTime() + 7 * 3_600_000).toISOString().slice(0, 16).replace("T", " ") : null;
+}
+
+function barisEkspor(sql: Sql, r: Rentang) {
   const b = batas(r);
-  const baris = await sql<
-    {
-      order_no: string;
-      created: string;
-      status: string;
-      paid: string | null;
-      shipped: string | null;
-      delivered: string | null;
-      customer_name: string;
-      phone: string;
-      email: string | null;
-      district: string;
-      city: string;
-      province: string;
-      courier: string;
-      service: string;
-      tracking_number: string | null;
-      payment_channel: string | null;
-      payment_method: string | null;
-      subtotal: number;
-      shipping_cost: number;
-      total: number;
-      items: string | null;
-    }[]
-  >`
-    select o.order_no,
-      to_char(o.created_at at time zone 'Asia/Jakarta', 'YYYY-MM-DD HH24:MI') as created,
-      o.status,
-      to_char(o.paid_at at time zone 'Asia/Jakarta', 'YYYY-MM-DD HH24:MI') as paid,
-      to_char(o.shipped_at at time zone 'Asia/Jakarta', 'YYYY-MM-DD HH24:MI') as shipped,
-      to_char(o.delivered_at at time zone 'Asia/Jakarta', 'YYYY-MM-DD HH24:MI') as delivered,
+  return sql<BarisEkspor[]>`
+    select o.order_no, o.created_at, o.status, o.paid_at, o.shipped_at, o.delivered_at,
       o.customer_name, o.phone, o.email, rg.district, rg.city, rg.province,
       o.courier, o.service, o.tracking_number, o.payment_channel, o.payment_method,
       o.subtotal, o.shipping_cost, o.total,
@@ -451,38 +476,20 @@ export async function laporanCsv(sql: Sql, r: Rentang): Promise<string> {
     where ${dibuat(sql, b)}
     order by o.created_at
   `;
+}
+
+export async function laporanCsv(sql: Sql, r: Rentang): Promise<string> {
+  const baris = await barisEkspor(sql, r);
 
   return keCsv(
-    [
-      "No. pesanan",
-      "Dibuat (WIB)",
-      "Status",
-      "Dibayar (WIB)",
-      "Dikirim (WIB)",
-      "Diterima (WIB)",
-      "Nama pembeli",
-      "No. HP",
-      "Email",
-      "Kecamatan",
-      "Kota/kabupaten",
-      "Provinsi",
-      "Kurir",
-      "Layanan",
-      "Resi",
-      "Kanal bayar",
-      "Metode bayar",
-      "Subtotal produk",
-      "Ongkir",
-      "Total",
-      "Barang",
-    ],
+    KOLOM_EKSPOR.map((k) => k.judul),
     baris.map((o) => [
       o.order_no,
-      o.created,
+      waktuWib(o.created_at),
       LABEL_STATUS[o.status] ?? o.status,
-      o.paid,
-      o.shipped,
-      o.delivered,
+      waktuWib(o.paid_at),
+      waktuWib(o.shipped_at),
+      waktuWib(o.delivered_at),
       o.customer_name,
       { digit: o.phone },
       o.email,
@@ -493,7 +500,39 @@ export async function laporanCsv(sql: Sql, r: Rentang): Promise<string> {
       o.service,
       o.tracking_number ? { digit: o.tracking_number } : null,
       o.payment_channel,
-      o.payment_method,
+      labelMetode(o.payment_method),
+      o.subtotal,
+      o.shipping_cost,
+      o.total,
+      o.items,
+    ]),
+  );
+}
+
+export async function laporanXlsx(sql: Sql, r: Rentang): Promise<Uint8Array> {
+  const baris = await barisEkspor(sql, r);
+
+  return buatXlsx(
+    "Pesanan",
+    KOLOM_EKSPOR,
+    baris.map((o) => [
+      o.order_no,
+      o.created_at,
+      LABEL_STATUS[o.status] ?? o.status,
+      o.paid_at,
+      o.shipped_at,
+      o.delivered_at,
+      o.customer_name,
+      o.phone,
+      o.email,
+      o.district,
+      o.city,
+      o.province,
+      o.courier,
+      o.service,
+      o.tracking_number,
+      o.payment_channel,
+      labelMetode(o.payment_method),
       o.subtotal,
       o.shipping_cost,
       o.total,

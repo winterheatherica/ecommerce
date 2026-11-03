@@ -16,6 +16,35 @@ export const LABEL_STATUS: Record<string, string> = {
   CANCELLED: "Dibatalkan",
 };
 
+const NAMA_BANK: Record<string, string> = {
+  BNI: "BNI",
+  BRI: "BRI",
+  MANDIRI: "Mandiri",
+  SYARIAH_MANDIRI: "BSI",
+  BSI: "BSI",
+  CIMB: "CIMB Niaga",
+  PERMATA: "Permata",
+  DANAMON: "Danamon",
+  BTN: "BTN",
+  DOKU: "DOKU",
+};
+
+export function labelMetode(metode: string | null): string | null {
+  const m = metode?.trim();
+  if (!m) return null;
+  if (/qris/i.test(m)) return "QRIS";
+
+  const kode = m.match(/^VIRTUAL_ACCOUNT_(?:BANK_)?([A-Z_]+)$/i);
+  if (kode) return `VA ${NAMA_BANK[kode[1].toUpperCase()] ?? kode[1].replace(/_/g, " ")}`;
+
+  const teks = m.match(/^(.+?)\s+virtual account$/i);
+  if (teks) return `VA ${NAMA_BANK[teks[1].toUpperCase()] ?? teks[1]}`;
+
+  if (/indomaret/i.test(m)) return "Indomaret";
+  if (/alfa/i.test(m)) return "Alfamart";
+  return m.replace(/_/g, " ");
+}
+
 export type SelCsv = string | number | null | { digit: string };
 
 const POLA_TANGGAL = /^\d{4}-\d{2}-\d{2}$/;
@@ -79,10 +108,10 @@ function selCsv(nilai: SelCsv): string {
   if (typeof nilai === "object") return /^\d{1,40}$/.test(nilai.digit) ? `"=""${nilai.digit}"""` : selCsv(nilai.digit);
   let isi = String(nilai);
   if (typeof nilai === "string" && /^[=+\-@\t\r]/.test(isi)) isi = `'${isi}`;
-  return /[";\r\n]/.test(isi) ? `"${isi.replace(/"/g, '""')}"` : isi;
+  return /[",\r\n]/.test(isi) ? `"${isi.replace(/"/g, '""')}"` : isi;
 }
 
 export function keCsv(kepala: string[], baris: SelCsv[][]): string {
-  const isi = [kepala, ...baris].map((b) => b.map(selCsv).join(";")).join("\r\n");
+  const isi = [kepala, ...baris].map((b) => b.map(selCsv).join(",")).join("\r\n");
   return `﻿${isi}\r\n`;
 }

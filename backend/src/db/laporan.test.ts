@@ -3,7 +3,8 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import type { Sql } from "../lib/db";
 import type { OpsiOngkir } from "../lib/shipping";
 import { bersihkan, koneksiTes } from "../test/db";
-import { ambilLaporan, laporanCsv, type Laporan } from "./laporan";
+import { bacaZip } from "../test/zip";
+import { ambilLaporan, laporanCsv, laporanXlsx, type Laporan } from "./laporan";
 import { buatPesanan, tandaiDikirim, tandaiSelesai, tandaiTerbayar, type CariOngkir } from "./pesanan";
 
 const sql: Sql = koneksiTes();
@@ -234,16 +235,56 @@ describe("ambilLaporan", () => {
   });
 });
 
-describe("laporanCsv", () => {
-  it("berisi semua pesanan yang dibuat di periode itu, urut waktu, dengan resi sebagai teks", async () => {
+function pecahCsv(baris: string): string[] {
+  const sel: string[] = [];
+  let isi = "";
+  let kutip = false;
+
+  for (let i = 0; i < baris.length; i++) {
+    const c = baris[i];
+    if (kutip && c === '"' && baris[i + 1] === '"') {
+      isi += '"';
+      i++;
+    } else if (c === '"') {
+      kutip = !kutip;
+    } else if (c === "," && !kutip) {
+      sel.push(isi);
+      isi = "";
+    } else {
+      isi += c;
+    }
+  }
+  sel.push(isi);
+  return sel;
+}
+
+describe("ekspor pesanan", () => {
+  it("CSV berisi semua pesanan yang dibuat di periode itu, urut waktu, dengan resi sebagai teks", async () => {
     const csv = await laporanCsv(sql, RENTANG);
-    const baris = csv.replace(/^﻿/, "").trim().split("\r\n");
+    const baris = csv.replace(/^﻿/, "").trim().split("\r\n").map(pecahCsv);
 
     expect(baris).toHaveLength(5);
-    expect(baris[0].split(";").slice(0, 3)).toEqual(["No. pesanan", "Dibuat (WIB)", "Status"]);
-    expect(baris.slice(1).map((b) => b.split(";")[0])).toEqual([nomor.a, nomor.b, nomor.e, nomor.f]);
-    expect(baris[1]).toContain(";2026-10-10 09:15;Selesai;2026-10-10 09:30;");
-    expect(baris[1]).toContain(`"=""${RESI}"""`);
-    expect(baris[3]).toContain(";Kedaluwarsa;");
+    expect(baris.every((b) => b.length === 21)).toBe(true);
+    expect(baris[0].slice(0, 3)).toEqual(["No. pesanan", "Dibuat (WIB)", "Status"]);
+    expect(baris.slice(1).map((b) => b[0])).toEqual([nomor.a, nomor.b, nomor.e, nomor.f]);
+    expect(baris[1].slice(1, 4)).toEqual(["2026-10-10 09:15", "Selesai", "2026-10-10 09:30"]);
+    expect(baris[1][7]).toBe('="081200000001"');
+    expect(baris[1][14]).toBe(`="${RESI}"`);
+    expect(baris[2][2]).toBe("Dibayar, perlu dikirim");
+    expect(baris[3][2]).toBe("Kedaluwarsa");
+    expect(baris.slice(1).map((b) => b[16])).toEqual(["QRIS", "VA BNI", "", "QRIS"]);
+  });
+
+  it("Excel berisi baris yang sama dengan tanggal, angka, dan nomor HP yang tidak berubah", async () => {
+    const a = await total(nomor.a);
+    const sheet = bacaZip(await laporanXlsx(sql, RENTANG))["xl/worksheets/sheet1.xml"];
+
+    expect(sheet.match(/<row /g)).toHaveLength(5);
+    expect(sheet).toContain(`<c r="A2" t="inlineStr"><is><t>${nomor.a}</t></is></c>`);
+    expect(sheet).toMatch(/<c r="B2" s="3"><v>46305\.38541666/);
+    expect(sheet).toContain('<c r="H2" t="inlineStr"><is><t>081200000001</t></is></c>');
+    expect(sheet).toContain(`<c r="O2" t="inlineStr"><is><t>${RESI}</t></is></c>`);
+    expect(sheet).toContain(`<c r="T2" s="2"><v>${a.total}</v></c>`);
+    expect(sheet).toContain('<autoFilter ref="A1:U5"/>');
   });
 });

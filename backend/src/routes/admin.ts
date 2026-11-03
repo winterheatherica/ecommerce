@@ -48,7 +48,7 @@ import {
   ubahResi,
   type HasilUbahStatus,
 } from "../db/pesanan";
-import { ambilLaporan, awalData, laporanCsv } from "../db/laporan";
+import { ambilLaporan, awalData, laporanCsv, laporanXlsx } from "../db/laporan";
 import { hariIniWib, periksaRentang } from "../lib/laporan";
 import { segarkanLacak } from "../db/lacak";
 import { QUERY_ULASAN } from "./products";
@@ -90,6 +90,46 @@ function koneksi() {
 
 function awan() {
   return namaAwan(env as unknown as Record<string, unknown>);
+}
+
+const QUERY_LAPORAN = t.Object({
+  from: t.Optional(t.String({ maxLength: 10 })),
+  to: t.Optional(t.String({ maxLength: 10 })),
+  all: t.Optional(t.String({ maxLength: 5 })),
+});
+
+const JENIS_BERKAS = {
+  csv: "text/csv; charset=utf-8",
+  xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+} as const;
+
+async function berkasLaporan(
+  query: { from?: string; to?: string; all?: string },
+  jenis: keyof typeof JENIS_BERKAS,
+): Promise<{ ok: true; berkas: Response } | { ok: false; status: number; badan: Record<string, unknown> }> {
+  const periksa = periksaRentang(query);
+  if (!periksa.ok) return { ok: false, status: periksa.status, badan: periksa.badan };
+
+  const sql = koneksi();
+
+  try {
+    await sapuKedaluwarsa(sql);
+    const rentang = periksa.rentang ?? { dari: await awalData(sql), sampai: hariIniWib() };
+    const isi = jenis === "csv" ? await laporanCsv(sql, rentang) : await laporanXlsx(sql, rentang);
+
+    return {
+      ok: true,
+      berkas: new Response(isi, {
+        headers: {
+          "Content-Type": JENIS_BERKAS[jenis],
+          "Content-Disposition": `attachment; filename="pesanan-menik-store-${rentang.dari}-sd-${rentang.sampai}.${jenis}"`,
+          "Cache-Control": "no-store",
+        },
+      }),
+    };
+  } finally {
+    await tutup(sql);
+  }
 }
 
 async function situsAdmin(sql: Sql) {
@@ -345,49 +385,35 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
         await tutup(sql);
       }
     },
-    {
-      query: t.Object({
-        from: t.Optional(t.String({ maxLength: 10 })),
-        to: t.Optional(t.String({ maxLength: 10 })),
-        all: t.Optional(t.String({ maxLength: 5 })),
-      }),
-    },
+    { query: QUERY_LAPORAN },
   )
   .get(
     "/reports/orders.csv",
     async ({ query, set }) => {
-      const periksa = periksaRentang(query);
+      const hasil = await berkasLaporan(query, "csv");
 
-      if (!periksa.ok) {
-        set.status = periksa.status;
-        return periksa.badan;
+      if (!hasil.ok) {
+        set.status = hasil.status;
+        return hasil.badan;
       }
 
-      const sql = koneksi();
+      return hasil.berkas;
+    },
+    { query: QUERY_LAPORAN },
+  )
+  .get(
+    "/reports/orders.xlsx",
+    async ({ query, set }) => {
+      const hasil = await berkasLaporan(query, "xlsx");
 
-      try {
-        await sapuKedaluwarsa(sql);
-        const rentang = periksa.rentang ?? { dari: await awalData(sql), sampai: hariIniWib() };
-        const csv = await laporanCsv(sql, rentang);
-
-        return new Response(csv, {
-          headers: {
-            "Content-Type": "text/csv; charset=utf-8",
-            "Content-Disposition": `attachment; filename="pesanan-menik-store-${rentang.dari}-sd-${rentang.sampai}.csv"`,
-            "Cache-Control": "no-store",
-          },
-        });
-      } finally {
-        await tutup(sql);
+      if (!hasil.ok) {
+        set.status = hasil.status;
+        return hasil.badan;
       }
+
+      return hasil.berkas;
     },
-    {
-      query: t.Object({
-        from: t.Optional(t.String({ maxLength: 10 })),
-        to: t.Optional(t.String({ maxLength: 10 })),
-        all: t.Optional(t.String({ maxLength: 5 })),
-      }),
-    },
+    { query: QUERY_LAPORAN },
   )
   .get("/site", async () => {
     const sql = koneksi();

@@ -4,6 +4,7 @@ import {
   hariIniWib,
   jumlahHari,
   keCsv,
+  labelMetode,
   periksaRentang,
   pilihKelompok,
   rentangSebelumnya,
@@ -54,13 +55,34 @@ describe("periode laporan", () => {
   });
 });
 
-describe("keCsv", () => {
-  it("memakai titik koma, BOM untuk Excel, dan mengutip isi yang perlu dikutip", () => {
-    const csv = keCsv(["A", "B"], [["Jl. Mawar; No. 2", 'Kata "Bagus"'], [null, 1500]]);
+describe("labelMetode", () => {
+  it("menerjemahkan kode DOKU jadi nama yang dibaca pemilik toko", () => {
+    expect(
+      [
+        "QRIS_DOKU",
+        "VIRTUAL_ACCOUNT_BANK_MANDIRI",
+        "VIRTUAL_ACCOUNT_BANK_SYARIAH_MANDIRI",
+        "VIRTUAL_ACCOUNT_BNI",
+        "BRI Virtual Account",
+        "PEER_TO_PEER_AKULAKU",
+      ].map(labelMetode),
+    ).toEqual(["QRIS", "VA Mandiri", "VA BSI", "VA BNI", "VA BRI", "PEER TO PEER AKULAKU"]);
+  });
 
-    expect(csv.startsWith("﻿A;B\r\n")).toBe(true);
-    expect(csv).toContain('"Jl. Mawar; No. 2";"Kata ""Bagus"""\r\n');
-    expect(csv).toContain(";1500\r\n");
+  it("membiarkan kosong pesanan yang belum punya metode bayar", () => {
+    expect(labelMetode(null)).toBeNull();
+    expect(labelMetode("  ")).toBeNull();
+  });
+});
+
+describe("keCsv", () => {
+  it("memakai koma standar, BOM untuk Excel, dan mengutip isi yang perlu dikutip", () => {
+    const csv = keCsv(["A", "B"], [["Jl. Mawar, No. 2", 'Kata "Bagus"'], ["Titik; koma", 1500], [null, null]]);
+
+    expect(csv.startsWith("﻿A,B\r\n")).toBe(true);
+    expect(csv).toContain('"Jl. Mawar, No. 2","Kata ""Bagus"""\r\n');
+    expect(csv).toContain("Titik; koma,1500\r\n");
+    expect(csv.endsWith(",\r\n")).toBe(true);
   });
 
   it("menjinakkan teks dari pembeli yang bisa dibaca Excel sebagai rumus", () => {
@@ -75,6 +97,6 @@ describe("keCsv", () => {
   it("menjaga nomor panjang seperti resi tetap teks, bukan notasi ilmiah", () => {
     const csv = keCsv(["Resi", "HP"], [[{ digit: "300380022869426" }, { digit: "0812-3" }]]);
 
-    expect(csv).toContain(`"=""300380022869426""";0812-3`);
+    expect(csv).toContain(`"=""300380022869426""",0812-3`);
   });
 });

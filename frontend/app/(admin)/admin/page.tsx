@@ -24,7 +24,10 @@ export default async function LaporanPage({
       key={`${pilihan.periode}-${laporan.range.from}-${laporan.range.to}`}
       pilihan={pilihan}
       rentang={laporan.range}
-      unduh={`/api/admin/reports/orders.csv?${kueri}`}
+      unduh={{
+        excel: `/api/admin/reports/orders.xlsx?${kueri}`,
+        csv: `/api/admin/reports/orders.csv?${kueri}`,
+      }}
     >
       <IsiLaporan laporan={laporan} />
     </BingkaiLaporan>

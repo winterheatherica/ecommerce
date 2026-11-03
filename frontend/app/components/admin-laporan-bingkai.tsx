@@ -19,7 +19,7 @@ export default function BingkaiLaporan({
 }: {
   pilihan: PilihanLaporan;
   rentang: LaporanAPI["range"];
-  unduh: string;
+  unduh: { excel: string; csv: string };
   children: ReactNode;
 }) {
   const router = useRouter();
@@ -56,16 +56,24 @@ export default function BingkaiLaporan({
             · waktu WIB
           </p>
         </div>
-        <a
-          href={unduh}
-          download
-          className="inline-flex min-h-10 items-center gap-2 border border-ink/15 bg-white px-4 text-sm font-medium text-ink transition-colors hover:border-brand-500 hover:text-brand-600"
-        >
-          <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden="true">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v11m0 0-4-4m4 4 4-4M5 19h14" />
-          </svg>
-          Unduh CSV
-        </a>
+        <div className="flex flex-wrap gap-2">
+          {[
+            { label: "Unduh Excel", href: unduh.excel },
+            { label: "Unduh CSV", href: unduh.csv },
+          ].map((b) => (
+            <a
+              key={b.label}
+              href={b.href}
+              download
+              className="inline-flex min-h-10 items-center gap-2 border border-ink/15 bg-white px-4 text-sm font-medium text-ink transition-colors hover:border-brand-500 hover:text-brand-600"
+            >
+              <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v11m0 0-4-4m4 4 4-4M5 19h14" />
+              </svg>
+              {b.label}
+            </a>
+          ))}
+        </div>
       </div>
 
       <div className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-3">
