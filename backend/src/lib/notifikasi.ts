@@ -18,7 +18,13 @@ export type KonfigEmail = {
   toko: string;
 };
 
-export type IsiEmail = { subjek: string; teks: string; html: string };
+export type JenisEmail = "order_paid" | "needs_check" | "test";
+
+type Isi = { subjek: string; teks: string; html: string };
+
+export type IsiEmail = Isi & { jenis: JenisEmail; nomor: string | null };
+
+export type HasilKirimEmail = { ok: true } | { ok: false; pesan: string };
 
 export type MasalahBayar =
   | { jenis: "nominal_beda"; nomor: string; dibayar: number | null; total: number }
@@ -74,7 +80,7 @@ function aman(teks: string): string {
 
 type Bagian = { judul?: string; baris: string[] };
 
-function susun(subjek: string, bagian: Bagian[], tautan: { label: string; url: string }): IsiEmail {
+function susun(subjek: string, bagian: Bagian[], tautan: { label: string; url: string }): Isi {
   const teks = [
     ...bagian.map((b) => [...(b.judul ? [`${b.judul}:`] : []), ...b.baris].join("\n")),
     `${tautan.label}: ${tautan.url}`,
@@ -98,7 +104,7 @@ function susun(subjek: string, bagian: Bagian[], tautan: { label: string; url: s
 export function emailPesananDibayar(p: Pesanan, toko: string): IsiEmail {
   const wilayah = [p.dest_label, p.dest_postal_code].filter(Boolean).join(" ");
 
-  return susun(
+  const isi = susun(
     `Pesanan dibayar: ${p.order_no} (${rupiah(p.total)})`,
     [
       { baris: [`Pesanan ${p.order_no} sudah dibayar dan siap dikirim.`] },
@@ -126,6 +132,8 @@ export function emailPesananDibayar(p: Pesanan, toko: string): IsiEmail {
     ],
     { label: "Buka panel admin", url: `${toko}/admin/pesanan` },
   );
+
+  return { ...isi, jenis: "order_paid", nomor: p.order_no };
 }
 
 const KEADAAN: Record<string, string> = {
@@ -145,7 +153,7 @@ export function emailPerluDicek(m: MasalahBayar, toko: string): IsiEmail {
           (m.status && KEADAAN[m.status]) ?? "tidak ditemukan"
         }, jadi tidak bisa ditandai lunas otomatis.`;
 
-  return susun(
+  const isi = susun(
     `Perlu dicek: pembayaran ${m.nomor} tidak tercatat otomatis`,
     [
       { baris: [penjelasan] },
@@ -157,10 +165,12 @@ export function emailPerluDicek(m: MasalahBayar, toko: string): IsiEmail {
     ],
     { label: "Buka panel admin", url: `${toko}/admin/pesanan` },
   );
+
+  return { ...isi, jenis: "needs_check", nomor: m.nomor };
 }
 
 export function emailUji(toko: string): IsiEmail {
-  return susun(
+  const isi = susun(
     "Uji notifikasi Menik Store",
     [
       {
@@ -171,12 +181,11 @@ export function emailUji(toko: string): IsiEmail {
     ],
     { label: "Buka panel admin", url: `${toko}/admin` },
   );
+
+  return { ...isi, jenis: "test", nomor: null };
 }
 
-export async function kirimEmail(
-  k: KonfigEmail,
-  isi: IsiEmail,
-): Promise<{ ok: true } | { ok: false; pesan: string }> {
+export async function kirimEmail(k: KonfigEmail, isi: IsiEmail): Promise<HasilKirimEmail> {
   try {
     await k.pengirim.send({
       from: { name: NAMA_PENGIRIM, email: k.dari },

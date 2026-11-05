@@ -15,7 +15,8 @@ import { bacaKonfig } from "./lib/doku";
 import { bacaKonfigTurnstile } from "./lib/turnstile";
 import { sapuKedaluwarsa } from "./db/pesanan";
 import { isiKabarPelunasan, periksaTertundaKeDoku } from "./db/pelunasan";
-import { bacaKonfigEmail, kirimEmail } from "./lib/notifikasi";
+import { bacaKonfigEmail } from "./lib/notifikasi";
+import { kirimDanCatat, sapuCatatanEmail } from "./db/notifikasi";
 import { sapuSesi } from "./db/akun";
 import { sapuSesiAdmin } from "./db/admin";
 import { sapuPeristiwaWebhook } from "./db/webhook";
@@ -117,7 +118,7 @@ async function sapuTerjadwal(): Promise<void> {
       if (surel) {
         for (const hasil of semua) {
           const kabar = await isiKabarPelunasan(sql, hasil, surel.toko);
-          if (kabar) await kirimEmail(surel, kabar);
+          if (kabar) await kirimDanCatat(sql, surel, kabar);
         }
       }
     } catch (e) {
@@ -158,6 +159,13 @@ async function sapuTerjadwal(): Promise<void> {
     if (peristiwa > 0) console.log("[cron] catatan webhook lama dihapus", peristiwa);
   } catch (e) {
     console.error("[cron] gagal menghapus catatan webhook lama", e);
+  }
+
+  try {
+    const email = await sapuCatatanEmail(sql);
+    if (email > 0) console.log("[cron] catatan email lama dihapus", email);
+  } catch (e) {
+    console.error("[cron] gagal menghapus catatan email lama", e);
   }
 
   try {

@@ -25,6 +25,7 @@ describe("database tes", () => {
       "admin_sessions",
       "categories",
       "category_groups",
+      "email_notifications",
       "faq_groups",
       "faq_items",
       "order_items",

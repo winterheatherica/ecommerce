@@ -163,6 +163,20 @@ describe("emailPerluDicek", () => {
   });
 });
 
+describe("jenis dan nomor email", () => {
+  it("setiap email membawa jenis dan nomor pesanannya untuk dicatat", () => {
+    expect(emailPesananDibayar(pesanan(), TOKO)).toMatchObject({
+      jenis: "order_paid",
+      nomor: "MNK-482917365520",
+    });
+    expect(emailPerluDicek({ jenis: "gagal_tandai", nomor: "MNK-1", status: null }, TOKO)).toMatchObject({
+      jenis: "needs_check",
+      nomor: "MNK-1",
+    });
+    expect(emailUji(TOKO)).toMatchObject({ jenis: "test", nomor: null });
+  });
+});
+
 describe("kirimEmail", () => {
   const konfig = (send: PengirimEmail["send"]) => ({
     pengirim: { send },

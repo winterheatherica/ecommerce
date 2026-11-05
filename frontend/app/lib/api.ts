@@ -412,7 +412,20 @@ export async function ambilDaftarPesanan(
   return isi.data;
 }
 
-export type StatusNotifikasi = { active: boolean; recipients: string[] };
+export type CatatanEmail = {
+  kind: "order_paid" | "needs_check" | "test";
+  order_no: string | null;
+  sent: boolean;
+  error: string | null;
+  created_at: string;
+};
+
+export type StatusNotifikasi = {
+  active: boolean;
+  recipients: string[];
+  history: CatatanEmail[];
+  failed_in_a_row: number;
+};
 
 export async function ambilStatusNotifikasi(): Promise<StatusNotifikasi> {
   const res = await ambilAdmin(`${basis()}/api/admin/notifications`);

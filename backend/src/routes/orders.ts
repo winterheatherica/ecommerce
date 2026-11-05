@@ -5,7 +5,8 @@ import { alamatToko, asalApi } from "../lib/alamat";
 import { buatKoneksi, tutup } from "../lib/db";
 import { ambilPesanan, buatPesanan, cariPesanan, simpanPembayaran } from "../db/pesanan";
 import { isiKabarPelunasan, periksaKeDoku } from "../db/pelunasan";
-import { bacaKonfigEmail, kirimEmail } from "../lib/notifikasi";
+import { bacaKonfigEmail } from "../lib/notifikasi";
+import { kabarkan } from "../db/notifikasi";
 import { segarkanLacak } from "../db/lacak";
 import {
   pesananBisaDiulas,
@@ -353,7 +354,7 @@ export const orderRoutes = new Elysia({ prefix: "/api/orders" })
           const hasil = await periksaKeDoku(sql, konfig, sebelum.order_no);
           const surel = hasil ? bacaKonfigEmail(wadah) : undefined;
           const kabar = surel && hasil && (await isiKabarPelunasan(sql, hasil, surel.toko));
-          if (surel && kabar) waitUntil(kirimEmail(surel, kabar));
+          if (surel && kabar) waitUntil(kabarkan(wadah, surel, kabar));
         }
 
         const sesudah = (await cariPesanan(sql, sebelum.order_no)) ?? sebelum;

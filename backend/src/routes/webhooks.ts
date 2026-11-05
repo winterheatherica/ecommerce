@@ -2,7 +2,8 @@ import { env, waitUntil } from "cloudflare:workers";
 import { Elysia } from "elysia";
 
 import { buatKoneksi, tutup, type Sql } from "../lib/db";
-import { bacaKonfigEmail, kirimEmail } from "../lib/notifikasi";
+import { bacaKonfigEmail } from "../lib/notifikasi";
+import { kabarkan } from "../db/notifikasi";
 import { isiKabarPelunasan, terapkanKabarDoku } from "../db/pelunasan";
 import {
   JALUR_NOTIFIKASI,
@@ -83,7 +84,7 @@ export const webhookRoutes = new Elysia().post(
 
       const surel = bacaKonfigEmail(wadah);
       const kabar = surel && (await isiKabarPelunasan(sql, hasil, surel.toko));
-      if (surel && kabar) waitUntil(kirimEmail(surel, kabar));
+      if (surel && kabar) waitUntil(kabarkan(wadah, surel, kabar));
 
       if (hasil.jenis === "kedaluwarsa") {
         await tandaiDiproses(sql, idPeristiwa);

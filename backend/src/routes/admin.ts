@@ -54,7 +54,8 @@ import { hariIniWib, periksaRentang } from "../lib/laporan";
 import { segarkanLacak } from "../db/lacak";
 import { QUERY_ULASAN } from "./products";
 import type { StatusPesanan } from "../lib/orders";
-import { bacaKonfigEmail, emailUji, kirimEmail, samarkanEmail } from "../lib/notifikasi";
+import { bacaKonfigEmail, emailUji, samarkanEmail } from "../lib/notifikasi";
+import { kabarkan, statusKirimEmail } from "../db/notifikasi";
 
 const STATUS = [
   "PENDING",
@@ -342,23 +343,33 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
       body: t.Object({ method: t.String({ minLength: 2, maxLength: 40 }) }),
     },
   )
-  .get("/notifications", () => {
+  .get("/notifications", async () => {
     const surel = bacaKonfigEmail(env as unknown as Record<string, unknown>);
+    const sql = koneksi();
 
-    return {
-      active: Boolean(surel),
-      recipients: surel ? surel.ke.map(samarkanEmail) : [],
-    };
+    try {
+      const status = await statusKirimEmail(sql);
+
+      return {
+        active: Boolean(surel),
+        recipients: surel ? surel.ke.map(samarkanEmail) : [],
+        history: status.riwayat,
+        failed_in_a_row: status.gagalBeruntun,
+      };
+    } finally {
+      await tutup(sql);
+    }
   })
   .post("/notifications/test", async ({ set }) => {
-    const surel = bacaKonfigEmail(env as unknown as Record<string, unknown>);
+    const wadah = env as unknown as Record<string, unknown>;
+    const surel = bacaKonfigEmail(wadah);
 
     if (!surel) {
       set.status = 503;
       return { error: "email_unconfigured", message: "Notifikasi email belum disetel" };
     }
 
-    const hasil = await kirimEmail(surel, emailUji(surel.toko));
+    const hasil = await kabarkan(wadah, surel, emailUji(surel.toko));
 
     if (!hasil.ok) {
       set.status = 502;

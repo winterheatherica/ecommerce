@@ -3,6 +3,7 @@ import Link from "next/link";
 import { namaDenganUkuran, rupiah } from "@/app/data/produk";
 import { statusLabel, statusWarna } from "@/app/data/status-pesanan";
 import { ambilDaftarPesanan, ambilProdukAdmin, ambilStatusNotifikasi } from "@/app/lib/api";
+import { judulCatatan, waktuCatatan } from "@/app/lib/catatan-email";
 
 const AMBANG_STOK_MENIPIS = 10;
 const TAMPIL_STOK = 12;
@@ -25,6 +26,11 @@ export default async function AdminRingkasanPage() {
     .filter((x) => x.varian.stok <= AMBANG_STOK_MENIPIS)
     .sort((a, b) => a.varian.stok - b.varian.stok);
 
+  const gagalBeruntun = notifikasi?.failed_in_a_row ?? 0;
+  const emailTerakhir = notifikasi?.history[0];
+  const emailGagal =
+    gagalBeruntun > 0 && emailTerakhir && !emailTerakhir.sent ? emailTerakhir : undefined;
+
   const terbaru = [...daftarPesanan]
     .sort((a, b) => b.created_at.localeCompare(a.created_at))
     .slice(0, 5);
@@ -35,6 +41,27 @@ export default async function AdminRingkasanPage() {
       <p className="mt-1 text-sm text-stone-500">
         Dua hal yang biasanya perlu diurus hari ini.
       </p>
+
+      {emailGagal && (
+        <div className="mt-8 border border-red-300 bg-red-50 px-6 py-5">
+          <p className="font-mono text-[13px] tracking-[0.2em] text-red-700 uppercase">
+            Email notifikasi gagal terkirim
+          </p>
+          <p className="mt-2 text-sm leading-relaxed text-red-800">
+            {judulCatatan(emailGagal)} ({waktuCatatan(emailGagal.created_at)}).
+            {gagalBeruntun > 1 && ` ${gagalBeruntun} email terakhir gagal berturut-turut.`}
+          </p>
+          <p className="mt-1 text-sm break-words text-red-800">Alasan: {emailGagal.error}</p>
+          <p className="mt-3 text-sm leading-relaxed text-red-700">
+            {emailGagal.kind !== "test" &&
+              "Pesanannya tetap tercatat di daftar pesanan, cuma emailnya yang tidak sampai. "}
+            Setelah penyebabnya diperbaiki, kirim email uji untuk memastikan.{" "}
+            <a href="#notifikasi-email" className="underline underline-offset-2">
+              Lihat riwayat
+            </a>
+          </p>
+        </div>
+      )}
 
       <div className="mt-8 grid gap-4 sm:grid-cols-2">
         <Link
