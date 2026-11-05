@@ -88,6 +88,8 @@ type ProdukAPI = {
   rating_count?: number;
   reviews?: UlasanAPI[];
   reviews_summary?: RingkasanUlasan;
+  order_count?: number;
+  review_count?: number;
 };
 
 type DaftarAPI = {
@@ -174,6 +176,8 @@ function petakan(p: ProdukAPI): Produk {
     rating: ringkasanRating(p.rating, p.rating_count),
     ulasan: p.reviews?.map(petakanUlasan),
     ringkasanUlasan: p.reviews_summary,
+    jumlahPesanan: p.order_count,
+    jumlahUlasan: p.review_count,
   };
 }
 

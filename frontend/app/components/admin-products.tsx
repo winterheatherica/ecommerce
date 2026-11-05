@@ -82,6 +82,7 @@ export default function AdminProducts({ awal }: { awal: Produk[] }) {
   const menipis = semuaVarian.filter(
     (v) => v.aktif !== false && v.stok <= AMBANG_MENIPIS,
   ).length;
+  const nonaktif = produk.filter((p) => p.aktif === false).length;
 
   const kepala =
     "px-4 py-3 font-mono text-[12px] tracking-[0.18em] font-normal text-stone-500 uppercase";
@@ -98,8 +99,8 @@ export default function AdminProducts({ awal }: { awal: Produk[] }) {
         </Link>
       </div>
       <p className="mt-1 text-sm text-stone-500">
-        {produk.length} produk, {semuaVarian.length} ukuran, {menipis} ukuran
-        stoknya menipis
+        {produk.length} produk{nonaktif > 0 ? ` (${nonaktif} nonaktif)` : ""},{" "}
+        {semuaVarian.length} ukuran, {menipis} ukuran stoknya menipis
       </p>
 
       {galat && (
@@ -130,10 +131,17 @@ export default function AdminProducts({ awal }: { awal: Produk[] }) {
                 >
                   {i === 0 && (
                     <td className="px-6 py-3 align-top" rowSpan={p.varian.length}>
-                      <span className="text-ink">{p.nama}</span>
+                      <span className={p.aktif === false ? "text-stone-400" : "text-ink"}>
+                        {p.nama}
+                      </span>
                       <span className="mt-0.5 block font-mono text-[13px] text-stone-400">
                         {p.slug}
                       </span>
+                      {p.aktif === false && (
+                        <span className="mt-1 block font-mono text-[11px] tracking-[0.14em] text-stone-400 uppercase">
+                          Nonaktif, tidak tampil di toko
+                        </span>
+                      )}
                     </td>
                   )}
                   {i === 0 && (

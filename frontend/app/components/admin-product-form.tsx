@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
+import ZonaHapusProduk from "@/app/components/admin-hapus-produk";
 import AdminMarketplaceRating from "@/app/components/admin-marketplace-rating";
 import KolomPilih from "@/app/components/kolom-pilih";
 import AdminPhotoEditor, {
@@ -363,6 +364,7 @@ export default function AdminProductForm({ awal }: Props) {
       {ubahMode && awal && <AdminMarketplaceRating produk={awal} marketplace="shopee" />}
       {ubahMode && awal && <AdminMarketplaceRating produk={awal} marketplace="tokopedia" />}
       {ubahMode && awal && <AdminReviews produk={awal} />}
+      {ubahMode && awal && <ZonaHapusProduk produk={awal} />}
     </div>
   );
 }

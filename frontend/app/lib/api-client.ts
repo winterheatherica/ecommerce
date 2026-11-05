@@ -491,6 +491,12 @@ export async function hapusFoto(id: number): Promise<void> {
   await pastikanOk(res);
 }
 
+export async function hapusProdukPermanen(slug: string): Promise<void> {
+  const res = await fetch(`/api/admin/products/${encodeURIComponent(slug)}`, { method: "DELETE" });
+
+  await pastikanOk(res);
+}
+
 export type IsiInfoToko = Omit<TokoAPI, "updated_at">;
 
 export async function simpanInfoToko(isi: IsiInfoToko): Promise<TokoAPI> {

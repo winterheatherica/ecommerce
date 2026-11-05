@@ -94,6 +94,8 @@ export type Produk = {
   rating?: RingkasanRating | null;
   ulasan?: Ulasan[];
   ringkasanUlasan?: RingkasanUlasan;
+  jumlahPesanan?: number;
+  jumlahUlasan?: number;
 };
 
 export type PasanganVarian = { produk: Produk; varian: Varian };

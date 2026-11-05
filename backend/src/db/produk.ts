@@ -85,6 +85,8 @@ export type BarisProdukDetail = BarisProduk & {
 export type BarisProdukAdmin = Omit<BarisProduk, "variants"> & {
   variants: BarisVarianLengkap[];
   usage_instructions: string | null;
+  order_count?: number;
+  review_count?: number;
   reviews?: BarisUlasanAdmin[];
   reviews_summary?: RingkasanUlasan;
 };
@@ -223,6 +225,20 @@ const kolomAdmin = (sql: Kueri) => sql`
   ), '[]'::jsonb) as variants
 `;
 
+const jumlahTerkait = (sql: Kueri) => sql`
+  (
+    select count(distinct oi.order_id)::int
+    from order_items oi
+    where oi.product_id = products.id
+  ) as order_count,
+  (
+    select count(*)::int
+    from reviews r
+    join product_variants v on v.id = r.variant_id
+    where v.product_id = products.id
+  ) as review_count
+`;
+
 function bersihkan(f: FilterProduk) {
   return {
     kategori: f.category?.trim() || null,
@@ -316,7 +332,7 @@ export async function satuProdukAdmin(
   slug: string,
 ): Promise<BarisProdukAdmin | undefined> {
   const [produk] = await sql<BarisProdukAdmin[]>`
-    select ${kolomAdmin(sql)}, ${ulasanAdmin(sql)}
+    select ${kolomAdmin(sql)}, ${ulasanAdmin(sql)}, ${jumlahTerkait(sql)}
     from products
     where slug = ${slug}
     limit 1
@@ -422,4 +438,45 @@ export async function perbaruiProduk(
   `;
 
   return produk;
+}
+
+export type HasilHapusProduk =
+  | { ok: true; ukuran: number; foto: number; ulasan: number }
+  | { ok: false; alasan: "not_found" }
+  | { ok: false; alasan: "active" }
+  | { ok: false; alasan: "ordered"; pesanan: number | null };
+
+export async function hapusProdukPermanen(sql: Sql, slug: string): Promise<HasilHapusProduk> {
+  try {
+    return await sql.begin(async (tx) => {
+      const [produk] = await tx<{ id: number; is_active: boolean }[]>`
+        select id::int as id, is_active from products where slug = ${slug} for update
+      `;
+      if (!produk) return { ok: false, alasan: "not_found" } as const;
+      if (produk.is_active) return { ok: false, alasan: "active" } as const;
+
+      const [isi] = await tx<{ pesanan: number; ukuran: number; foto: number; ulasan: number }[]>`
+        select
+          (select count(distinct order_id)::int from order_items where product_id = ${produk.id}) as pesanan,
+          (select count(*)::int from product_variants where product_id = ${produk.id}) as ukuran,
+          (select count(*)::int from product_images where product_id = ${produk.id}) as foto,
+          (
+            select count(*)::int
+            from reviews r
+            join product_variants v on v.id = r.variant_id
+            where v.product_id = ${produk.id}
+          ) as ulasan
+      `;
+      if (isi.pesanan > 0) return { ok: false, alasan: "ordered", pesanan: isi.pesanan } as const;
+
+      await tx`delete from products where id = ${produk.id}`;
+      return { ok: true, ukuran: isi.ukuran, foto: isi.foto, ulasan: isi.ulasan } as const;
+    });
+  } catch (e) {
+    const kendala = kendalaAsing(e);
+    if (kendala === "order_items_product_id_fkey" || kendala === "order_items_variant_id_fkey") {
+      return { ok: false, alasan: "ordered", pesanan: null };
+    }
+    throw e;
+  }
 }

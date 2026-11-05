@@ -147,7 +147,7 @@ export default function AdminMarketplaceRating({
         {ATURAN[marketplace].petunjuk}
       </p>
 
-      <div className="mt-6 overflow-x-auto border border-ink/10 bg-white">
+      <div className="relative mt-6 overflow-x-auto border border-ink/10 bg-white">
         <table className="w-full min-w-160 text-sm">
           <thead>
             <tr className="border-b border-ink/10 text-left">

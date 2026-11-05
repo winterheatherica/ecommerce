@@ -8,6 +8,7 @@ import { GALAT_KATEGORI, periksaPerubahan, periksaProdukBaru } from "../lib/prod
 import { periksaPerubahanVarian, periksaVarianBaru } from "../lib/variants";
 import {
   daftarProdukAdmin,
+  hapusProdukPermanen,
   perbaruiProduk,
   satuProdukAdmin,
   simpanProdukBaru,
@@ -951,6 +952,43 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
         usage_instructions: t.Optional(t.Union([t.String({ maxLength: 4000 }), t.Null()])),
       }),
     },
+  )
+  .delete(
+    "/products/:slug",
+    async ({ params, set }) => {
+      const sql = koneksi();
+
+      try {
+        const hasil = await hapusProdukPermanen(sql, params.slug);
+
+        if (hasil.ok) {
+          return { deleted: true, variants: hasil.ukuran, images: hasil.foto, reviews: hasil.ulasan };
+        }
+
+        if (hasil.alasan === "not_found") {
+          set.status = 404;
+          return { error: "not_found", message: "Produk tidak ditemukan" };
+        }
+
+        set.status = 409;
+
+        if (hasil.alasan === "active") {
+          return {
+            error: "product_active",
+            message:
+              "Produk ini masih tampil di toko. Hilangkan centang Tampilkan di toko lalu simpan, baru bisa dihapus permanen",
+          };
+        }
+
+        return {
+          error: "product_ordered",
+          message: `Produk ini ${hasil.pesanan ? `ada di ${hasil.pesanan} pesanan` : "sudah pernah dipesan"}, jadi tidak bisa dihapus permanen supaya riwayat pesanan dan laporan tetap utuh. Biarkan nonaktif saja`,
+        };
+      } finally {
+        await tutup(sql);
+      }
+    },
+    { params: t.Object({ slug: t.String({ maxLength: 120 }) }) },
   )
   .post(
     "/products/:slug/variants",
