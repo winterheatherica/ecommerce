@@ -78,9 +78,10 @@ describe("periksaUlasanImpor", () => {
     expect(shopee.ok && [shopee.bersih.source_product, shopee.bersih.source_url]).toEqual([null, null]);
   });
 
-  it("boleh cuma berisi update penilaian, tapi tidak boleh kosong sama sekali", () => {
+  it("boleh cuma berisi update penilaian, atau cuma bintang tanpa tulisan", () => {
     expect(periksaUlasanImpor({ ...dasar, body: null, follow_up: "Update: ampuh" }, SEKARANG).ok).toBe(true);
-    expect(periksaUlasanImpor({ ...dasar, body: "   ", follow_up: null }, SEKARANG).ok).toBe(false);
+    const tanpaTeks = periksaUlasanImpor({ ...dasar, body: "   ", follow_up: null }, SEKARANG);
+    expect(tanpaTeks.ok && tanpaTeks.bersih).toMatchObject({ body: null, follow_up: null });
   });
 
   it("menolak bintang di luar 1 sampai 5, tanggal ngawur, dan tanggal di masa depan", () => {

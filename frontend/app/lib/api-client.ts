@@ -569,3 +569,73 @@ export async function simpanFaqToko(groups: IsiFaqToko): Promise<SitusAPI> {
   await pastikanOk(res);
   return (await res.json()) as SitusAPI;
 }
+
+export type SumberImporUlasan = "shopee" | "tokopedia";
+
+export type UlasanScreenshot = {
+  author_name_raw: string;
+  author_name: string;
+  rating: number;
+  body: string | null;
+  reviewed_at: string | null;
+  reviewed_precision: "day" | "month";
+  marketplace_product: string | null;
+  complete: boolean;
+  variant_slug: string | null;
+  variant_guess: "alias" | "mirip" | null;
+  duplicate: boolean;
+};
+
+export async function bacaScreenshotUlasan(
+  berkas: Blob,
+  sumber: SumberImporUlasan,
+): Promise<UlasanScreenshot[]> {
+  const form = new FormData();
+  form.set("file", berkas, "screenshot.jpg");
+  form.set("source", sumber);
+
+  const res = await fetch("/api/admin/reviews/screenshot", { method: "POST", body: form });
+
+  await pastikanOk(res);
+  return ((await res.json()) as { reviews: UlasanScreenshot[] }).reviews;
+}
+
+export type KirimanUlasan = {
+  variant_slug: string;
+  rating: number;
+  author_name: string;
+  body: string | null;
+  reviewed_at: string;
+  reviewed_precision: "day" | "month";
+  marketplace_product: string | null;
+};
+
+export class GalatSimpanUlasan extends Error {
+  constructor(
+    message: string,
+    public readonly perBaris: { index: number; message: string }[],
+  ) {
+    super(message);
+  }
+}
+
+export async function simpanUlasanMassal(
+  sumber: SumberImporUlasan,
+  ulasan: KirimanUlasan[],
+): Promise<{ inserted: number; duplicates: number }> {
+  const res = await fetch("/api/admin/reviews/batch", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ source: sumber, reviews: ulasan }),
+  });
+
+  if (!res.ok) {
+    const isi = (await res.json().catch(() => ({}))) as {
+      message?: string;
+      errors?: { index: number; message: string }[];
+    };
+    throw new GalatSimpanUlasan(isi.message ?? `Gagal menyimpan (${res.status})`, isi.errors ?? []);
+  }
+
+  return (await res.json()) as { inserted: number; duplicates: number };
+}

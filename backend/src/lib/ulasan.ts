@@ -105,9 +105,6 @@ export function periksaUlasanImpor(
 
   const body = teksBersih(d.body);
   const followUp = teksBersih(d.follow_up);
-  if (!body && !followUp) {
-    return { ok: false, ...galat("empty_review", "Isi ulasannya belum ada") };
-  }
   if ((body?.length ?? 0) > MAKS_TEKS || (followUp?.length ?? 0) > MAKS_TEKS) {
     return { ok: false, ...galat("review_too_long", "Ulasan maksimal 3.000 karakter") };
   }

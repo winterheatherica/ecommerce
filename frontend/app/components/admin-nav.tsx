@@ -8,6 +8,7 @@ const menu = [
   { href: "/admin/ringkasan", label: "Ringkasan" },
   { href: "/admin/pesanan", label: "Pesanan" },
   { href: "/admin/produk", label: "Produk" },
+  { href: "/admin/ulasan", label: "Impor ulasan" },
   { href: "/admin/kategori", label: "Kategori" },
   { href: "/admin/faq", label: "FAQ" },
   { href: "/admin/banner", label: "Banner promo" },

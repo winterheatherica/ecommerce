@@ -102,7 +102,7 @@ describe("ulasan di halaman produk", () => {
     ]);
   });
 
-  it("varian yang tidak ada ditolak, dan ulasan Shopee atau Tokopedia tanpa teks ditolak database", async () => {
+  it("varian yang tidak ada ditolak, sedangkan ulasan Shopee atau Tokopedia yang cuma bintang diterima", async () => {
     const periksa = periksaUlasanImpor({
       rating: 4,
       author_name: "x",
@@ -119,7 +119,7 @@ describe("ulasan di halaman produk", () => {
         () => true,
         () => false,
       );
-      expect(kosong, sumber).toBe(false);
+      expect(kosong, sumber).toBe(true);
     }
   });
 

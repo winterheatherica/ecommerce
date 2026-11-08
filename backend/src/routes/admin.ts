@@ -31,7 +31,12 @@ import { periksaFaq } from "../lib/faq";
 import { bannerAdmin, periksaBanner } from "../lib/banner";
 import { ambilSitus, simpanFaq, simpanKategori, simpanToko } from "../db/situs";
 import { simpanBanner } from "../db/banner";
-import { periksaUlasanImpor } from "../lib/ulasan";
+import {
+  periksaUlasanImpor,
+  samarkanPengulas,
+} from "../lib/ulasan";
+import { bacaScreenshotUlasan, keBase64, periksaScreenshot, type PemanggilAi } from "../lib/baca-ulasan";
+import { cariUlasanKembar, simpanUlasanMassal, tebakVarianUntuk, type BarisImpor } from "../db/impor-ulasan";
 import {
   ULASAN_PER_HALAMAN,
   halamanUlasan,
@@ -1231,6 +1236,151 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
         reviewed_at: t.String({ maxLength: 40 }),
         source_product: t.Optional(t.Union([t.String({ maxLength: 200 }), t.Null()])),
         source_url: t.Optional(t.Union([t.String({ maxLength: 400 }), t.Null()])),
+      }),
+    },
+  )
+  .post(
+    "/reviews/screenshot",
+    async ({ body, set }) => {
+      const ai = (env as unknown as Record<string, unknown>).AI as PemanggilAi | undefined;
+
+      if (!ai || typeof ai.run !== "function") {
+        set.status = 503;
+        return { error: "ai_unconfigured", message: "Fitur baca screenshot belum disetel di server" };
+      }
+
+      const berkas = await periksaScreenshot(body.file);
+
+      if (!berkas.ok) {
+        set.status = 422;
+        return { error: "invalid_file", message: berkas.pesan, field: "file" };
+      }
+
+      const hasil = await bacaScreenshotUlasan(ai, {
+        base64: keBase64(new Uint8Array(await body.file.arrayBuffer())),
+        mime: berkas.mime,
+      });
+
+      if (!hasil.ok) {
+        if (hasil.alasan === "kuota") {
+          set.status = 429;
+          return {
+            error: "ai_quota",
+            message: "Jatah baca screenshot hari ini sudah habis. Coba lagi besok setelah jam 07.00 WIB.",
+          };
+        }
+
+        set.status = 502;
+        return { error: "ai_failed", message: "Screenshot gagal dibaca. Coba unggah ulang, atau pakai screenshot yang lebih jelas." };
+      }
+
+      const sql = koneksi();
+
+      try {
+        const tebakan = await tebakVarianUntuk(sql, body.source, hasil.ulasan.map((u) => u.produk));
+        const kembar = await cariUlasanKembar(
+          sql,
+          body.source,
+          hasil.ulasan.map((u) => ({
+            nama_asli: u.nama,
+            nama_samaran: samarkanPengulas(u.nama),
+            rating: u.bintang,
+            body: u.teks,
+            reviewed_at: u.tanggal,
+          })),
+        );
+
+        return {
+          reviews: hasil.ulasan.map((u, i) => ({
+            author_name_raw: u.nama,
+            author_name: samarkanPengulas(u.nama),
+            rating: u.bintang,
+            body: u.teks,
+            reviewed_at: u.tanggal,
+            reviewed_precision: u.presisi,
+            marketplace_product: u.produk,
+            complete: u.utuh,
+            variant_slug: tebakan[i]?.slug ?? null,
+            variant_guess: tebakan[i]?.dari ?? null,
+            duplicate: kembar[i],
+          })),
+        };
+      } finally {
+        await tutup(sql);
+      }
+    },
+    {
+      body: t.Object({
+        file: t.File(),
+        source: t.Union([t.Literal("shopee"), t.Literal("tokopedia")]),
+      }),
+    },
+  )
+  .post(
+    "/reviews/batch",
+    async ({ body, set }) => {
+      const galat: { index: number; message: string }[] = [];
+      const baris: BarisImpor[] = [];
+
+      body.reviews.forEach((r, i) => {
+        const periksa = periksaUlasanImpor({
+          source: body.source,
+          rating: r.rating,
+          author_name: r.author_name,
+          body: r.body ?? null,
+          reviewed_at: r.reviewed_at,
+          source_product: r.marketplace_product ?? null,
+        });
+
+        if (!periksa.ok) {
+          galat.push({ index: i, message: periksa.badan.message });
+          return;
+        }
+
+        baris.push({
+          ...periksa.bersih,
+          variant_slug: r.variant_slug,
+          reviewed_precision: r.reviewed_precision ?? "day",
+          produk_marketplace: r.marketplace_product ?? null,
+        });
+      });
+
+      if (galat.length > 0) {
+        set.status = 422;
+        return { error: "invalid_reviews", message: `${galat.length} ulasan belum lengkap`, errors: galat };
+      }
+
+      const sql = koneksi();
+
+      try {
+        const hasil = await simpanUlasanMassal(sql, body.source, baris);
+
+        if (!hasil.ok) {
+          set.status = 422;
+          return { error: "unknown_variant", message: `Ukuran tidak ditemukan: ${hasil.slug.join(", ")}` };
+        }
+
+        set.status = 201;
+        return { inserted: hasil.masuk, duplicates: hasil.kembar };
+      } finally {
+        await tutup(sql);
+      }
+    },
+    {
+      body: t.Object({
+        source: t.Union([t.Literal("shopee"), t.Literal("tokopedia")]),
+        reviews: t.Array(
+          t.Object({
+            variant_slug: t.String({ minLength: 1, maxLength: 120 }),
+            rating: t.Integer({ minimum: 1, maximum: 5 }),
+            author_name: t.String({ minLength: 1, maxLength: 60 }),
+            body: t.Optional(t.Union([t.String({ maxLength: 3000 }), t.Null()])),
+            reviewed_at: t.String({ maxLength: 40 }),
+            reviewed_precision: t.Optional(t.Union([t.Literal("day"), t.Literal("month")])),
+            marketplace_product: t.Optional(t.Union([t.String({ maxLength: 200 }), t.Null()])),
+          }),
+          { minItems: 1, maxItems: 200 },
+        ),
       }),
     },
   )

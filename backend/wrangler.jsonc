@@ -17,6 +17,7 @@
     }
   ],
   "send_email": [{ "name": "EMAIL" }],
+  "ai": { "binding": "AI" },
   "workers_dev": false,
   "routes": [
     { "pattern": "api.menikstore.my.id", "custom_domain": true }
