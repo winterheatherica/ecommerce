@@ -8,7 +8,7 @@ import type { Produk } from "@/app/data/produk";
 
 const SUMBER: { nilai: SumberImporUlasan; label: string }[] = [
   { nilai: "shopee", label: "Shopee" },
-  { nilai: "tokopedia", label: "Tokopedia & TikTok Shop" },
+  { nilai: "tokopedia", label: "Tokopedia" },
 ];
 
 const label = "block font-mono text-[12px] tracking-[0.2em] text-stone-500 uppercase";
@@ -59,7 +59,7 @@ export default function AdminNamaMarketplace({ produk, awal }: { produk: Produk;
       <h2 className="text-lg font-semibold tracking-tight text-ink">Nama listing di marketplace</h2>
       <p className="mt-2 max-w-2xl text-sm leading-relaxed text-stone-600">
         Dipakai fitur Impor ulasan untuk mengenali ukuran dari nama produk di screenshot. Tulis nama listing persis
-        seperti di Shopee atau Tokopedia. Nama baru juga ditambahkan otomatis setiap kali impor ulasan disimpan.
+        seperti di Shopee atau Tokopedia. Nama Tokopedia juga dipakai untuk screenshot dari TikTok Shop. Nama baru ditambahkan otomatis setiap kali impor ulasan disimpan.
       </p>
 
       {galat && (

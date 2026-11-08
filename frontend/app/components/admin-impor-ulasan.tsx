@@ -47,12 +47,12 @@ type Layar = {
 
 const SUMBER: { nilai: SumberImporUlasan; label: string }[] = [
   { nilai: "shopee", label: "Shopee" },
-  { nilai: "tokopedia", label: "Tokopedia & TikTok Shop" },
+  { nilai: "tokopedia", label: "Tokopedia" },
 ];
 
 const LABEL_SUMBER: Record<SumberImporUlasan, { teks: string; kelas: string }> = {
   shopee: { teks: "Shopee", kelas: "border-orange-300 bg-orange-50 text-orange-700" },
-  tokopedia: { teks: "Tokopedia & TikTok Shop", kelas: "border-emerald-300 bg-emerald-50 text-emerald-700" },
+  tokopedia: { teks: "Tokopedia", kelas: "border-emerald-300 bg-emerald-50 text-emerald-700" },
 };
 
 const LEBAR_MAKS = 1080;
@@ -381,6 +381,9 @@ export default function AdminImporUlasan({ varian }: { varian: PilihanVarian[] }
             </button>
           ))}
         </div>
+        <p className="mt-2 text-sm text-stone-500">
+          Screenshot dari aplikasi TikTok Shop pilih Tokopedia, karena ulasan keduanya sudah digabung, sama seperti di toko.
+        </p>
 
         <p className={`${label} mt-8`}>2. Screenshot</p>
         <div
