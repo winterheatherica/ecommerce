@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { periksaToko, rapikanNomorWa, type TokoBaru } from "./toko";
+import { kodeVerifikasiGoogle, periksaToko, rapikanNomorWa, type TokoBaru } from "./toko";
 
 function toko(ubah: Partial<TokoBaru> = {}): TokoBaru {
   return {
@@ -73,6 +73,58 @@ describe("periksaToko", () => {
       expect(hasil.status).toBe(422);
       expect(hasil.badan.field, JSON.stringify(ubah)).toBe(field);
     }
+  });
+
+  it("kode verifikasi Google: tag utuh atau kodenya saja, baris kosong dan kembar dibuang", () => {
+    const hasil = periksaToko(
+      toko({
+        google_site_verifications: [
+          '<meta name="google-site-verification" content="Yznm88IpWbnk7WlhVrlbr1yzJyJP1-w_jf8mBUDjYfE" />',
+          "   ",
+          "  Yznm88IpWbnk7WlhVrlbr1yzJyJP1-w_jf8mBUDjYfE ",
+          "<meta content='abcdefghijKLMNOP_-123' name='google-site-verification'>",
+        ],
+      }),
+    );
+
+    expect(hasil.ok).toBe(true);
+    if (!hasil.ok) return;
+    expect(hasil.bersih.google_site_verifications).toEqual([
+      "Yznm88IpWbnk7WlhVrlbr1yzJyJP1-w_jf8mBUDjYfE",
+      "abcdefghijKLMNOP_-123",
+    ]);
+  });
+
+  it("tanpa isian verifikasi Google, kode yang tersimpan tidak disentuh", () => {
+    const hasil = periksaToko(toko());
+
+    expect(hasil.ok).toBe(true);
+    if (!hasil.ok) return;
+    expect("google_site_verifications" in hasil.bersih).toBe(false);
+  });
+
+  it("menolak tag verifikasi milik layanan lain dan kode yang bukan kode Google", () => {
+    const salah = [
+      '<meta name="facebook-domain-verification" content="abcdefghijklmnop12345" />',
+      "<script>alert(1)</script>",
+      "kode salah!",
+      "pendek",
+      '<meta name="google-site-verification" />',
+    ];
+
+    for (const baris of salah) {
+      expect(kodeVerifikasiGoogle(baris), baris).toBeNull();
+      const hasil = periksaToko(toko({ google_site_verifications: [baris] }));
+      expect(hasil.ok, baris).toBe(false);
+      if (hasil.ok) continue;
+      expect(hasil.badan.field).toBe("google_site_verifications");
+    }
+
+    const banyak = Array.from({ length: 6 }, (_, i) => `kodeVerifikasiKe${i}abcdef`);
+    const kebanyakan = periksaToko(toko({ google_site_verifications: banyak }));
+    expect(kebanyakan.ok).toBe(false);
+    if (kebanyakan.ok) return;
+    expect(kebanyakan.badan.error).toBe("too_many_google_verifications");
   });
 
   it("membatasi jumlah link media sosial", () => {

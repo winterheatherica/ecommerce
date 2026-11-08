@@ -28,6 +28,7 @@ const JUDUL_BAWAAN = `${NAMA_SITUS} | Pengusir Hama Berbahan Dasar Alami`;
 
 export async function generateMetadata(): Promise<Metadata> {
   const terbuka = bolehDiindeks();
+  const { toko } = await ambilSitus();
 
   return {
     metadataBase: new URL(situsUrl()),
@@ -77,6 +78,7 @@ export async function generateMetadata(): Promise<Metadata> {
           },
         }
       : { index: false, follow: false, nocache: true },
+    verification: toko.verifikasiGoogle.length > 0 ? { google: toko.verifikasiGoogle } : undefined,
   };
 }
 

@@ -91,16 +91,20 @@ export async function ambilSitus(sql: Sql, admin = false): Promise<Situs> {
 }
 
 export async function simpanToko(sql: Sql, t: TokoBersih): Promise<BarisToko> {
+  const verifikasi =
+    t.google_site_verifications === undefined ? null : sql.json(t.google_site_verifications);
+
   const [baris] = await sql<{ store: BarisToko }[]>`
     insert into store_settings as s (
       id, wa_number, wa_link, address_street, address_village, address_district, address_city,
       address_province, postal_code, maps_url, open_days, opens_at, closes_at, closed_on_holidays,
-      social_links
+      social_links, google_site_verifications
     )
     values (
       true, ${t.wa_number}, ${t.wa_link}, ${t.address_street}, ${t.address_village}, ${t.address_district},
       ${t.address_city}, ${t.address_province}, ${t.postal_code}, ${t.maps_url}, ${sql.json(t.open_days)},
-      ${t.opens_at}, ${t.closes_at}, ${t.closed_on_holidays}, ${sql.json(t.social_links)}
+      ${t.opens_at}, ${t.closes_at}, ${t.closed_on_holidays}, ${sql.json(t.social_links)},
+      coalesce(${verifikasi}::jsonb, '[]'::jsonb)
     )
     on conflict (id) do update set
       wa_number = excluded.wa_number,
@@ -117,6 +121,7 @@ export async function simpanToko(sql: Sql, t: TokoBersih): Promise<BarisToko> {
       closes_at = excluded.closes_at,
       closed_on_holidays = excluded.closed_on_holidays,
       social_links = excluded.social_links,
+      google_site_verifications = coalesce(${verifikasi}::jsonb, s.google_site_verifications),
       updated_at = now()
     returning to_jsonb(s) - 'id' as store
   `;

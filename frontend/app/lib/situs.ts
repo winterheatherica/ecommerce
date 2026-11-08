@@ -13,6 +13,7 @@ export type TokoAPI = {
   closes_at: string;
   closed_on_holidays: boolean;
   social_links: { label: string; url: string }[];
+  google_site_verifications?: string[];
   updated_at?: string;
 };
 
@@ -89,6 +90,7 @@ export type InfoToko = {
   jam: string;
   libur: string | null;
   sosial: TautanSosial[];
+  verifikasiGoogle: string[];
 };
 
 export type GrupKategori = { slug: string; label: string; judul: string; ringkasan: string };
@@ -195,6 +197,7 @@ export function petakanToko(t: TokoAPI): InfoToko {
     jam: teksJam(t.opens_at, t.closes_at),
     libur: teksLibur(t.open_days, t.closed_on_holidays),
     sosial: [{ label: "WhatsApp", href: waUrl }, ...t.social_links.map((s) => ({ label: s.label, href: s.url }))],
+    verifikasiGoogle: t.google_site_verifications ?? [],
   };
 }
 

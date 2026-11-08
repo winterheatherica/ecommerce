@@ -18,7 +18,11 @@ const ALAMAT: { kolom: keyof TokoAPI; nama: string; contoh: string }[] = [
   { kolom: "postal_code", nama: "Kode pos", contoh: "13850" },
 ];
 
-type Isian = Omit<TokoAPI, "updated_at" | "wa_link" | "maps_url"> & { wa_link: string; maps_url: string };
+type Isian = Omit<TokoAPI, "updated_at" | "wa_link" | "maps_url" | "google_site_verifications"> & {
+  wa_link: string;
+  maps_url: string;
+  verifikasi: string;
+};
 
 function isianAwal(t: TokoAPI | null): Isian {
   return {
@@ -36,6 +40,7 @@ function isianAwal(t: TokoAPI | null): Isian {
     closes_at: t?.closes_at ?? "17:00",
     closed_on_holidays: t?.closed_on_holidays ?? true,
     social_links: t?.social_links ?? [],
+    verifikasi: (t?.google_site_verifications ?? []).join("\n"),
   };
 }
 
@@ -68,10 +73,15 @@ export default function AdminStoreForm({ awal }: { awal: TokoAPI | null }) {
     setKabar(null);
 
     try {
+      const { verifikasi, ...lain } = isi;
       const hasil = await simpanInfoToko({
-        ...isi,
+        ...lain,
         wa_link: isi.wa_link.trim() || null,
         maps_url: isi.maps_url.trim() || null,
+        google_site_verifications: verifikasi
+          .split("\n")
+          .map((b) => b.trim())
+          .filter(Boolean),
       });
       setIsi(isianAwal(hasil));
       setKabar({ ok: true, pesan: "Info toko tersimpan dan langsung tampil di website" });
@@ -286,6 +296,32 @@ export default function AdminStoreForm({ awal }: { awal: TokoAPI | null }) {
             >
               Tambah link
             </button>
+          </section>
+
+          <section className="space-y-4">
+            <h2 className="text-lg font-semibold tracking-tight text-ink">Verifikasi Google</h2>
+            <p className="text-xs leading-relaxed text-stone-500">
+              Untuk Google Merchant Center dan Search Console. Tempel tag dari Google, misalnya{" "}
+              <code className="font-mono text-[12px] text-stone-700">
+                {'<meta name="google-site-verification" content="..." />'}
+              </code>
+              , satu per baris. Tag ini dipasang di semua halaman website. Jangan hapus kode yang sudah terverifikasi,
+              karena Google memeriksanya lagi secara berkala.
+            </p>
+            <div>
+              <label className={kelasLabel} htmlFor="verifikasi-google">
+                Tag atau kode verifikasi <span className="normal-case">(opsional, maksimal 5)</span>
+              </label>
+              <textarea
+                id="verifikasi-google"
+                rows={3}
+                value={isi.verifikasi}
+                onChange={(e) => ubah("verifikasi", e.target.value)}
+                placeholder={'<meta name="google-site-verification" content="..." />'}
+                spellCheck={false}
+                className={`${kelasKotak} font-mono text-[13px]`}
+              />
+            </div>
           </section>
         </fieldset>
 

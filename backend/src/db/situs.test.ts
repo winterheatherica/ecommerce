@@ -118,6 +118,33 @@ describe("simpanToko", () => {
       new Date(sebelum.store?.updated_at ?? 0).getTime(),
     );
   });
+
+  it("menyimpan kode verifikasi Google, tampil di data publik, dan tetap ada kalau isiannya tidak dikirim", async () => {
+    const sebelum = await ambilSitus(sql);
+    const kode = "Yznm88IpWbnk7WlhVrlbr1yzJyJP1-w_jf8mBUDjYfE";
+
+    const simpan = await simpanToko(sql, { ...isiToko(sebelum), google_site_verifications: [kode] });
+    expect(simpan.google_site_verifications).toEqual([kode]);
+    expect((await ambilSitus(sql)).store?.google_site_verifications).toEqual([kode]);
+
+    const { google_site_verifications: _kode, ...tanpaKode } = isiToko(await ambilSitus(sql));
+    const lagi = await simpanToko(sql, { ...tanpaKode, wa_number: "6281200000001" });
+    expect(lagi.wa_number).toBe("6281200000001");
+    expect(lagi.google_site_verifications).toEqual([kode]);
+
+    const kosong = await simpanToko(sql, { ...tanpaKode, google_site_verifications: [] });
+    expect(kosong.google_site_verifications).toEqual([]);
+  });
+
+  it("database menolak kode verifikasi Google yang bentuknya salah", async () => {
+    for (const isi of ['["<script>"]', '["pendek"]', '{"kode": "Yznm88IpWbnk7WlhVrlbr1yzJyJP1"}', '"Yznm88IpWbnk7WlhVrlbr1yzJyJP1"']) {
+      const hasil = await sql`update store_settings set google_site_verifications = ${isi}::jsonb`.then(
+        () => "lolos",
+        (e: unknown) => (e as { constraint_name?: string }).constraint_name ?? String(e),
+      );
+      expect(hasil, isi).toBe("store_settings_verifikasi_google");
+    }
+  });
 });
 
 describe("simpanKategori", () => {

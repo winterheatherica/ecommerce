@@ -17,6 +17,7 @@ export type TokoBaru = {
   closes_at: string;
   closed_on_holidays: boolean;
   social_links: TautanSosial[];
+  google_site_verifications?: string[];
 };
 
 export type TokoBersih = Omit<TokoBaru, "wa_link" | "maps_url"> & {
@@ -25,6 +26,22 @@ export type TokoBersih = Omit<TokoBaru, "wa_link" | "maps_url"> & {
 };
 
 export const SOSIAL_MAKS = 8;
+
+export const VERIFIKASI_GOOGLE_MAKS = 5;
+
+const POLA_KODE_GOOGLE = /^[A-Za-z0-9_-]{10,100}$/;
+
+export function kodeVerifikasiGoogle(baris: string): string | null {
+  const t = baris.trim();
+  const nama = t.match(/\bname\s*=\s*["']([^"']*)["']/i);
+  if (nama && nama[1].trim().toLowerCase() !== "google-site-verification") return null;
+
+  const isi = t.match(/\bcontent\s*=\s*["']([^"']*)["']/i);
+  if (!isi && t.includes("<")) return null;
+
+  const kode = (isi ? isi[1] : t).trim();
+  return POLA_KODE_GOOGLE.test(kode) ? kode : null;
+}
 
 const POLA_JAM = /^([01][0-9]|2[0-3]):[0-5][0-9]$/;
 const POLA_URL = /^https:\/\/\S{4,300}$/;
@@ -113,6 +130,32 @@ export function periksaToko(
     sosial.push({ label, url });
   }
 
+  let verifikasi: string[] | undefined;
+  if (data.google_site_verifications !== undefined) {
+    verifikasi = [];
+    for (const baris of data.google_site_verifications) {
+      if (!baris.trim()) continue;
+
+      const kode = kodeVerifikasiGoogle(baris);
+      if (!kode) {
+        return gagal(
+          "invalid_google_verification",
+          'Kode verifikasi Google tidak dikenali. Tempel tag <meta name="google-site-verification" ...> dari Google, atau isi content-nya saja',
+          "google_site_verifications",
+        );
+      }
+      if (!verifikasi.includes(kode)) verifikasi.push(kode);
+    }
+
+    if (verifikasi.length > VERIFIKASI_GOOGLE_MAKS) {
+      return gagal(
+        "too_many_google_verifications",
+        `Maksimal ${VERIFIKASI_GOOGLE_MAKS} kode verifikasi Google`,
+        "google_site_verifications",
+      );
+    }
+  }
+
   return {
     ok: true,
     bersih: {
@@ -130,6 +173,7 @@ export function periksaToko(
       closes_at: data.closes_at,
       closed_on_holidays: data.closed_on_holidays,
       social_links: sosial,
+      ...(verifikasi === undefined ? {} : { google_site_verifications: verifikasi }),
     },
   };
 }
