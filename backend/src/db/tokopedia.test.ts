@@ -53,8 +53,8 @@ describe("rating Tokopedia dan rating gabungan di produk", () => {
 
     expect(produk?.tokopedia_rating).toBe(4.6);
     expect(produk?.tokopedia_rating_count).toBe(300);
-    expect(produk?.shopee_rating).toBe(4.87);
-    expect(produk?.rating).toBe(4.69);
+    expect(produk?.shopee_rating).toBeCloseTo(730 / 150, 10);
+    expect(produk?.rating).toBeCloseTo(2110 / 450, 10);
     expect(produk?.rating_count).toBe(450);
     expect(
       produk?.variants.map((v) => [v.slug, v.tokopedia_rating, v.tokopedia_rating_count, v.tokopedia_url]),

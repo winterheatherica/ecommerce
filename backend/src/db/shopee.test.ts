@@ -50,7 +50,7 @@ describe("rating Shopee di produk", () => {
 
     const produk = await satuProduk(sql, KUCING);
 
-    expect(produk?.shopee_rating).toBe(4.9);
+    expect(produk?.shopee_rating).toBeCloseTo(4945 / 1010, 10);
     expect(produk?.shopee_rating_count).toBe(1010);
     expect(
       produk?.variants.map((v) => [v.slug, v.shopee_rating, v.shopee_rating_count]),

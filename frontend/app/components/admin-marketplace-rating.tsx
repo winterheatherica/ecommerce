@@ -30,14 +30,14 @@ const ATURAN: Record<Marketplace, Aturan> = {
     pola: /^https:\/\/shopee\.co\.id\/\S+$/,
     awalan: "https://shopee.co.id/",
     petunjuk:
-      "Salin dari halaman listing tiap ukuran di Shopee. Untuk 1.000 penilaian ke atas Shopee menyingkat angkanya (misalnya 1,8RB), jadi isi perkiraan terdekat. Tanggal update terisi sendiri setiap rating atau jumlahnya disimpan.",
+      "Salin dari halaman listing tiap ukuran di Shopee. Untuk 1.000 penilaian ke atas Shopee menyingkat angkanya (misalnya 1,8RB), jadi isi perkiraan terdekat. Tanggal update maju sendiri setiap rating atau jumlahnya berubah. Ulasan Shopee yang ditulis setelah tanggal itu otomatis ikut dihitung di toko.",
     kirim: (url, rata, jumlah) => ({ shopee_url: url, shopee_rating: rata, shopee_rating_count: jumlah }),
   },
   tokopedia: {
     pola: /^https:\/\/(www\.)?tokopedia\.com\/\S+$/,
     awalan: "https://www.tokopedia.com/",
     petunjuk:
-      "Salin dari halaman listing tiap ukuran di Tokopedia: angka rating dan jumlah rating, bukan jumlah ulasan. Kalau angkanya disingkat (misalnya 4,8 rb), isi perkiraan terdekat. Tanggal update terisi sendiri setiap rating atau jumlahnya disimpan.",
+      "Salin dari halaman listing tiap ukuran di Tokopedia: angka rating dan jumlah rating, bukan jumlah ulasan. Kalau angkanya disingkat (misalnya 4,8 rb), isi perkiraan terdekat. Tanggal update maju sendiri setiap rating atau jumlahnya berubah. Ulasan Tokopedia yang ditulis setelah tanggal itu otomatis ikut dihitung di toko.",
     kirim: (url, rata, jumlah) => ({
       tokopedia_url: url,
       tokopedia_rating: rata,
@@ -139,6 +139,10 @@ export default function AdminMarketplaceRating({
   const kepala =
     "px-3 py-2 font-mono text-[12px] tracking-[0.18em] font-normal text-stone-500 uppercase";
   const ringkas = marketplace === "shopee" ? produk.ratingShopee : produk.ratingTokopedia;
+  const baruAktif = produk.varian.reduce(
+    (n, v) => (v.aktif === false ? n : n + (v[marketplace]?.baru ?? 0)),
+    0,
+  );
 
   return (
     <section className="mt-12 border-t border-ink/10 pt-10">
@@ -166,6 +170,7 @@ export default function AdminMarketplaceRating({
               const isi = isian[v.slug];
               const mati = menyimpan === v.slug;
               const per = v[marketplace]?.per;
+              const baru = v[marketplace]?.baru ?? 0;
 
               return (
                 <tr key={v.slug} className={v.aktif === false ? "bg-stone-50" : ""}>
@@ -211,6 +216,11 @@ export default function AdminMarketplaceRating({
                   </td>
                   <td className="px-3 py-3 align-top font-mono text-[12px] whitespace-nowrap text-stone-500">
                     {per ? tanggalRating(per) : "-"}
+                    {baru > 0 && (
+                      <span className="mt-1 block font-sans text-xs text-emerald-700">
+                        +{jumlahLengkap(baru)} ulasan baru
+                      </span>
+                    )}
                   </td>
                   <td className="px-3 py-3 align-top">
                     <button
@@ -241,7 +251,7 @@ export default function AdminMarketplaceRating({
 
       <p className="mt-4 text-sm text-stone-500">
         {ringkas
-          ? `Total ${nama} di toko: ${angkaRating(ringkas.rata)} dari ${jumlahLengkap(ringkas.jumlah)} ${satuan}, rata-rata tertimbang dari ukuran yang aktif. Di halaman produk angka ini digabung dengan marketplace lain.`
+          ? `Total ${nama} di toko: ${angkaRating(ringkas.rata)} dari ${jumlahLengkap(ringkas.jumlah)} ${satuan}, rata-rata tertimbang dari ukuran yang aktif${baruAktif > 0 ? `, sudah termasuk ${jumlahLengkap(baruAktif)} ulasan baru` : ""}. Di halaman produk angka ini digabung dengan marketplace lain.`
           : `Belum ada rating ${nama} yang tampil di toko untuk produk ini.`}
       </p>
     </section>

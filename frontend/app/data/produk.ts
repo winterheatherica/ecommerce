@@ -41,6 +41,7 @@ export type RatingVarian = {
   rata: number | null;
   jumlah: number | null;
   per: string | null;
+  baru: number;
 };
 
 export type RingkasanRating = { rata: number; jumlah: number };

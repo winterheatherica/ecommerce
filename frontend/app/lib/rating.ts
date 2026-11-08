@@ -1,5 +1,3 @@
-import type { Varian } from "@/app/data/produk";
-
 export function angkaRating(rata: number): string {
   return rata.toLocaleString("id-ID", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 }
@@ -34,12 +32,3 @@ export const SATUAN_RATING: Record<Marketplace, string> = {
   shopee: "penilaian",
   tokopedia: "rating",
 };
-
-export function perTerbaru(varian: Varian[], sumber: Marketplace = "shopee"): string | null {
-  const daftar = varian.flatMap((v) => {
-    const per = v[sumber]?.per;
-    return per ? [per] : [];
-  });
-  if (daftar.length === 0) return null;
-  return daftar.reduce((a, b) => (Date.parse(b) > Date.parse(a) ? b : a));
-}

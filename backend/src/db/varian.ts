@@ -114,15 +114,33 @@ export type HasilUbahVarian =
         | "tokopedia_rating_inconsistent";
     };
 
+function tanggalRating(
+  sql: Sql,
+  marketplace: "shopee" | "tokopedia",
+  rating: number | null | undefined,
+  jumlah: number | null | undefined,
+) {
+  if (rating === undefined && jumlah === undefined) return sql``;
+
+  const kolomRating = sql(`${marketplace}_rating`);
+  const kolomJumlah = sql(`${marketplace}_rating_count`);
+  const kolomTanggal = sql(`${marketplace}_rating_at`);
+  const ratingBaru = rating === undefined ? kolomRating : sql`${rating}::numeric`;
+  const jumlahBaru = jumlah === undefined ? kolomJumlah : sql`${jumlah}::int`;
+
+  return sql`,
+    ${kolomTanggal} = case
+      when ${kolomRating} is distinct from ${ratingBaru} or ${kolomJumlah} is distinct from ${jumlahBaru}
+      then now()
+      else ${kolomTanggal}
+    end`;
+}
+
 export async function perbaruiVarian(
   sql: Sql,
   slug: string,
   b: PerubahanVarianBersih,
 ): Promise<HasilUbahVarian> {
-  const shopeeBerubah = b.shopee_rating !== undefined || b.shopee_rating_count !== undefined;
-  const tokopediaBerubah =
-    b.tokopedia_rating !== undefined || b.tokopedia_rating_count !== undefined;
-
   try {
     const varian =
       Object.keys(b).length === 0
@@ -132,8 +150,8 @@ export async function perbaruiVarian(
               update product_variants v
               set ${sql(b as Record<string, never>)},
                   updated_at = now()
-                  ${shopeeBerubah ? sql`, shopee_rating_at = now()` : sql``}
-                  ${tokopediaBerubah ? sql`, tokopedia_rating_at = now()` : sql``}
+                  ${tanggalRating(sql, "shopee", b.shopee_rating, b.shopee_rating_count)}
+                  ${tanggalRating(sql, "tokopedia", b.tokopedia_rating, b.tokopedia_rating_count)}
               where v.slug = ${slug}
               returning ${kolom(sql)}
             `

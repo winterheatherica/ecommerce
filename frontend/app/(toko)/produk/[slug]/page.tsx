@@ -17,9 +17,7 @@ import {
   angkaRating,
   jumlahLengkap,
   NAMA_MARKETPLACE,
-  perTerbaru,
   SATUAN_RATING,
-  tanggalRating,
 } from "@/app/lib/rating";
 import {
   rentangHarga,
@@ -244,6 +242,10 @@ function RatingMarketplace({ produk }: { produk: Produk }) {
   const ukuranDinilai = produk.varian.filter(
     (v) => (v.shopee?.jumlah ?? 0) + (v.tokopedia?.jumlah ?? 0) > 0,
   ).length;
+  const baris = daftar.flatMap(({ m, r }) => {
+    const link = tunggal?.[m]?.url ?? null;
+    return daftar.length > 1 || link ? [{ m, r, link }] : [];
+  });
 
   return (
     <div className="mt-4">
@@ -256,30 +258,22 @@ function RatingMarketplace({ produk }: { produk: Produk }) {
         {daftar.map(({ m }) => NAMA_MARKETPLACE[m]).join(" dan ")}
         {ukuranDinilai > 1 ? `, gabungan ${ukuranDinilai} ukuran` : ""}
       </p>
-      <ul className="mt-1.5 space-y-1 text-xs text-stone-500">
-        {daftar.map(({ m, r }) => {
-          const per = perTerbaru(produk.varian, m);
-          const link = tunggal?.[m]?.url ?? null;
-          if (daftar.length === 1 && !per && !link) return null;
-
-          return (
+      {baris.length > 0 && (
+        <ul className="mt-1.5 space-y-1 text-xs text-stone-500">
+          {baris.map(({ m, r, link }) => (
             <li key={m} className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-              <span>
-                {daftar.length > 1
-                  ? `${NAMA_MARKETPLACE[m]} ${angkaRating(r.rata)} dari ${jumlahLengkap(r.jumlah)} ${SATUAN_RATING[m]}${per ? `, per ${tanggalRating(per)}` : ""}`
-                  : per
-                    ? `Angka dari ${NAMA_MARKETPLACE[m]} per ${tanggalRating(per)}`
-                    : ""}
-              </span>
+              {daftar.length > 1 && (
+                <span>{`${NAMA_MARKETPLACE[m]} ${angkaRating(r.rata)} dari ${jumlahLengkap(r.jumlah)} ${SATUAN_RATING[m]}`}</span>
+              )}
               {link && (
                 <a href={link} target="_blank" rel="noopener nofollow" className={kelasLink}>
                   Lihat di {NAMA_MARKETPLACE[m]} &#8599;
                 </a>
               )}
             </li>
-          );
-        })}
-      </ul>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }

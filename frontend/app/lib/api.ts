@@ -58,10 +58,12 @@ type VarianAPI = {
   shopee_rating?: number | null;
   shopee_rating_count?: number | null;
   shopee_rating_at?: string | null;
+  shopee_new_reviews?: number;
   tokopedia_url?: string | null;
   tokopedia_rating?: number | null;
   tokopedia_rating_count?: number | null;
   tokopedia_rating_at?: string | null;
+  tokopedia_new_reviews?: number;
 };
 
 type ProdukAPI = {
@@ -104,9 +106,16 @@ function ratingVarian(
   rata: number | null | undefined,
   jumlah: number | null | undefined,
   per: string | null | undefined,
+  baru: number | undefined,
 ): RatingVarian | null {
   if (!url && jumlah == null) return null;
-  return { url: url ?? null, rata: rata ?? null, jumlah: jumlah ?? null, per: per ?? null };
+  return {
+    url: url ?? null,
+    rata: rata ?? null,
+    jumlah: jumlah ?? null,
+    per: per ?? null,
+    baru: baru ?? 0,
+  };
 }
 
 function ringkasanRating(
@@ -131,12 +140,19 @@ function petakan(p: ProdukAPI): Produk {
     aktif: v.is_active,
     paketBeratG: v.package_weight_g ?? null,
     paketDimensi: dimensiPaket(v),
-    shopee: ratingVarian(v.shopee_url, v.shopee_rating, v.shopee_rating_count, v.shopee_rating_at),
+    shopee: ratingVarian(
+      v.shopee_url,
+      v.shopee_rating,
+      v.shopee_rating_count,
+      v.shopee_rating_at,
+      v.shopee_new_reviews,
+    ),
     tokopedia: ratingVarian(
       v.tokopedia_url,
       v.tokopedia_rating,
       v.tokopedia_rating_count,
       v.tokopedia_rating_at,
+      v.tokopedia_new_reviews,
     ),
     promo:
       v.promo_show_period === undefined

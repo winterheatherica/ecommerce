@@ -14,11 +14,16 @@ export type KolomRating = {
   shopee_url: string | null;
   shopee_rating: number | null;
   shopee_rating_count: number | null;
-  shopee_rating_at: string | null;
   tokopedia_url: string | null;
   tokopedia_rating: number | null;
   tokopedia_rating_count: number | null;
+};
+
+export type KolomRatingAdmin = KolomRating & {
+  shopee_rating_at: string | null;
+  shopee_new_reviews: number;
   tokopedia_rating_at: string | null;
+  tokopedia_new_reviews: number;
 };
 
 export type BarisVarian = KolomRating & {
@@ -41,7 +46,8 @@ export type RingkasanRating = {
   rating_count: number;
 };
 
-export type BarisVarianLengkap = Omit<BarisVarian, "regular_price" | "promo_visible_until"> & {
+export type BarisVarianLengkap = Omit<BarisVarian, "regular_price" | "promo_visible_until"> &
+  KolomRatingAdmin & {
   sku: string;
   sort_order: number;
   is_active: boolean;
@@ -114,52 +120,90 @@ const dasar = (sql: Kueri) => sql`
   is_active
 `;
 
+const ratingTampil = (sql: Kueri) => sql`
+  cross join lateral (
+    select
+      count(*) filter (where r.source = 'shopee' and r.reviewed_at > v.shopee_rating_at)::int as shopee,
+      count(*) filter (where r.source = 'tokopedia' and r.reviewed_at > v.tokopedia_rating_at)::int as tokopedia,
+      coalesce(sum(r.rating) filter (where r.source = 'shopee' and r.reviewed_at > v.shopee_rating_at), 0) as bintang_shopee,
+      coalesce(sum(r.rating) filter (where r.source = 'tokopedia' and r.reviewed_at > v.tokopedia_rating_at), 0) as bintang_tokopedia
+    from reviews r
+    where r.variant_id = v.id
+      and r.reviewed_at > least(v.shopee_rating_at, v.tokopedia_rating_at)
+      and not r.is_hidden
+      and r.reviewed_precision <> 'over_year'
+  ) baru
+  cross join lateral (
+    select
+      coalesce(v.shopee_rating_count, 0) + baru.shopee as jumlah_shopee,
+      coalesce(v.shopee_rating * v.shopee_rating_count, 0) + baru.bintang_shopee as bintang_shopee,
+      coalesce(v.tokopedia_rating_count, 0) + baru.tokopedia as jumlah_tokopedia,
+      coalesce(v.tokopedia_rating * v.tokopedia_rating_count, 0) + baru.bintang_tokopedia as bintang_tokopedia
+  ) tampil
+`;
+
 const ringkasanRating = (sql: Kueri) => sql`
   (
-    select round(sum(v.shopee_rating * v.shopee_rating_count) / sum(v.shopee_rating_count), 2)::float8
-    from product_variants v
-    where v.product_id = products.id and v.is_active and v.shopee_rating_count > 0
+    select (sum(tampil.bintang_shopee) / nullif(sum(tampil.jumlah_shopee), 0))::float8
+    from product_variants v ${ratingTampil(sql)}
+    where v.product_id = products.id and v.is_active
   ) as shopee_rating,
   (
-    select coalesce(sum(v.shopee_rating_count), 0)::int
-    from product_variants v
+    select coalesce(sum(tampil.jumlah_shopee), 0)::int
+    from product_variants v ${ratingTampil(sql)}
     where v.product_id = products.id and v.is_active
   ) as shopee_rating_count,
   (
-    select round(sum(v.tokopedia_rating * v.tokopedia_rating_count) / sum(v.tokopedia_rating_count), 2)::float8
-    from product_variants v
-    where v.product_id = products.id and v.is_active and v.tokopedia_rating_count > 0
+    select (sum(tampil.bintang_tokopedia) / nullif(sum(tampil.jumlah_tokopedia), 0))::float8
+    from product_variants v ${ratingTampil(sql)}
+    where v.product_id = products.id and v.is_active
   ) as tokopedia_rating,
   (
-    select coalesce(sum(v.tokopedia_rating_count), 0)::int
-    from product_variants v
+    select coalesce(sum(tampil.jumlah_tokopedia), 0)::int
+    from product_variants v ${ratingTampil(sql)}
     where v.product_id = products.id and v.is_active
   ) as tokopedia_rating_count,
   (
-    select round(
-      sum(coalesce(v.shopee_rating * v.shopee_rating_count, 0) + coalesce(v.tokopedia_rating * v.tokopedia_rating_count, 0))
-        / nullif(sum(coalesce(v.shopee_rating_count, 0) + coalesce(v.tokopedia_rating_count, 0)), 0),
-      2
+    select (
+      sum(tampil.bintang_shopee + tampil.bintang_tokopedia)
+        / nullif(sum(tampil.jumlah_shopee + tampil.jumlah_tokopedia), 0)
     )::float8
-    from product_variants v
+    from product_variants v ${ratingTampil(sql)}
     where v.product_id = products.id and v.is_active
   ) as rating,
   (
-    select coalesce(sum(coalesce(v.shopee_rating_count, 0) + coalesce(v.tokopedia_rating_count, 0)), 0)::int
-    from product_variants v
+    select coalesce(sum(tampil.jumlah_shopee + tampil.jumlah_tokopedia), 0)::int
+    from product_variants v ${ratingTampil(sql)}
     where v.product_id = products.id and v.is_active
   ) as rating_count
 `;
 
 const ratingVarian = (sql: Kueri) => sql`
   'shopee_url', v.shopee_url,
+  'shopee_rating', (tampil.bintang_shopee / nullif(tampil.jumlah_shopee, 0))::float8,
+  'shopee_rating_count', case
+    when v.shopee_rating_count is null and baru.shopee = 0 then null
+    else tampil.jumlah_shopee
+  end,
+  'tokopedia_url', v.tokopedia_url,
+  'tokopedia_rating', (tampil.bintang_tokopedia / nullif(tampil.jumlah_tokopedia, 0))::float8,
+  'tokopedia_rating_count', case
+    when v.tokopedia_rating_count is null and baru.tokopedia = 0 then null
+    else tampil.jumlah_tokopedia
+  end
+`;
+
+const ratingVarianAdmin = (sql: Kueri) => sql`
+  'shopee_url', v.shopee_url,
   'shopee_rating', v.shopee_rating,
   'shopee_rating_count', v.shopee_rating_count,
   'shopee_rating_at', v.shopee_rating_at,
+  'shopee_new_reviews', baru.shopee,
   'tokopedia_url', v.tokopedia_url,
   'tokopedia_rating', v.tokopedia_rating,
   'tokopedia_rating_count', v.tokopedia_rating_count,
-  'tokopedia_rating_at', v.tokopedia_rating_at
+  'tokopedia_rating_at', v.tokopedia_rating_at,
+  'tokopedia_new_reviews', baru.tokopedia
 `;
 
 const kolom = (sql: Kueri) => sql`
@@ -186,7 +230,7 @@ const kolom = (sql: Kueri) => sql`
         ${ratingVarian(sql)}
       ) order by v.sort_order, v.price
     )
-    from product_variants v
+    from product_variants v ${ratingTampil(sql)}
     where v.product_id = products.id and v.is_active
   ), '[]'::jsonb) as variants
 `;
@@ -209,7 +253,7 @@ const kolomAdmin = (sql: Kueri) => sql`
         'package_length_cm', v.package_length_cm,
         'package_width_cm', v.package_width_cm,
         'package_height_cm', v.package_height_cm,
-        ${ratingVarian(sql)},
+        ${ratingVarianAdmin(sql)},
         'sort_order', v.sort_order,
         'is_active', v.is_active,
         'promo_price', v.promo_price,
@@ -220,7 +264,7 @@ const kolomAdmin = (sql: Kueri) => sql`
         'promo_status', status_promo(v.promo_price, v.promo_starts_at, v.promo_ends_at)
       ) order by v.sort_order, v.price
     )
-    from product_variants v
+    from product_variants v ${ratingTampil(sql)}
     where v.product_id = products.id
   ), '[]'::jsonb) as variants
 `;
