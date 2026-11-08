@@ -1,8 +1,11 @@
 import type { Sql } from "../lib/db";
-import { cocokKunci, kunciProduk, tebakVarian, type VarianKatalog } from "../lib/cocok-produk";
+import { cocokKunci, kandidatVarian, kunciProduk, tebakVarian, type VarianKatalog } from "../lib/cocok-produk";
 import type { SumberImpor, UlasanImporBersih } from "../lib/ulasan";
+import { namaUntukCocok, pelajariNamaMarketplace } from "./nama-marketplace";
 
-export type TebakanVarian = { slug: string; dari: "alias" | "mirip" } | null;
+export type TebakanVarian = { slug: string; dari: "nama" | "mirip" } | null;
+
+export type SaranVarian = { tebakan: TebakanVarian; kandidat: string[] };
 
 export type CiriUlasan = {
   nama_asli: string;
@@ -34,30 +37,42 @@ export async function katalogVarian(sql: Sql): Promise<VarianKatalog[]> {
   return [...baris];
 }
 
+export async function saranVarianUntuk(
+  sql: Sql,
+  source: SumberImpor,
+  namaMarketplace: (string | null)[],
+): Promise<SaranVarian[]> {
+  const tercatat = await namaUntukCocok(sql, source);
+  const katalog = await katalogVarian(sql);
+
+  return namaMarketplace.map((nama) => {
+    if (!nama) return { tebakan: null, kandidat: [] };
+
+    const mirip = kandidatVarian(nama, katalog);
+    const kunci = kunciProduk(nama);
+    const persis = tercatat.filter((t) => t.name_key === kunci);
+    const cocok = persis.length > 0 ? persis : tercatat.filter((t) => cocokKunci(kunci, t.name_key));
+    const dariNama = [...new Set(cocok.map((t) => t.slug))];
+
+    if (dariNama.length > 0) {
+      const kandidat = [...dariNama, ...mirip.filter((k) => !dariNama.includes(k))].slice(0, 3);
+      return {
+        tebakan: dariNama.length === 1 ? { slug: dariNama[0], dari: "nama" } : null,
+        kandidat,
+      };
+    }
+
+    const slug = tebakVarian(nama, katalog);
+    return { tebakan: slug ? { slug, dari: "mirip" } : null, kandidat: mirip };
+  });
+}
+
 export async function tebakVarianUntuk(
   sql: Sql,
   source: SumberImpor,
   namaMarketplace: (string | null)[],
 ): Promise<TebakanVarian[]> {
-  const alias = await sql<{ product_key: string; slug: string }[]>`
-    select a.product_key, v.slug
-    from review_product_aliases a
-    join product_variants v on v.id = a.variant_id
-    where a.source = ${source}
-    order by a.updated_at desc
-  `;
-  const katalog = await katalogVarian(sql);
-
-  return namaMarketplace.map((nama) => {
-    if (!nama) return null;
-
-    const kunci = kunciProduk(nama);
-    const ingat = alias.find((a) => a.product_key === kunci) ?? alias.find((a) => cocokKunci(kunci, a.product_key));
-    if (ingat) return { slug: ingat.slug, dari: "alias" };
-
-    const slug = tebakVarian(nama, katalog);
-    return slug ? { slug, dari: "mirip" } : null;
-  });
+  return (await saranVarianUntuk(sql, source, namaMarketplace)).map((s) => s.tebakan);
 }
 
 export async function cariUlasanKembar(sql: Sql, source: SumberImpor, daftar: CiriUlasan[]): Promise<boolean[]> {
@@ -165,24 +180,14 @@ export async function simpanUlasanMassal(
       `;
     }
 
-    const alias = new Map<string, number>();
-    for (const d of daftar) {
-      if (!d.produk_marketplace) continue;
-      const kunci = kunciProduk(d.produk_marketplace);
-      const id = idVarian.get(d.variant_slug);
-      if (kunci && id) alias.set(kunci, id);
-    }
-
-    if (alias.size > 0) {
-      const isiAlias = [...alias].map(([product_key, variant_id]) => ({ product_key, variant_id }));
-      await tx`
-        insert into review_product_aliases (source, product_key, variant_id)
-        select ${source}, x.product_key, x.variant_id
-        from jsonb_to_recordset(${tx.json(isiAlias)}) as x(product_key text, variant_id bigint)
-        on conflict (source, product_key)
-        do update set variant_id = excluded.variant_id, updated_at = now()
-      `;
-    }
+    await pelajariNamaMarketplace(
+      tx as unknown as Sql,
+      source,
+      daftar.flatMap((d) => {
+        const id = idVarian.get(d.variant_slug);
+        return d.produk_marketplace && id ? [{ variant_id: id, nama: d.produk_marketplace }] : [];
+      }),
+    );
 
     return { ok: true, masuk: baru.length, kembar: daftar.length - baru.length } as const;
   });

@@ -36,7 +36,8 @@ import {
   samarkanPengulas,
 } from "../lib/ulasan";
 import { bacaScreenshotUlasan, keBase64, periksaScreenshot, type PemanggilAi } from "../lib/baca-ulasan";
-import { cariUlasanKembar, simpanUlasanMassal, tebakVarianUntuk, type BarisImpor } from "../db/impor-ulasan";
+import { cariUlasanKembar, saranVarianUntuk, simpanUlasanMassal, type BarisImpor } from "../db/impor-ulasan";
+import { daftarNamaMarketplace, hapusNamaMarketplace, tambahNamaMarketplace } from "../db/nama-marketplace";
 import {
   ULASAN_PER_HALAMAN,
   halamanUlasan,
@@ -1277,7 +1278,7 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
       const sql = koneksi();
 
       try {
-        const tebakan = await tebakVarianUntuk(sql, body.source, hasil.ulasan.map((u) => u.produk));
+        const saran = await saranVarianUntuk(sql, body.source, hasil.ulasan.map((u) => u.produk));
         const kembar = await cariUlasanKembar(
           sql,
           body.source,
@@ -1300,8 +1301,9 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
             reviewed_precision: u.presisi,
             marketplace_product: u.produk,
             complete: u.utuh,
-            variant_slug: tebakan[i]?.slug ?? null,
-            variant_guess: tebakan[i]?.dari ?? null,
+            variant_slug: saran[i]?.tebakan?.slug ?? null,
+            variant_guess: saran[i]?.tebakan?.dari ?? null,
+            variant_candidates: saran[i]?.kandidat ?? [],
             duplicate: kembar[i],
           })),
         };
@@ -1383,6 +1385,72 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
         ),
       }),
     },
+  )
+  .get(
+    "/products/:slug/marketplace-names",
+    async ({ params }) => {
+      const sql = koneksi();
+
+      try {
+        return { data: await daftarNamaMarketplace(sql, params.slug) };
+      } finally {
+        await tutup(sql);
+      }
+    },
+    { params: t.Object({ slug: t.String({ maxLength: 120 }) }) },
+  )
+  .post(
+    "/variants/:slug/marketplace-names",
+    async ({ params, body, set }) => {
+      const sql = koneksi();
+
+      try {
+        const hasil = await tambahNamaMarketplace(sql, params.slug, body.source, body.name);
+
+        if (!hasil.ok) {
+          if (hasil.alasan === "not_found") {
+            set.status = 404;
+            return { error: "not_found", message: "Ukuran tidak ditemukan" };
+          }
+          if (hasil.alasan === "duplicate") {
+            set.status = 409;
+            return { error: "duplicate", message: "Nama ini sudah tercatat di ukuran ini" };
+          }
+          set.status = 422;
+          return { error: "invalid_name", message: "Nama listing belum diisi" };
+        }
+
+        set.status = 201;
+        return hasil.nama;
+      } finally {
+        await tutup(sql);
+      }
+    },
+    {
+      params: t.Object({ slug: t.String({ maxLength: 120 }) }),
+      body: t.Object({
+        source: t.Union([t.Literal("shopee"), t.Literal("tokopedia")]),
+        name: t.String({ minLength: 1, maxLength: 200 }),
+      }),
+    },
+  )
+  .delete(
+    "/marketplace-names/:id",
+    async ({ params, set }) => {
+      const sql = koneksi();
+
+      try {
+        if (!(await hapusNamaMarketplace(sql, params.id))) {
+          set.status = 404;
+          return { error: "not_found", message: "Nama tidak ditemukan" };
+        }
+
+        return { deleted: true };
+      } finally {
+        await tutup(sql);
+      }
+    },
+    { params: t.Object({ id: t.Numeric({ minimum: 1 }) }) },
   )
   .get(
     "/products/:slug/reviews",

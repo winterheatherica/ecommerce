@@ -5,6 +5,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 import ZonaHapusProduk from "@/app/components/admin-hapus-produk";
+import AdminNamaMarketplace from "@/app/components/admin-nama-marketplace";
+import type { NamaMarketplace } from "@/app/lib/api";
 import AdminMarketplaceRating from "@/app/components/admin-marketplace-rating";
 import KolomPilih from "@/app/components/kolom-pilih";
 import AdminPhotoEditor, {
@@ -33,9 +35,10 @@ function keSlug(teks: string) {
 type Props = {
   awal?: Produk;
   kembali?: string;
+  namaMarketplace?: NamaMarketplace[];
 };
 
-export default function AdminProductForm({ awal, kembali = "/admin/produk" }: Props) {
+export default function AdminProductForm({ awal, kembali = "/admin/produk", namaMarketplace = [] }: Props) {
   const router = useRouter();
   const ubahMode = Boolean(awal);
 
@@ -364,6 +367,7 @@ export default function AdminProductForm({ awal, kembali = "/admin/produk" }: Pr
       {ubahMode && awal && <AdminPromoEditor produk={awal} />}
       {ubahMode && awal && <AdminMarketplaceRating produk={awal} marketplace="shopee" />}
       {ubahMode && awal && <AdminMarketplaceRating produk={awal} marketplace="tokopedia" />}
+      {ubahMode && awal && <AdminNamaMarketplace produk={awal} awal={namaMarketplace} />}
       {ubahMode && awal && <AdminReviews produk={awal} />}
       {ubahMode && awal && <ZonaHapusProduk produk={awal} kembali={kembali} />}
     </div>

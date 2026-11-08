@@ -28,7 +28,8 @@ type Baris = {
   presisi: "day" | "month";
   produk: string | null;
   varian: string;
-  tebakan: "alias" | "mirip" | null;
+  tebakan: "nama" | "mirip" | null;
+  kandidat: string[];
   utuh: boolean;
   kembar: boolean;
   galat?: string;
@@ -124,6 +125,7 @@ function keBaris(u: UlasanScreenshot, sumber: SumberImporUlasan, layar: number, 
     produk: u.marketplace_product,
     varian: u.variant_slug ?? "",
     tebakan: u.variant_guess,
+    kandidat: u.variant_candidates ?? [],
     utuh: u.complete,
     kembar: u.duplicate,
   };
@@ -168,6 +170,7 @@ export default function AdminImporUlasan({ varian }: { varian: PilihanVarian[] }
   }, []);
 
   const opsiVarian = [{ nilai: "", label: "Pilih ukuran" }, ...varian];
+  const labelVarian = new Map(varian.map((v) => [v.nilai, v.label]));
   const terpilih = baris.filter((b) => b.pilih);
   const semuaDipilih = baris.length > 0 && terpilih.length === baris.length;
 
@@ -564,8 +567,34 @@ export default function AdminImporUlasan({ varian }: { varian: PilihanVarian[] }
                     />
                     {b.tebakan && b.varian && (
                       <p className="mt-1 font-mono text-[12px] text-stone-400">
-                        {b.tebakan === "alias" ? "Diingat dari impor sebelumnya" : "Tebakan dari nama produk, cek lagi"}
+                        {b.tebakan === "nama"
+                          ? `Cocok dengan nama listing di ${LABEL_SUMBER[b.sumber].teks}`
+                          : "Tebakan dari nama produk, cek lagi"}
                       </p>
+                    )}
+                    {b.kandidat.some((k) => labelVarian.has(k)) && (
+                      <div className="mt-2">
+                        <p className="font-mono text-[11px] tracking-[0.14em] text-stone-400 uppercase">Paling mirip</p>
+                        <div className="mt-1.5 flex flex-wrap gap-1.5">
+                          {b.kandidat
+                            .filter((k) => labelVarian.has(k))
+                            .map((k) => (
+                              <button
+                                key={k}
+                                type="button"
+                                aria-pressed={b.varian === k}
+                                onClick={() => ubahBaris(b.id, { varian: k, tebakan: null })}
+                                className={`max-w-full border px-2 py-1 text-left text-[12px] leading-snug transition-colors ${
+                                  b.varian === k
+                                    ? "border-brand-500 bg-brand-50 text-brand-700"
+                                    : "border-ink/15 text-stone-600 hover:border-brand-400 hover:text-brand-600"
+                                }`}
+                              >
+                                {labelVarian.get(k)}
+                              </button>
+                            ))}
+                        </div>
+                      </div>
                     )}
                   </div>
                 </div>

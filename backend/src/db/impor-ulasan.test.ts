@@ -3,7 +3,13 @@ import { afterAll, beforeEach, describe, expect, it } from "vitest";
 import type { Sql } from "../lib/db";
 import { periksaUlasanImpor, type SumberImpor } from "../lib/ulasan";
 import { bersihkan, koneksiTes } from "../test/db";
-import { cariUlasanKembar, simpanUlasanMassal, tebakVarianUntuk, type BarisImpor } from "./impor-ulasan";
+import {
+  cariUlasanKembar,
+  saranVarianUntuk,
+  simpanUlasanMassal,
+  tebakVarianUntuk,
+  type BarisImpor,
+} from "./impor-ulasan";
 import { satuProduk } from "./produk";
 
 const sql: Sql = koneksiTes();
@@ -13,7 +19,7 @@ const SEKARANG = new Date("2026-11-08T00:00:00.000Z");
 
 beforeEach(async () => {
   await bersihkan(sql);
-  await sql`delete from review_product_aliases`;
+  await sql`delete from variant_marketplace_names`;
 });
 
 afterAll(async () => {
@@ -99,12 +105,25 @@ describe("simpanUlasanMassal", () => {
     ]);
 
     const [shopee] = await tebakVarianUntuk(sql, "shopee", ["Alat pengusir kucing Bye Bye Cat 50g untuk ceg"]);
-    expect(shopee).toEqual({ slug: KUCING_BESAR, dari: "alias" });
+    expect(shopee).toEqual({ slug: KUCING_BESAR, dari: "nama" });
 
     const [tokopedia] = await tebakVarianUntuk(sql, "tokopedia", ["Alat pengusir kucing Bye Bye Cat 50g untuk ceg"]);
-    expect(tokopedia?.dari).not.toBe("alias");
+    expect(tokopedia?.dari).not.toBe("nama");
 
     expect(await tebakVarianUntuk(sql, "shopee", [null])).toEqual([null]);
+  });
+
+  it("saran memuat tebakan dan paling banyak tiga kandidat, ukuran yang diingat di urutan pertama", async () => {
+    await simpanUlasanMassal(sql, "shopee", [
+      baris({ produk: "Alat pengusir kucing Bye Bye Cat 50g untuk cegah kucing berak", varian: KUCING_BESAR }),
+    ]);
+
+    const [ingat, kosong] = await saranVarianUntuk(sql, "shopee", ["Alat pengusir kucing Bye Bye Cat 50g untuk ceg", null]);
+
+    expect(ingat.tebakan).toEqual({ slug: KUCING_BESAR, dari: "nama" });
+    expect(ingat.kandidat[0]).toBe(KUCING_BESAR);
+    expect(ingat.kandidat.length).toBeLessThanOrEqual(3);
+    expect(kosong).toEqual({ tebakan: null, kandidat: [] });
   });
 });
 

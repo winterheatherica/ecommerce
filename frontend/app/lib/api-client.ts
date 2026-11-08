@@ -572,6 +572,26 @@ export async function simpanFaqToko(groups: IsiFaqToko): Promise<SitusAPI> {
 
 export type SumberImporUlasan = "shopee" | "tokopedia";
 
+export async function tambahNamaMarketplace(
+  variantSlug: string,
+  sumber: SumberImporUlasan,
+  nama: string,
+): Promise<{ id: number; variant_slug: string; source: SumberImporUlasan; name: string }> {
+  const res = await fetch(`/api/admin/variants/${encodeURIComponent(variantSlug)}/marketplace-names`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ source: sumber, name: nama }),
+  });
+
+  await pastikanOk(res);
+  return (await res.json()) as { id: number; variant_slug: string; source: SumberImporUlasan; name: string };
+}
+
+export async function hapusNamaMarketplace(id: number): Promise<void> {
+  const res = await fetch(`/api/admin/marketplace-names/${id}`, { method: "DELETE" });
+  await pastikanOk(res);
+}
+
 export type UlasanScreenshot = {
   author_name_raw: string;
   author_name: string;
@@ -582,7 +602,8 @@ export type UlasanScreenshot = {
   marketplace_product: string | null;
   complete: boolean;
   variant_slug: string | null;
-  variant_guess: "alias" | "mirip" | null;
+  variant_guess: "nama" | "mirip" | null;
+  variant_candidates: string[];
   duplicate: boolean;
 };
 

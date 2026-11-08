@@ -35,12 +35,12 @@ describe("database tes", () => {
       "products",
       "promo_banners",
       "regions",
-      "review_product_aliases",
       "reviews",
       "sessions",
       "shipping_quotes",
       "store_settings",
       "users",
+      "variant_marketplace_names",
       "webhook_events",
     ]);
   });

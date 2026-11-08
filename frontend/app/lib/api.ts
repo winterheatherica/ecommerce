@@ -465,6 +465,25 @@ export async function ambilProdukAdmin(): Promise<Produk[]> {
   return kumpulan;
 }
 
+export type NamaMarketplace = {
+  id: number;
+  variant_slug: string;
+  source: "shopee" | "tokopedia";
+  name: string;
+};
+
+export async function ambilNamaMarketplace(slug: string): Promise<NamaMarketplace[]> {
+  const res = await ambilAdmin(
+    `${basis()}/api/admin/products/${encodeURIComponent(slug)}/marketplace-names`,
+  );
+
+  if (!res.ok) {
+    throw new Error(`Gagal mengambil nama marketplace ${slug} (${res.status})`);
+  }
+
+  return ((await res.json()) as { data: NamaMarketplace[] }).data;
+}
+
 export async function ambilSatuProdukAdmin(
   slug: string,
 ): Promise<Produk | null> {
