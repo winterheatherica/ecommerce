@@ -45,6 +45,7 @@ export default function AdminProductForm({ awal, kembali = "/admin/produk", nama
   const [slug, setSlug] = useState(awal?.slug ?? "");
   const [slugDisentuh, setSlugDisentuh] = useState(ubahMode);
   const [nama, setNama] = useState(awal?.nama ?? "");
+  const [merek, setMerek] = useState(awal?.merek ?? "");
   const [deskripsi, setDeskripsi] = useState(awal?.deskripsi ?? "");
   const [caraPakai, setCaraPakai] = useState(awal?.caraPakai ?? "");
   const [harga, setHarga] = useState(String(awal?.harga ?? ""));
@@ -98,6 +99,7 @@ export default function AdminProductForm({ awal, kembali = "/admin/produk", nama
       is_featured: unggulan,
       is_active: aktif,
       usage_instructions: caraPakai.trim() || null,
+      brand: merek.trim() || null,
     };
 
     try {
@@ -153,6 +155,23 @@ export default function AdminProductForm({ awal, kembali = "/admin/produk", nama
               placeholder="Alat pengusir kucing Bye Bye Cat 50g"
               className={kotak}
             />
+          </div>
+
+          <div>
+            <label className={label} htmlFor="merek">
+              Merek
+            </label>
+            <input
+              id="merek"
+              value={merek}
+              onChange={(e) => setMerek(e.target.value)}
+              maxLength={70}
+              placeholder="Bye Bye"
+              className={kotak}
+            />
+            <p className="mt-2 text-xs text-stone-500">
+              Wajib untuk Google Merchant Center. Tulis merek di kemasan, misalnya Bye Bye, GoCat, atau SanGreat.
+            </p>
           </div>
 
           <div>

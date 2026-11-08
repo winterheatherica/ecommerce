@@ -155,6 +155,37 @@ describe("foto produk baru", () => {
   });
 });
 
+describe("merek produk", () => {
+  it("dirapikan, kosong jadi null, dan lebih dari 70 huruf ditolak", () => {
+    const rapi = periksaProdukBaru(baru({ brand: "  Bye   Bye " }));
+    expect(rapi.ok && rapi.bersih.brand).toBe("Bye Bye");
+
+    const kosong = periksaProdukBaru(baru({ brand: "   " }));
+    expect(kosong.ok && kosong.bersih.brand).toBeNull();
+
+    const tanpa = periksaProdukBaru(baru());
+    expect(tanpa.ok && tanpa.bersih.brand).toBeNull();
+
+    const panjang = periksaProdukBaru(baru({ brand: "x".repeat(71) }));
+    expect(panjang.ok).toBe(false);
+    if (!panjang.ok) expect(panjang.badan).toMatchObject({ error: "invalid_brand", field: "brand" });
+  });
+
+  it("di perubahan: ikut kalau dikirim, null untuk menghapus, absen kalau tidak dikirim", () => {
+    const ubah = periksaPerubahan({ brand: " O'Goant " });
+    expect(ubah.ok && ubah.bersih).toEqual({ brand: "O'Goant" });
+
+    const hapus = periksaPerubahan({ brand: null });
+    expect(hapus.ok && hapus.bersih).toEqual({ brand: null });
+
+    const lain = periksaPerubahan({ name: "Nama Baru" });
+    expect(lain.ok && "brand" in lain.bersih).toBe(false);
+
+    const panjang = periksaPerubahan({ brand: "x".repeat(71) });
+    expect(panjang.ok).toBe(false);
+  });
+});
+
 describe("periksaPerubahan", () => {
   it("hanya memuat field yang dikirim", () => {
     const hasil = periksaPerubahan({ name: "Nama Baru" });

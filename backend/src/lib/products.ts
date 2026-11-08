@@ -22,6 +22,7 @@ export type ProdukBaru = {
   sort_order?: number;
   is_active?: boolean;
   usage_instructions?: string | null;
+  brand?: string | null;
   images?: FotoBaru[];
 };
 
@@ -40,6 +41,7 @@ export type ProdukBersih = {
   sort_order: number | null;
   is_active: boolean;
   usage_instructions: string | null;
+  brand: string | null;
   images: FotoBersih[];
 };
 
@@ -59,6 +61,26 @@ export function rapikanCaraPakai(teks: string | null): string | null {
 
   return baris.length > 0 ? baris.join("\n") : null;
 }
+
+export const MEREK_MAKS = 70;
+
+export function rapikanMerek(teks: string | null): string | null | false {
+  if (teks === null) return null;
+
+  const rapi = teks.replace(/\s+/g, " ").trim();
+  if (!rapi) return null;
+
+  return rapi.length <= MEREK_MAKS ? rapi : false;
+}
+
+const GALAT_MEREK: Gagal = {
+  status: 422,
+  badan: {
+    error: "invalid_brand",
+    message: `Merek maksimal ${MEREK_MAKS} huruf`,
+    field: "brand",
+  },
+};
 
 export const GALAT_KATEGORI: Gagal = {
   status: 422,
@@ -113,6 +135,9 @@ export function periksaProdukBaru(
   const foto = periksaDaftarFoto(data.images);
   if (!foto.ok) return foto;
 
+  const merek = rapikanMerek(data.brand ?? null);
+  if (merek === false) return { ok: false, ...GALAT_MEREK };
+
   return {
     ok: true,
     bersih: {
@@ -128,6 +153,7 @@ export function periksaProdukBaru(
       sort_order: data.sort_order ?? null,
       is_active: data.is_active ?? true,
       usage_instructions: rapikanCaraPakai(data.usage_instructions ?? null),
+      brand: merek,
       images: foto.bersih,
     },
   };
@@ -156,6 +182,11 @@ export function periksaPerubahan(
   if (p.is_active !== undefined) bersih.is_active = p.is_active;
   if (p.usage_instructions !== undefined) {
     bersih.usage_instructions = rapikanCaraPakai(p.usage_instructions);
+  }
+  if (p.brand !== undefined) {
+    const merek = rapikanMerek(p.brand);
+    if (merek === false) return { ok: false, ...GALAT_MEREK };
+    bersih.brand = merek;
   }
 
   return { ok: true, bersih };

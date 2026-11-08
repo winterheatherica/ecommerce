@@ -34,6 +34,7 @@ import { gambarBagiFoto, metaHalaman, skemaProduk, skemaRemah } from "@/app/lib/
 
 type Props = {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -59,11 +60,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   });
 }
 
-export default async function DetailProdukPage({ params }: Props) {
-  const { slug } = await params;
+export default async function DetailProdukPage({ params, searchParams }: Props) {
+  const [{ slug }, { ukuran }] = await Promise.all([params, searchParams]);
   const [produk, situs] = await Promise.all([ambilSatuProduk(slug), ambilSitus()]);
 
   if (!produk) notFound();
+
+  const ukuranDiminta = typeof ukuran === "string" ? produk.varian.find((v) => v.slug === ukuran) : undefined;
+  const ukuranAwal = ukuranDiminta ?? varianAwal(produk.varian);
 
   const kategori = cariKategori(situs, produk.kategori);
   const judulKategori = kategori?.judul ?? produk.kategori;
@@ -105,7 +109,7 @@ export default async function DetailProdukPage({ params }: Props) {
         </Link>
       </nav>
 
-      <PilihanUkuran foto={produk.foto} awal={varianAwal(produk.varian)?.slug ?? null}>
+      <PilihanUkuran foto={produk.foto} awal={ukuranAwal?.slug ?? null}>
         <div className="mt-8 grid gap-12 lg:grid-cols-2 lg:gap-16">
           <ProductGallery nama={produk.nama} habis={habis} />
 

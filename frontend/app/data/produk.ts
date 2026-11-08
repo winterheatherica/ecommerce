@@ -80,6 +80,7 @@ export type Produk = {
   nama: string;
   deskripsi: string;
   caraPakai?: string | null;
+  merek?: string | null;
   harga: number;
   hargaNormal?: number;
   kategori: string;

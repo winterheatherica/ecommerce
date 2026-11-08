@@ -123,36 +123,69 @@ export function skemaToko(toko: InfoToko) {
   };
 }
 
+function tawaran(path: string, harga: number, stok: number) {
+  return {
+    "@type": "Offer",
+    url: tautan(path),
+    price: harga,
+    priceCurrency: "IDR",
+    itemCondition: "https://schema.org/NewCondition",
+    availability: stok > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+    seller: { "@id": tautan("/#toko") },
+  };
+}
+
+function berat(gram: number) {
+  return { "@type": "QuantitativeValue", value: gram, unitCode: "GRM" };
+}
+
+export function pathUkuran(slugProduk: string, slugUkuran: string): string {
+  return `/produk/${slugProduk}?ukuran=${encodeURIComponent(slugUkuran)}`;
+}
+
 export function skemaProduk(produk: Produk, kategori: string) {
   const path = `/produk/${produk.slug}`;
+  const gambar = produk.foto.map((f) => f.url);
+  const merek = produk.merek ? { brand: { "@type": "Brand", name: produk.merek } } : {};
+  const umum = {
+    "@id": tautan(`${path}#produk`),
+    name: produk.nama,
+    description: potong(produk.deskripsi, 400),
+    ...(gambar.length > 0 ? { image: gambar } : {}),
+    category: kategori,
+    url: tautan(path),
+    ...merek,
+  };
+
+  if (produk.varian.length > 1) {
+    return {
+      "@context": "https://schema.org",
+      "@type": "ProductGroup",
+      ...umum,
+      productGroupID: produk.slug,
+      variesBy: ["https://schema.org/size"],
+      hasVariant: produk.varian.map((v) => ({
+        "@type": "Product",
+        sku: v.slug,
+        name: `${produk.nama.replace(/\s+/g, " ").trim()} ${v.label}`,
+        size: v.label,
+        ...(v.gambar ? { image: [v.gambar] } : gambar.length > 0 ? { image: gambar } : {}),
+        weight: berat(v.beratG),
+        ...merek,
+        offers: tawaran(pathUkuran(produk.slug, v.slug), v.harga, v.stok),
+      })),
+    };
+  }
+
+  const satu = produk.varian[0];
 
   return {
     "@context": "https://schema.org",
     "@type": "Product",
-    "@id": tautan(`${path}#produk`),
-    name: produk.nama,
-    description: potong(produk.deskripsi, 400),
-    ...(produk.foto.length > 0 ? { image: produk.foto.map((f) => f.url) } : {}),
-    sku: produk.slug,
-    category: kategori,
-    url: tautan(path),
-    weight: {
-      "@type": "QuantitativeValue",
-      value: produk.beratG,
-      unitCode: "GRM",
-    },
-    offers: {
-      "@type": "Offer",
-      url: tautan(path),
-      price: produk.harga,
-      priceCurrency: "IDR",
-      itemCondition: "https://schema.org/NewCondition",
-      availability:
-        produk.stok > 0
-          ? "https://schema.org/InStock"
-          : "https://schema.org/OutOfStock",
-      seller: { "@id": tautan("/#toko") },
-    },
+    ...umum,
+    sku: satu?.slug ?? produk.slug,
+    weight: berat(satu?.beratG ?? produk.beratG),
+    offers: tawaran(path, satu?.harga ?? produk.harga, satu?.stok ?? produk.stok),
   };
 }
 

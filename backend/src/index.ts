@@ -33,6 +33,7 @@ import { devRoutes } from "./routes/dev";
 import { akunRoutes } from "./routes/akun";
 import { adminMasukRoutes } from "./routes/admin-masuk";
 import { situsRoutes } from "./routes/situs";
+import { feedRoutes } from "./routes/feed";
 
 const app = new Elysia({ adapter: CloudflareAdapter })
   .onRequest(async ({ request, set }) => {
@@ -91,6 +92,7 @@ const app = new Elysia({ adapter: CloudflareAdapter })
   }))
   .use(productRoutes)
   .use(situsRoutes)
+  .use(feedRoutes)
   .use(shippingRoutes)
   .use(paymentRoutes)
   .use(orderRoutes)

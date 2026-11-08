@@ -78,6 +78,7 @@ export type BarisProduk = RingkasanRating & {
   is_featured: boolean;
   sort_order: number;
   is_active: boolean;
+  brand: string | null;
   variants: BarisVarian[];
   images: BarisFoto[];
 };
@@ -117,7 +118,8 @@ const dasar = (sql: Kueri) => sql`
   sold_per_month,
   is_featured,
   sort_order,
-  is_active
+  is_active,
+  brand
 `;
 
 const ratingTampil = (sql: Kueri) => sql`
@@ -399,7 +401,7 @@ export async function simpanProdukBaru(
         insert into products (
           slug, name, description, price, weight_g, stock,
           category, is_featured, sold_per_month, sort_order, is_active,
-          usage_instructions
+          usage_instructions, brand
         )
         values (
           ${b.slug},
@@ -416,7 +418,8 @@ export async function simpanProdukBaru(
             (select coalesce(max(sort_order), 0) + 1 from products)
           ),
           ${b.is_active},
-          ${b.usage_instructions}
+          ${b.usage_instructions},
+          ${b.brand}
         )
         returning id::int as id
       `;

@@ -293,6 +293,7 @@ export type IsiProdukBaru = {
   sold_per_month: number;
   is_featured: boolean;
   usage_instructions: string | null;
+  brand: string | null;
   images: Omit<FotoUnggahan, "url">[];
 };
 
@@ -304,6 +305,7 @@ export type IsiProdukUbah = {
   is_featured: boolean;
   is_active: boolean;
   usage_instructions: string | null;
+  brand: string | null;
 };
 
 async function pastikanOk(res: Response) {

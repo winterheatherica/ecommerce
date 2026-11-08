@@ -1,0 +1,11 @@
+UPDATE products SET brand = 'Bye Bye' WHERE slug IN ('bye-bye-bed-bugs', 'bye-bye-cat-gel', 'bye-bye-cat-spray', 'bye-bye-cicak-gel', 'bye-bye-cicak-spray', 'bye-bye-dog-anti-chew', 'bye-bye-dog-gel', 'bye-bye-dog-spray', 'bye-bye-kecoa-gel', 'bye-bye-kecoa-spray-80ml', 'bye-bye-lalat-gel-50g', 'bye-bye-lalat-spray-80ml', 'bye-bye-mouse-gel', 'bye-bye-mouse-spray', 'bye-bye-nyamuk-gel', 'bye-bye-nyamuk-spray', 'bye-bye-rayap-spray', 'bye-bye-semut-spray-80ml', 'bye-bye-snake-gel', 'bye-bye-snake-spray', 'paket-bye-bye-dog-behaviour-chew', 'paket-bye-bye-dog-gel-spray', 'paket-bye-bye-kecoa-gel-spray', 'paket-bye-bye-lalat-gel-spray', 'paket-bye-bye-ular-gel-spray', 'spray-pengusir-musang');
+UPDATE products SET brand = 'Cicago' WHERE slug IN ('cicago-gel-cicak-70g', 'cicago-spray-100ml', 'paket-cicago-gel-spray');
+UPDATE products SET brand = 'ERTWO' WHERE slug IN ('ertwo-essential-oil');
+UPDATE products SET brand = 'FlyGo' WHERE slug IN ('flygo-gel-70g', 'flygo-spray-100ml', 'paket-flygo-gel-spray');
+UPDATE products SET brand = 'GoCat' WHERE slug IN ('gocat-gel-jumbo', 'gocat-gel-refill-66g', 'gocat-spray', 'paket-gocat-gel-spray', 'paket-hemat-3-gocat-spray');
+UPDATE products SET brand = 'GoCoro' WHERE slug IN ('gocoro-gel-kecoa-70g', 'gocoro-spray-100ml', 'paket-gocoro-gel-spray');
+UPDATE products SET brand = 'Goito' WHERE slug IN ('goito-gel-nyamuk', 'goito-spray-nyamuk-100ml', 'paket-goito-gel-spray');
+UPDATE products SET brand = 'GoMouse' WHERE slug IN ('gomouse-gel-70g', 'gomouse-spray-100ml', 'paket-gomouse-gel-spray');
+UPDATE products SET brand = 'Mitigo' WHERE slug IN ('mitigo-spray-rayap');
+UPDATE products SET brand = 'O''Goant' WHERE slug IN ('ogoant-gel-70g', 'ogoant-spray-100ml', 'paket-ogoant-gel-spray');
+UPDATE products SET brand = 'SanGreat' WHERE slug IN ('penghilang-bau-urin-kucing', 'sangreat-car-seat-cleaner', 'sangreat-leather-bag-cleaner', 'sangreat-leather-jacket-cleaner', 'sangreat-leather-shoe-cleaner');
