@@ -20,7 +20,7 @@ function isiIkutTerhapus(p: Produk): string {
   );
 }
 
-export default function ZonaHapusProduk({ produk }: { produk: Produk }) {
+export default function ZonaHapusProduk({ produk, kembali }: { produk: Produk; kembali: string }) {
   const router = useRouter();
   const [proses, setProses] = useState(false);
   const [galat, setGalat] = useState<string | null>(null);
@@ -38,7 +38,7 @@ export default function ZonaHapusProduk({ produk }: { produk: Produk }) {
 
     try {
       await hapusProdukPermanen(produk.slug);
-      router.push("/admin/produk");
+      router.push(kembali);
       router.refresh();
     } catch (err) {
       setGalat(err instanceof Error ? err.message : "Gagal menghapus produk");

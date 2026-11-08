@@ -1,13 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 import AdminNumberBox from "@/app/components/admin-number-box";
 import { ubahProduk, ubahVarian } from "@/app/lib/api-client";
 import { rupiah, type Produk, type Varian } from "@/app/data/produk";
 import { useSitus } from "@/app/components/situs-konteks";
 import { cariKategori } from "@/app/lib/situs";
+import { alamatDaftarProduk, saringProduk } from "@/app/lib/cari-produk";
 
 export const AMBANG_MENIPIS = 10;
 
@@ -19,9 +20,10 @@ function warnaStok(v: Varian): string {
   return "w-20 border-ink/15 bg-white text-ink";
 }
 
-export default function AdminProducts({ awal }: { awal: Produk[] }) {
+export default function AdminProducts({ awal, cariAwal = "" }: { awal: Produk[]; cariAwal?: string }) {
   const situs = useSitus();
   const [produk, setProduk] = useState<Produk[]>(awal);
+  const [cari, setCari] = useState(cariAwal);
   const [menyimpan, setMenyimpan] = useState<string | null>(null);
   const [galat, setGalat] = useState<string | null>(null);
 
@@ -78,6 +80,18 @@ export default function AdminProducts({ awal }: { awal: Produk[] }) {
     }
   };
 
+  const ubahCari = (nilai: string) => {
+    setCari(nilai);
+    window.history.replaceState(null, "", alamatDaftarProduk(nilai));
+  };
+
+  const tampil = useMemo(
+    () => saringProduk(produk, cari, (slug) => cariKategori(situs, slug)?.label),
+    [produk, cari, situs],
+  );
+  const mencari = cari.trim() !== "";
+  const akhiranUbah = mencari ? `?${new URLSearchParams({ q: cari.trim() })}` : "";
+
   const semuaVarian = produk.flatMap((p) => p.varian);
   const menipis = semuaVarian.filter(
     (v) => v.aktif !== false && v.stok <= AMBANG_MENIPIS,
@@ -109,7 +123,37 @@ export default function AdminProducts({ awal }: { awal: Produk[] }) {
         </p>
       )}
 
-      <div className="mt-8 overflow-x-auto border border-ink/10 bg-white">
+      <div className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-2">
+        <div className="relative w-full sm:max-w-sm">
+          <svg
+            className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-stone-400"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={2}
+            aria-hidden="true"
+          >
+            <circle cx="11" cy="11" r="7" />
+            <path strokeLinecap="round" d="m20 20-3.5-3.5" />
+          </svg>
+          <input
+            type="search"
+            value={cari}
+            onChange={(e) => ubahCari(e.target.value)}
+            maxLength={100}
+            placeholder="Cari nama, kategori, atau ukuran"
+            aria-label="Cari produk"
+            className="w-full border border-ink/15 bg-white py-2.5 pr-3 pl-9 text-sm text-ink outline-none transition-colors placeholder:text-stone-400 focus:border-brand-500"
+          />
+        </div>
+        {mencari && (
+          <p role="status" className="text-sm text-stone-500">
+            {tampil.length} dari {produk.length} produk
+          </p>
+        )}
+      </div>
+
+      <div className="mt-4 overflow-x-auto border border-ink/10 bg-white">
         <table className="w-full min-w-200 text-sm">
           <thead>
             <tr className="border-b border-ink/10 text-left">
@@ -123,7 +167,21 @@ export default function AdminProducts({ awal }: { awal: Produk[] }) {
             </tr>
           </thead>
           <tbody>
-            {produk.map((p) =>
+            {tampil.length === 0 && (
+              <tr className="border-t border-ink/10">
+                <td colSpan={7} className="px-6 py-10 text-center text-sm text-stone-500">
+                  Tidak ada produk yang cocok dengan &ldquo;{cari.trim()}&rdquo;.{" "}
+                  <button
+                    type="button"
+                    onClick={() => ubahCari("")}
+                    className="text-brand-600 underline underline-offset-2 hover:text-brand-700"
+                  >
+                    Hapus pencarian
+                  </button>
+                </td>
+              </tr>
+            )}
+            {tampil.map((p) =>
               p.varian.map((v, i) => (
                 <tr
                   key={v.slug}
@@ -225,7 +283,7 @@ export default function AdminProducts({ awal }: { awal: Produk[] }) {
                       rowSpan={p.varian.length}
                     >
                       <Link
-                        href={`/admin/produk/${p.slug}/ubah`}
+                        href={`/admin/produk/${p.slug}/ubah${akhiranUbah}`}
                         className="font-mono text-[12px] tracking-[0.16em] text-stone-500 uppercase transition-colors hover:text-brand-600"
                       >
                         Ubah

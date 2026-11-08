@@ -32,9 +32,10 @@ function keSlug(teks: string) {
 
 type Props = {
   awal?: Produk;
+  kembali?: string;
 };
 
-export default function AdminProductForm({ awal }: Props) {
+export default function AdminProductForm({ awal, kembali = "/admin/produk" }: Props) {
   const router = useRouter();
   const ubahMode = Boolean(awal);
 
@@ -115,7 +116,7 @@ export default function AdminProductForm({ awal }: Props) {
         });
       }
 
-      router.push("/admin/produk");
+      router.push(kembali);
       router.refresh();
     } catch (err) {
       setGalat(err instanceof Error ? err.message : "Gagal menyimpan");
@@ -126,7 +127,7 @@ export default function AdminProductForm({ awal }: Props) {
   return (
     <div className="mx-auto max-w-3xl">
       <Link
-        href="/admin/produk"
+        href={kembali}
         className="font-mono text-[12px] tracking-[0.2em] text-stone-500 uppercase transition-colors hover:text-brand-600"
       >
         &larr; Kembali ke daftar
@@ -350,7 +351,7 @@ export default function AdminProductForm({ awal }: Props) {
           </button>
 
           <Link
-            href="/admin/produk"
+            href={kembali}
             className="border border-ink/15 px-8 py-3 font-mono text-[13px] tracking-[0.2em] indent-[0.2em] text-stone-600 uppercase transition-colors hover:border-ink hover:text-ink"
           >
             Batal
@@ -364,7 +365,7 @@ export default function AdminProductForm({ awal }: Props) {
       {ubahMode && awal && <AdminMarketplaceRating produk={awal} marketplace="shopee" />}
       {ubahMode && awal && <AdminMarketplaceRating produk={awal} marketplace="tokopedia" />}
       {ubahMode && awal && <AdminReviews produk={awal} />}
-      {ubahMode && awal && <ZonaHapusProduk produk={awal} />}
+      {ubahMode && awal && <ZonaHapusProduk produk={awal} kembali={kembali} />}
     </div>
   );
 }

@@ -1,8 +1,13 @@
 import AdminProducts from "@/app/components/admin-products";
 import { ambilProdukAdmin } from "@/app/lib/api";
+import { rapikanCari } from "@/app/lib/cari-produk";
 
-export default async function AdminProdukPage() {
-  const produk = await ambilProdukAdmin();
+type Props = {
+  searchParams: Promise<{ q?: string | string[] }>;
+};
 
-  return <AdminProducts awal={produk} />;
+export default async function AdminProdukPage({ searchParams }: Props) {
+  const [produk, { q }] = await Promise.all([ambilProdukAdmin(), searchParams]);
+
+  return <AdminProducts awal={produk} cariAwal={rapikanCari(q)} />;
 }
