@@ -297,24 +297,36 @@ async function pelanggan(sql: Sql, r: Rentang) {
   return { ...jumlah, top: teratas };
 }
 
-async function ulasan(sql: Sql, r: Rentang) {
-  const b = batas(r);
+async function ulasan(sql: Sql, r: Rentang | null) {
+  const b = r ? batas(r) : null;
+  const tampil = sql`
+    from reviews r
+    join product_variants v on v.id = r.variant_id
+    join products p on p.id = v.product_id
+    where not r.is_hidden and v.is_active and p.is_active
+  `;
+  const periode = b
+    ? sql`
+        and r.reviewed_precision <> 'over_year'
+        and r.reviewed_at >= ${b.awal}::timestamptz
+        and r.reviewed_at < ${b.akhir}::timestamptz
+      `
+    : sql``;
   const sumber = await sql<{ source: string; count: number; average: number }[]>`
-    select source, count(*)::int as count, avg(rating)::float8 as average
-    from reviews
-    where not is_hidden and reviewed_at >= ${b.awal}::timestamptz and reviewed_at < ${b.akhir}::timestamptz
-    group by source
+    select r.source, count(*)::int as count, avg(r.rating)::float8 as average
+    ${tampil} ${periode}
+    group by r.source
     order by count desc
   `;
   const bintang = await sql<{ rating: number; count: number }[]>`
-    select rating::int as rating, count(*)::int as count
-    from reviews
-    where not is_hidden and reviewed_at >= ${b.awal}::timestamptz and reviewed_at < ${b.akhir}::timestamptz
-    group by rating
-    order by rating desc
+    select r.rating::int as rating, count(*)::int as count
+    ${tampil} ${periode}
+    group by r.rating
+    order by r.rating desc
   `;
   const [semua] = await sql<{ count: number; average: number }[]>`
-    select count(*)::int as count, coalesce(avg(rating), 0)::float8 as average from reviews where not is_hidden
+    select count(*)::int as count, coalesce(avg(r.rating), 0)::float8 as average
+    ${tampil}
   `;
   return { by_source: sumber, by_rating: bintang, all_time: semua };
 }
@@ -344,41 +356,22 @@ export async function ambilLaporan(sql: Sql, masukan: Rentang | null, sekarang: 
   const kelompok = pilihKelompok(hari);
   const sebelumnya = masukan === null ? null : rentangSebelumnya(rentang);
 
-  const [
-    summary,
-    previous,
-    trend,
-    statuses,
-    actions,
-    top_products,
-    unsold_products,
-    categories,
-    payments,
-    couriers,
-    durations,
-    provinces,
-    cities,
-    customers,
-    reviews,
-    heatmap,
-  ] = await Promise.all([
-    ringkasan(sql, rentang),
-    sebelumnya ? ringkasan(sql, sebelumnya) : Promise.resolve(null),
-    tren(sql, rentang, kelompok),
-    statusPesanan(sql, rentang),
-    tindakan(sql),
-    produkTerlaris(sql, rentang),
-    produkBelumTerjual(sql, rentang),
-    kategori(sql, rentang),
-    pembayaran(sql, rentang),
-    kurir(sql, rentang),
-    durasi(sql, rentang),
-    provinsi(sql, rentang),
-    kota(sql, rentang),
-    pelanggan(sql, rentang),
-    ulasan(sql, rentang),
-    jamBelanja(sql, rentang),
-  ]);
+  const summary = await ringkasan(sql, rentang);
+  const previous = sebelumnya ? await ringkasan(sql, sebelumnya) : null;
+  const trend = await tren(sql, rentang, kelompok);
+  const statuses = await statusPesanan(sql, rentang);
+  const actions = await tindakan(sql);
+  const top_products = await produkTerlaris(sql, rentang);
+  const unsold_products = await produkBelumTerjual(sql, rentang);
+  const categories = await kategori(sql, rentang);
+  const payments = await pembayaran(sql, rentang);
+  const couriers = await kurir(sql, rentang);
+  const durations = await durasi(sql, rentang);
+  const provinces = await provinsi(sql, rentang);
+  const cities = await kota(sql, rentang);
+  const customers = await pelanggan(sql, rentang);
+  const reviews = await ulasan(sql, masukan === null ? null : rentang);
+  const heatmap = await jamBelanja(sql, rentang);
 
   return {
     range: {

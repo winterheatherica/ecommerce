@@ -511,7 +511,14 @@ export default function IsiLaporan({ laporan }: { laporan: LaporanAPI }) {
           )}
         </Kartu>
 
-        <Kartu judul="Ulasan" keterangan="Ulasan yang tampil, menurut tanggal ditulis, dari semua sumber.">
+        <Kartu
+          judul="Ulasan"
+          keterangan={
+            laporan.range.all
+              ? "Semua ulasan yang tampil di website, dari semua sumber."
+              : "Ulasan yang tampil di website menurut tanggal ditulis, dari semua sumber. Ulasan impor yang tanggalnya cuma \"lebih dari setahun lalu\" hanya dihitung di periode Semua."
+          }
+        >
           {jumlahUlasan === 0 ? (
             <Kosong>Belum ada ulasan di periode ini.</Kosong>
           ) : (
@@ -538,10 +545,12 @@ export default function IsiLaporan({ laporan }: { laporan: LaporanAPI }) {
               </div>
             </>
           )}
-          <p className="mt-5 border-t border-ink/10 pt-4 text-xs text-stone-500">
-            Sepanjang waktu: {angka(laporan.reviews.all_time.count)} ulasan tampil di website, rata-rata{" "}
-            <Bintang nilai={laporan.reviews.all_time.average} />.
-          </p>
+          {!laporan.range.all && (
+            <p className="mt-5 border-t border-ink/10 pt-4 text-xs text-stone-500">
+              Sepanjang waktu: {angka(laporan.reviews.all_time.count)} ulasan tampil di website, rata-rata{" "}
+              <Bintang nilai={laporan.reviews.all_time.average} />.
+            </p>
+          )}
         </Kartu>
       </div>
 

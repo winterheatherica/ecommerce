@@ -233,6 +233,49 @@ describe("ambilLaporan", () => {
     expect(semua.previous_summary).toBeNull();
     expect(semua.summary.paid_orders).toBe(4);
   });
+
+  it("ulasan di mode semua waktu tidak tersaring tanggal pesanan pertama, dan cuma menghitung yang tampil", async () => {
+    const [kucing] = await sql<{ id: number }[]>`
+      select v.id::int as id from product_variants v join products p on p.id = v.product_id
+      where p.slug = 'bye-bye-cat-50g' limit 1
+    `;
+    const [lain] = await sql<{ id: number }[]>`
+      select v.id::int as id from product_variants v join products p on p.id = v.product_id
+      where p.slug <> 'bye-bye-cat-50g' order by v.id limit 1
+    `;
+    await sql`update product_variants set is_active = false where id = ${lain.id}`;
+    await sql`
+      insert into reviews (variant_id, source, external_id, rating, author_name, body, reviewed_at, reviewed_precision)
+      values
+        (${kucing.id}, 'tokopedia', 'lama-1', 3, 'T***a', 'Lumayan', '2025-10-20T00:00:00Z', 'over_year'),
+        (${kucing.id}, 'shopee', 'awal-1', 5, 's*****1', 'Mantap', '2026-06-01T12:00:00+07:00', 'day'),
+        (${lain.id}, 'shopee', 'nonaktif-1', 1, 'n*****1', 'Jelek', '2026-10-13T12:00:00+07:00', 'day')
+    `;
+
+    try {
+      const semua = await ambilLaporan(sql, null, new Date("2026-10-20T03:00:00Z"));
+      expect(semua.reviews.all_time).toEqual({ count: 4, average: 4.25 });
+      expect(semua.reviews.by_source).toEqual(
+        expect.arrayContaining([
+          { source: "shopee", count: 2, average: 4.5 },
+          { source: "tokopedia", count: 1, average: 3 },
+          { source: "web", count: 1, average: 5 },
+        ]),
+      );
+
+      const periode = await ambilLaporan(sql, RENTANG);
+      expect(periode.reviews.by_source).toEqual(
+        expect.arrayContaining([
+          { source: "shopee", count: 1, average: 4 },
+          { source: "web", count: 1, average: 5 },
+        ]),
+      );
+      expect(periode.reviews.by_source).toHaveLength(2);
+    } finally {
+      await sql`delete from reviews where external_id in ('lama-1', 'awal-1', 'nonaktif-1')`;
+      await sql`update product_variants set is_active = true where id = ${lain.id}`;
+    }
+  });
 });
 
 function pecahCsv(baris: string): string[] {
