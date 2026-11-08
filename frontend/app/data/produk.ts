@@ -53,6 +53,7 @@ export type Ulasan = {
   sumber: SumberUlasan;
   bintang: number;
   nama: string;
+  namaAsli?: string | null;
   teks: string | null;
   susulan: string | null;
   susulanPada: string | null;

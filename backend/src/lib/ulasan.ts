@@ -17,6 +17,7 @@ export type UlasanImporBersih = {
   source: SumberImpor;
   rating: number;
   author_name: string;
+  author_name_raw: string | null;
   body: string | null;
   follow_up: string | null;
   reviewed_at: string;
@@ -36,6 +37,13 @@ export type UlasanPembeliBersih = { rating: number; body: string | null };
 
 function galat(error: string, message: string): Gagal {
   return { status: 422, badan: { error, message, field: "review" } };
+}
+
+export const MAKS_NAMA_ASLI = 100;
+
+export function namaAsliPengulas(nama: string | null | undefined): string | null {
+  const s = nama?.trim();
+  return s ? s.slice(0, MAKS_NAMA_ASLI) : null;
 }
 
 export function samarkanPengulas(nama: string): string {
@@ -118,6 +126,7 @@ export function periksaUlasanImpor(
       source,
       rating: d.rating,
       author_name: samarkanPengulas(nama),
+      author_name_raw: namaAsliPengulas(nama),
       body,
       follow_up: followUp,
       reviewed_at: new Date(waktu).toISOString(),

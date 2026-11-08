@@ -1,6 +1,7 @@
 import type { Kueri, Sql } from "../lib/db";
 import {
   JENDELA_UBAH_JAM,
+  namaAsliPengulas,
   samarkanPengulas,
   type UlasanImporBersih,
   type UlasanPembeliBersih,
@@ -25,7 +26,7 @@ export type BarisUlasan = {
   variant_label: string;
 };
 
-export type BarisUlasanAdmin = BarisUlasan & { is_hidden: boolean };
+export type BarisUlasanAdmin = BarisUlasan & { is_hidden: boolean; author_name_raw?: string | null };
 
 export type RingkasanUlasan = {
   total: number;
@@ -88,7 +89,9 @@ const daftarDanRingkasan = (sql: Kueri, admin: boolean) => sql`
     from (
       select
         ${objekUlasan(sql)}
-          || case when ${admin}::boolean then jsonb_build_object('is_hidden', r.is_hidden) else '{}'::jsonb end
+          || case when ${admin}::boolean
+               then jsonb_build_object('is_hidden', r.is_hidden, 'author_name_raw', r.author_name_raw)
+               else '{}'::jsonb end
           as o,
         row_number() over (order by ${urutan(sql, admin ? "terbaru" : "lengkap")}) as n
       from reviews r
@@ -141,13 +144,15 @@ const kolom = (sql: Kueri) => sql`
   v.label as variant_label
 `;
 
+const kolomAdmin = (sql: Kueri) => sql`${kolom(sql)}, r.author_name_raw`;
+
 export async function halamanUlasan(
   sql: Sql,
   produkSlug: string,
   opsi: { offset: number; limit: number; admin: boolean } & SaringanUlasan,
 ): Promise<{ data: BarisUlasanAdmin[]; total: number }> {
   const baris = await sql<(BarisUlasanAdmin & { total_baris: number })[]>`
-    select ${kolom(sql)}, (count(*) over ())::int as total_baris
+    select ${opsi.admin ? kolomAdmin(sql) : kolom(sql)}, (count(*) over ())::int as total_baris
     from reviews r
     join product_variants v on v.id = r.variant_id
     join products p on p.id = v.product_id
@@ -175,14 +180,15 @@ export async function tambahUlasanImpor(
   const [ulasan] = await sql<BarisUlasanAdmin[]>`
     with baru as (
       insert into reviews
-        (variant_id, source, rating, author_name, body, follow_up, reviewed_at, source_product, source_url)
-      select id, ${b.source}, ${b.rating}, ${b.author_name}, ${b.body}, ${b.follow_up}, ${b.reviewed_at},
-        ${b.source_product}, ${b.source_url}
+        (variant_id, source, rating, author_name, author_name_raw, body, follow_up, reviewed_at,
+         source_product, source_url)
+      select id, ${b.source}, ${b.rating}, ${b.author_name}, ${b.author_name_raw}, ${b.body}, ${b.follow_up},
+        ${b.reviewed_at}, ${b.source_product}, ${b.source_url}
       from product_variants
       where slug = ${variantSlug}
       returning *
     )
-    select ${kolom(sql)}
+    select ${kolomAdmin(sql)}
     from baru r
     join product_variants v on v.id = r.variant_id
   `;
@@ -201,7 +207,7 @@ export async function ubahTampilUlasan(
       where id = ${id}
       returning *
     )
-    select ${kolom(sql)}
+    select ${kolomAdmin(sql)}
     from ubah r
     join product_variants v on v.id = r.variant_id
   `;
@@ -297,10 +303,11 @@ export async function tulisUlasanPembeli(
   const [baru] = await sql<BarisSaya[]>`
     with baru as (
       insert into reviews
-        (variant_id, source, rating, author_name, body, reviewed_at, reviewed_precision, order_id, user_id)
+        (variant_id, source, rating, author_name, author_name_raw, body, reviewed_at, reviewed_precision,
+         order_id, user_id)
       values
-        (${barang.variant_id}, 'web', ${isi.rating}, ${samarkanPengulas(pengguna.name)}, ${isi.body},
-         now(), 'day', ${pesanan.id}, ${pengguna.id})
+        (${barang.variant_id}, 'web', ${isi.rating}, ${samarkanPengulas(pengguna.name)},
+         ${namaAsliPengulas(pengguna.name)}, ${isi.body}, now(), 'day', ${pesanan.id}, ${pengguna.id})
       on conflict (order_id, variant_id) where source = 'web' do nothing
       returning *
     )

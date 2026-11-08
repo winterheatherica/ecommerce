@@ -212,6 +212,50 @@ describe("ulasan di halaman produk", () => {
   });
 });
 
+describe("nama asli pengulas", () => {
+  it("tersimpan utuh di database, tapi pengunjung cuma menerima nama samaran", async () => {
+    const baru = await ulasan(KUCING, "  Budi Santoso  ", "2026-09-01");
+
+    expect(baru).toMatchObject({ author_name: "B*****o", author_name_raw: "Budi Santoso" });
+
+    const [simpan] = await sql<{ author_name: string; author_name_raw: string }[]>`
+      select author_name, author_name_raw from reviews where id = ${baru.id}
+    `;
+    expect(simpan).toEqual({ author_name: "B*****o", author_name_raw: "Budi Santoso" });
+
+    const publik = await satuProduk(sql, KUCING);
+    expect(publik?.reviews[0].author_name).toBe("B*****o");
+    expect(JSON.stringify(publik)).not.toContain("Budi Santoso");
+    expect(publik?.reviews[0]).not.toHaveProperty("author_name_raw");
+
+    const halaman = await halamanUlasan(sql, KUCING, { offset: 0, limit: 10, admin: false });
+    expect(JSON.stringify(halaman)).not.toContain("Budi Santoso");
+    expect(halaman.data[0]).not.toHaveProperty("author_name_raw");
+  });
+
+  it("admin melihat nama asli di halaman ubah produk dan daftar ulasan", async () => {
+    const baru = await ulasan(KUCING, "Budi Santoso", "2026-09-01");
+
+    const admin = await satuProdukAdmin(sql, KUCING);
+    expect(admin?.reviews?.[0]).toMatchObject({ author_name: "B*****o", author_name_raw: "Budi Santoso" });
+
+    const halaman = await halamanUlasan(sql, KUCING, { offset: 0, limit: 10, admin: true });
+    expect(halaman.data[0]).toMatchObject({ author_name_raw: "Budi Santoso" });
+
+    expect(await ubahTampilUlasan(sql, baru.id, true)).toMatchObject({ author_name_raw: "Budi Santoso" });
+  });
+
+  it("ulasan lama tanpa nama asli tetap jalan, nama aslinya kosong", async () => {
+    await sql`
+      insert into reviews (variant_id, source, external_id, rating, author_name, body, reviewed_at)
+      select id, 'shopee', 'lama-1', 5, 'e*****y', 'Mantap', '2026-08-01' from product_variants where slug = ${KUCING}
+    `;
+
+    const admin = await satuProdukAdmin(sql, KUCING);
+    expect(admin?.reviews?.[0]).toMatchObject({ author_name: "e*****y", author_name_raw: null });
+  });
+});
+
 describe("urutan dan saringan ulasan", () => {
   async function isi() {
     await pecahUkuran(sql, KUCING, [ukuran("uji-50g", "50 g"), ukuran("uji-80g", "80 g")]);
@@ -312,6 +356,11 @@ describe("ulasan pembeli website", () => {
 
     const produk = await satuProduk(sql, KUCING);
     expect(produk?.reviews[0]).toMatchObject({ source: "web", author_name: "r*****i", body: isi.body });
+
+    const [simpan] = await sql<{ author_name_raw: string }[]>`
+      select author_name_raw from reviews where source = 'web'
+    `;
+    expect(simpan.author_name_raw).toBe("rafii");
   });
 
   it("ditolak kalau paket belum sampai, bukan pemiliknya, barangnya tidak ada, atau sudah diulas", async () => {

@@ -5,6 +5,7 @@ export type UlasanAPI = {
   source: SumberUlasan;
   rating: number;
   author_name: string;
+  author_name_raw?: string | null;
   body: string | null;
   follow_up: string | null;
   follow_up_at: string | null;
@@ -25,6 +26,7 @@ export function petakanUlasan(r: UlasanAPI): Ulasan {
     sumber: r.source,
     bintang: r.rating,
     nama: r.author_name,
+    namaAsli: r.author_name_raw ?? null,
     teks: r.body,
     susulan: r.follow_up,
     susulanPada: r.follow_up_at,

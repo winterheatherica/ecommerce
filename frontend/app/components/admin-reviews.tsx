@@ -146,7 +146,10 @@ export default function AdminReviews({ produk }: { produk: Produk }) {
                       {"★".repeat(u.bintang)}
                       <span className="text-stone-300">{"★".repeat(5 - u.bintang)}</span>
                     </span>
-                    <span className="font-medium text-ink">{u.nama}</span>
+                    <span className="font-medium text-ink">{u.namaAsli ?? u.nama}</span>
+                    {u.namaAsli && u.namaAsli !== u.nama && (
+                      <span className="font-mono text-[12px] text-stone-400">tampil sebagai {u.nama}</span>
+                    )}
                     <span className="font-mono text-[12px] text-stone-400">{tanggalUlasan(u.pada, u.presisi)}</span>
                     <span className="font-mono text-[12px] text-stone-500">{u.ukuran}</span>
                     <span className={`border px-1.5 py-0.5 font-mono text-[11px] uppercase ${LABEL_SUMBER[u.sumber].kelas}`}>
@@ -194,7 +197,7 @@ export default function AdminReviews({ produk }: { produk: Produk }) {
             Tambah ulasan dari {namaPlatform}
           </h3>
           <p className="mt-2 text-sm leading-relaxed text-stone-600">
-            Salin apa adanya dari {namaPlatform}. Nama pengulas otomatis disamarkan saat disimpan.
+            Salin apa adanya dari {namaPlatform}, termasuk nama lengkap pengulas. Nama aslinya hanya tersimpan untuk admin, sedangkan di toko tampil disamarkan.
           </p>
 
           <fieldset disabled={menyimpan} className="mt-6 space-y-6">

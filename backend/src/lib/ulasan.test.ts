@@ -36,6 +36,7 @@ describe("periksaUlasanImpor", () => {
       source: "shopee",
       rating: 5,
       author_name: "p*****i",
+      author_name_raw: "pembeliasli",
       body: "Barang sampai, mantap",
       follow_up: null,
       reviewed_at: "2026-10-01T01:00:00.000Z",
