@@ -13,7 +13,7 @@ const ENV = {
 };
 
 beforeEach(async () => {
-  await sql`delete from shipping_quotes`;
+  await sql`delete from shipping_rates`;
 });
 
 afterAll(async () => {

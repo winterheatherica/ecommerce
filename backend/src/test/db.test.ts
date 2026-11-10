@@ -37,7 +37,7 @@ describe("database tes", () => {
       "regions",
       "reviews",
       "sessions",
-      "shipping_quotes",
+      "shipping_rates",
       "store_settings",
       "users",
       "variant_marketplace_names",

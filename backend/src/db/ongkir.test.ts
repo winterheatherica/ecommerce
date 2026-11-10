@@ -14,7 +14,7 @@ const OPSI: OpsiOngkir[] = [
 ];
 
 beforeEach(async () => {
-  await sql`delete from shipping_quotes`;
+  await sql`delete from shipping_rates`;
 });
 
 afterAll(async () => {
@@ -30,16 +30,24 @@ describe("simpan dan ambil tarif", () => {
     expect(hasil).toEqual(OPSI);
   });
 
-  it("berat di bawah 1 kg berbagi entri yang sama", async () => {
+  it("setiap berat punya entri sendiri, termasuk di bawah 1 kg", async () => {
     await simpanTarif(sql, "17683", 150, "jne", OPSI);
 
-    expect(await ambilTarifTersimpan(sql, "17683", 900, "jne", 24)).toEqual(OPSI);
+    expect(await ambilTarifTersimpan(sql, "17683", 900, "jne", 24)).toBeUndefined();
+    expect(await ambilTarifTersimpan(sql, "17683", 150, "jne", 24)).toEqual(OPSI);
   });
 
   it("berat di atas 1 kg jadi entri berbeda", async () => {
     await simpanTarif(sql, "17683", 150, "jne", OPSI);
 
     expect(await ambilTarifTersimpan(sql, "17683", 1500, "jne", 24)).toBeUndefined();
+  });
+
+  it("berat di atas 1 kg tidak saling memakai walau di kilo yang sama", async () => {
+    await simpanTarif(sql, "17683", 1200, "jnt", OPSI);
+
+    expect(await ambilTarifTersimpan(sql, "17683", 1800, "jnt", 24)).toBeUndefined();
+    expect(await ambilTarifTersimpan(sql, "17683", 1200, "jnt", 24)).toEqual(OPSI);
   });
 
   it("kurir berbeda tidak saling memakai", async () => {
@@ -57,7 +65,7 @@ describe("simpan dan ambil tarif", () => {
 
   it("tarif kedaluwarsa dianggap tidak ada", async () => {
     await simpanTarif(sql, "17683", 150, "jne", OPSI);
-    await sql`update shipping_quotes set fetched_at = now() - interval '30 hours'`;
+    await sql`update shipping_rates set fetched_at = now() - interval '30 hours'`;
 
     expect(await ambilTarifTersimpan(sql, "17683", 150, "jne", 24)).toBeUndefined();
   });

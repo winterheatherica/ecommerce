@@ -1,8 +1,8 @@
 import type { Kueri } from "../lib/db";
 import type { OpsiOngkir } from "../lib/shipping";
 
-export function kiloBulat(weightG: number): number {
-  return Math.max(1, Math.ceil(weightG / 1000));
+export function kunciBerat(weightG: number): number {
+  return Math.max(1, Math.ceil(weightG));
 }
 
 export async function ambilTarifTersimpan(
@@ -14,9 +14,9 @@ export async function ambilTarifTersimpan(
 ): Promise<OpsiOngkir[] | undefined> {
   const [baris] = await sql<{ options: OpsiOngkir[] }[]>`
     select options
-    from shipping_quotes
+    from shipping_rates
     where dest_id = ${destId}
-      and weight_kg = ${kiloBulat(weightG)}
+      and weight_g = ${kunciBerat(weightG)}
       and courier = ${courier}
       and fetched_at > now() - make_interval(hours => ${umurJam})
     limit 1
@@ -33,15 +33,15 @@ export async function simpanTarif(
   opsi: OpsiOngkir[],
 ): Promise<void> {
   await sql`
-    insert into shipping_quotes (dest_id, weight_kg, courier, options, fetched_at)
+    insert into shipping_rates (dest_id, weight_g, courier, options, fetched_at)
     values (
       ${destId},
-      ${kiloBulat(weightG)},
+      ${kunciBerat(weightG)},
       ${courier},
       ${sql.json(opsi)},
       now()
     )
-    on conflict (dest_id, weight_kg, courier) do update
+    on conflict (dest_id, weight_g, courier) do update
     set options = excluded.options,
         fetched_at = now()
   `;

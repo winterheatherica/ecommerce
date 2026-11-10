@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { kiloBulat } from "../db/ongkir";
+import { kunciBerat } from "../db/ongkir";
 import {
   layakDitawarkan,
   KURIR_BAWAAN,
@@ -121,21 +121,21 @@ describe("kurirDipakai", () => {
   });
 });
 
-describe("kiloBulat", () => {
-  it("membulatkan ke atas per kilogram", () => {
-    expect(kiloBulat(1)).toBe(1);
-    expect(kiloBulat(999)).toBe(1);
-    expect(kiloBulat(1000)).toBe(1);
-    expect(kiloBulat(1001)).toBe(2);
-    expect(kiloBulat(2500)).toBe(3);
+describe("kunciBerat", () => {
+  it("memakai berat persis dalam gram, tanpa menebak aturan pembulatan kurir", () => {
+    expect(kunciBerat(150)).toBe(150);
+    expect(kunciBerat(1000)).toBe(1000);
+    expect(kunciBerat(1300)).toBe(1300);
+    expect(kunciBerat(50)).not.toBe(kunciBerat(950));
+    expect(kunciBerat(1200)).not.toBe(kunciBerat(1800));
+  });
+
+  it("membulatkan pecahan gram ke atas", () => {
+    expect(kunciBerat(150.2)).toBe(151);
   });
 
   it("tidak pernah nol, supaya kunci cache selalu sah", () => {
-    expect(kiloBulat(0)).toBe(1);
-  });
-
-  it("berat di bawah 1 kg berbagi kunci cache yang sama", () => {
-    expect(kiloBulat(50)).toBe(kiloBulat(950));
+    expect(kunciBerat(0)).toBe(1);
   });
 });
 
