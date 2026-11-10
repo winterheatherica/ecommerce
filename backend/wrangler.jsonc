@@ -4,7 +4,7 @@
   "main": "src/index.ts",
   "compatibility_date": "2025-06-01",
   "compatibility_flags": ["nodejs_compat"],
-  "placement": { "region": "aws:ap-northeast-1" },
+  "placement": { "region": "aws:ap-southeast-1" },
   "ratelimits": [
     {
       "name": "UMUM_LIMIT",
