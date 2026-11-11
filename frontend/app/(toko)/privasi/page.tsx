@@ -74,8 +74,20 @@ const bagian = [
   },
 ];
 
+const PELACAKAN_GOOGLE_ADS = {
+  judul: "Pelacakan dan iklan",
+  isi: [
+    "Situs ini memasang Google tag dari Google Ads untuk satu keperluan: menghitung berapa pesanan yang datang dari iklan Menik Store di Google. Google dapat menyimpan cookie di browsermu untuk mencocokkan klik iklan dengan pesanan.",
+    "Saat pesananmu sudah dibayar, yang dikirim ke Google hanya nomor pesanan dan nilai belanjanya. Nama, nomor HP, email, dan alamatmu tidak dikirim.",
+    "Fitur iklan bertarget berdasarkan kunjungan (remarketing) kami matikan. Kami tidak memasang Google Analytics maupun piksel Facebook, dan tidak membuat profil perilaku. Cookie Google bisa kamu hapus atau blokir lewat pengaturan browser.",
+  ],
+};
+
 export default async function PrivasiPage() {
   const { toko } = await ambilSitus();
+  const daftar = toko.konversiIklan
+    ? bagian.map((b) => (b.judul === PELACAKAN_GOOGLE_ADS.judul ? PELACAKAN_GOOGLE_ADS : b))
+    : bagian;
 
   return (
     <section className="mx-auto w-full max-w-3xl px-6 pt-32 pb-8 lg:pb-24">
@@ -91,7 +103,7 @@ export default async function PrivasiPage() {
         tidak kami jalankan.
       </p>
 
-      {bagian.map((b) => (
+      {daftar.map((b) => (
         <div key={b.judul} className="mt-12 border-t border-ink/10 pt-8">
           <h2 className="text-lg font-semibold tracking-tight text-ink">
             {b.judul}

@@ -145,6 +145,31 @@ describe("simpanToko", () => {
       expect(hasil, isi).toBe("store_settings_verifikasi_google");
     }
   });
+
+  it("menyimpan kode konversi Google Ads, tetap ada kalau isiannya tidak dikirim, dan bisa dikosongkan", async () => {
+    const kode = "AW-123456789/AbC-dEf_GhIjKlMnOp";
+
+    const simpan = await simpanToko(sql, { ...isiToko(await ambilSitus(sql)), google_ads_send_to: kode });
+    expect(simpan.google_ads_send_to).toBe(kode);
+    expect((await ambilSitus(sql)).store?.google_ads_send_to).toBe(kode);
+
+    const { google_ads_send_to: _kode, ...tanpaKode } = isiToko(await ambilSitus(sql));
+    const lagi = await simpanToko(sql, { ...tanpaKode, wa_number: "6281200000002" });
+    expect(lagi.google_ads_send_to).toBe(kode);
+
+    const kosong = await simpanToko(sql, { ...tanpaKode, google_ads_send_to: null });
+    expect(kosong.google_ads_send_to).toBeNull();
+  });
+
+  it("database menolak kode konversi Google Ads yang bentuknya salah", async () => {
+    for (const isi of ["AW-123456789", "<script>", "AW-123456789/ab", "G-ABCDEF1234/AbCdEf"]) {
+      const hasil = await sql`update store_settings set google_ads_send_to = ${isi}`.then(
+        () => "lolos",
+        (e: unknown) => (e as { constraint_name?: string }).constraint_name ?? String(e),
+      );
+      expect(hasil, isi).toBe("store_settings_google_ads_send_to");
+    }
+  });
 });
 
 describe("simpanKategori", () => {

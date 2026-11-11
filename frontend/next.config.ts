@@ -23,14 +23,23 @@ function alamatApi(): string {
 const ASAL_API = new URL(alamatApi()).origin;
 const MODE_DEV = process.env.NODE_ENV !== "production";
 
+const GOOGLE_ADS = {
+  script:
+    "https://www.googletagmanager.com https://googleads.g.doubleclick.net https://www.googleadservices.com https://www.google.com",
+  img: "https://googleads.g.doubleclick.net https://www.google.com https://www.google.co.id",
+  frame: "https://bid.g.doubleclick.net https://td.doubleclick.net https://www.googletagmanager.com",
+  connect:
+    "https://googleads.g.doubleclick.net https://www.google.com https://www.google.co.id https://pagead2.googlesyndication.com https://www.googleadservices.com",
+};
+
 const CSP = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline'${MODE_DEV ? " 'unsafe-eval'" : ""} https://challenges.cloudflare.com`,
-  "frame-src https://challenges.cloudflare.com",
+  `script-src 'self' 'unsafe-inline'${MODE_DEV ? " 'unsafe-eval'" : ""} https://challenges.cloudflare.com ${GOOGLE_ADS.script}`,
+  `frame-src https://challenges.cloudflare.com ${GOOGLE_ADS.frame}`,
   "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob: https://res.cloudinary.com",
+  `img-src 'self' data: blob: https://res.cloudinary.com ${GOOGLE_ADS.img}`,
   "font-src 'self' data:",
-  "connect-src 'self'",
+  `connect-src 'self' ${GOOGLE_ADS.connect}`,
   "object-src 'none'",
   "base-uri 'self'",
   `form-action 'self' ${ASAL_API}`,

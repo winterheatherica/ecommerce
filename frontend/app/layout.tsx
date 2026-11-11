@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist_Mono, Plus_Jakarta_Sans } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 
 import { SitusProvider } from "@/app/components/situs-konteks";
@@ -88,6 +89,7 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const { toko, grup, kategori } = await ambilSitus();
+  const iklan = toko.konversiIklan?.split("/")[0] ?? null;
 
   return (
     <html
@@ -95,6 +97,16 @@ export default async function RootLayout({
       className={`${jakarta.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col">
+        {iklan && (
+          <>
+            <script
+              dangerouslySetInnerHTML={{
+                __html: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag("js",new Date());gtag("set","allow_ad_personalization_signals",false);gtag("config",${JSON.stringify(iklan)});`,
+              }}
+            />
+            <Script src={`https://www.googletagmanager.com/gtag/js?id=${iklan}`} strategy="afterInteractive" />
+          </>
+        )}
         <SitusProvider situs={{ toko, grup, kategori }}>{children}</SitusProvider>
       </body>
     </html>

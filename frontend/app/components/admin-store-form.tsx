@@ -18,10 +18,14 @@ const ALAMAT: { kolom: keyof TokoAPI; nama: string; contoh: string }[] = [
   { kolom: "postal_code", nama: "Kode pos", contoh: "13850" },
 ];
 
-type Isian = Omit<TokoAPI, "updated_at" | "wa_link" | "maps_url" | "google_site_verifications"> & {
+type Isian = Omit<
+  TokoAPI,
+  "updated_at" | "wa_link" | "maps_url" | "google_site_verifications" | "google_ads_send_to"
+> & {
   wa_link: string;
   maps_url: string;
   verifikasi: string;
+  iklan: string;
 };
 
 function isianAwal(t: TokoAPI | null): Isian {
@@ -41,6 +45,7 @@ function isianAwal(t: TokoAPI | null): Isian {
     closed_on_holidays: t?.closed_on_holidays ?? true,
     social_links: t?.social_links ?? [],
     verifikasi: (t?.google_site_verifications ?? []).join("\n"),
+    iklan: t?.google_ads_send_to ?? "",
   };
 }
 
@@ -73,11 +78,12 @@ export default function AdminStoreForm({ awal }: { awal: TokoAPI | null }) {
     setKabar(null);
 
     try {
-      const { verifikasi, ...lain } = isi;
+      const { verifikasi, iklan, ...lain } = isi;
       const hasil = await simpanInfoToko({
         ...lain,
         wa_link: isi.wa_link.trim() || null,
         maps_url: isi.maps_url.trim() || null,
+        google_ads_send_to: iklan.trim() || null,
         google_site_verifications: verifikasi
           .split("\n")
           .map((b) => b.trim())
@@ -318,6 +324,31 @@ export default function AdminStoreForm({ awal }: { awal: TokoAPI | null }) {
                 value={isi.verifikasi}
                 onChange={(e) => ubah("verifikasi", e.target.value)}
                 placeholder={'<meta name="google-site-verification" content="..." />'}
+                spellCheck={false}
+                className={`${kelasKotak} font-mono text-[13px]`}
+              />
+            </div>
+          </section>
+
+          <section className="space-y-4">
+            <h2 className="text-lg font-semibold tracking-tight text-ink">Google Ads</h2>
+            <p className="text-xs leading-relaxed text-stone-500">
+              Untuk mencatat pesanan yang datang dari iklan Google Ads. Di Google Ads buka Goals, lalu Conversions,
+              pilih konversi pembelian, pilih pasang tag sendiri, lalu tempel event snippet-nya di sini, atau isi
+              send_to-nya saja seperti{" "}
+              <code className="font-mono text-[12px] text-stone-700">AW-123456789/AbCdEfGh</code>. Pesanan dihitung
+              begitu pembelinya membuka halaman pesanan yang sudah dibayar. Kosongkan untuk mematikan pelacakan.
+            </p>
+            <div>
+              <label className={kelasLabel} htmlFor="google-ads">
+                Kode konversi pembelian <span className="normal-case">(opsional)</span>
+              </label>
+              <textarea
+                id="google-ads"
+                rows={3}
+                value={isi.iklan}
+                onChange={(e) => ubah("iklan", e.target.value)}
+                placeholder="AW-123456789/AbCdEfGh"
                 spellCheck={false}
                 className={`${kelasKotak} font-mono text-[13px]`}
               />

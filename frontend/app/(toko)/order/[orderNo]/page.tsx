@@ -5,13 +5,14 @@ import { notFound } from "next/navigation";
 
 import CopyButton from "@/app/components/copy-button";
 import GoogleButton from "@/app/components/google-button";
+import KonversiBeli from "@/app/components/konversi-beli";
 import PaymentCheck from "@/app/components/payment-check";
 import ReorderButton from "@/app/components/reorder-button";
 import RiwayatKurir from "@/app/components/riwayat-kurir";
 import UlasanPesanan from "@/app/components/ulasan-pesanan";
 import { ambilAkun, urlMasukGoogle } from "@/app/lib/akun";
 import { ambilKunciCaptcha } from "@/app/lib/captcha";
-import { ambilPesanan, ambilSemuaProduk, type Pesanan } from "@/app/lib/api";
+import { ambilPesanan, ambilSemuaProduk, ambilSitus, type Pesanan } from "@/app/lib/api";
 import { namaKurir, namaLayanan } from "@/app/lib/kurir";
 import {
   barisRiwayat,
@@ -265,9 +266,16 @@ export default async function StatusPesananPage({ params }: Props) {
     ).values(),
   ];
   const kunciUlas = pesanan.bisa_ulas ? await ambilKunciCaptcha() : null;
+  const { toko } = await ambilSitus();
+  const sudahBayar =
+    !pesanan.dilihat_admin &&
+    (pesanan.status === "PAID" || pesanan.status === "SHIPPED" || pesanan.status === "DELIVERED");
 
   return (
     <div className="mx-auto w-full max-w-3xl px-6 pt-32 pb-8 lg:pb-24">
+      {sudahBayar && toko.konversiIklan && (
+        <KonversiBeli sendTo={toko.konversiIklan} orderNo={pesanan.order_no} nilai={pesanan.subtotal} />
+      )}
       <p className="text-[15px] text-oranye-600 font-semibold">
         Status pesanan
       </p>

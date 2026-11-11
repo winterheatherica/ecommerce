@@ -480,6 +480,7 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
           { maxItems: 40 },
         ),
         google_site_verifications: t.Optional(t.Array(t.String({ maxLength: 600 }), { maxItems: 20 })),
+        google_ads_send_to: t.Optional(t.Union([t.String({ maxLength: 4000 }), t.Null()])),
       }),
     },
   )

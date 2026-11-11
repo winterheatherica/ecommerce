@@ -18,6 +18,7 @@ export type TokoBaru = {
   closed_on_holidays: boolean;
   social_links: TautanSosial[];
   google_site_verifications?: string[];
+  google_ads_send_to?: string | null;
 };
 
 export type TokoBersih = Omit<TokoBaru, "wa_link" | "maps_url"> & {
@@ -41,6 +42,12 @@ export function kodeVerifikasiGoogle(baris: string): string | null {
 
   const kode = (isi ? isi[1] : t).trim();
   return POLA_KODE_GOOGLE.test(kode) ? kode : null;
+}
+
+const POLA_KONVERSI_GOOGLE_ADS = /AW-[0-9]{6,15}\/[A-Za-z0-9_-]{4,64}/;
+
+export function kodeKonversiGoogleAds(teks: string): string | null {
+  return teks.match(POLA_KONVERSI_GOOGLE_ADS)?.[0] ?? null;
 }
 
 const POLA_JAM = /^([01][0-9]|2[0-3]):[0-5][0-9]$/;
@@ -156,6 +163,19 @@ export function periksaToko(
     }
   }
 
+  let iklan: string | null | undefined;
+  if (data.google_ads_send_to !== undefined) {
+    const isi = teks(data.google_ads_send_to ?? "");
+    iklan = isi ? kodeKonversiGoogleAds(isi) : null;
+    if (isi && !iklan) {
+      return gagal(
+        "invalid_google_ads",
+        "Kode konversi Google Ads tidak dikenali. Tempel event snippet dari Google Ads, atau isi send_to-nya saja, contohnya AW-123456789/AbCdEfGh",
+        "google_ads_send_to",
+      );
+    }
+  }
+
   return {
     ok: true,
     bersih: {
@@ -174,6 +194,7 @@ export function periksaToko(
       closed_on_holidays: data.closed_on_holidays,
       social_links: sosial,
       ...(verifikasi === undefined ? {} : { google_site_verifications: verifikasi }),
+      ...(iklan === undefined ? {} : { google_ads_send_to: iklan }),
     },
   };
 }

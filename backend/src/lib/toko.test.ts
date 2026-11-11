@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { kodeVerifikasiGoogle, periksaToko, rapikanNomorWa, type TokoBaru } from "./toko";
+import { kodeKonversiGoogleAds, kodeVerifikasiGoogle, periksaToko, rapikanNomorWa, type TokoBaru } from "./toko";
 
 function toko(ubah: Partial<TokoBaru> = {}): TokoBaru {
   return {
@@ -93,6 +93,45 @@ describe("periksaToko", () => {
       "Yznm88IpWbnk7WlhVrlbr1yzJyJP1-w_jf8mBUDjYfE",
       "abcdefghijKLMNOP_-123",
     ]);
+  });
+
+  it("kode konversi Google Ads: event snippet utuh atau send_to saja", () => {
+    const snippet = `<script>
+  gtag('event', 'conversion', {
+      'send_to': 'AW-123456789/AbC-dEf_GhIjKlMnOp',
+      'value': 1.0,
+      'currency': 'IDR',
+      'transaction_id': ''
+  });
+</script>`;
+
+    for (const isi of [snippet, "  AW-123456789/AbC-dEf_GhIjKlMnOp  "]) {
+      const hasil = periksaToko(toko({ google_ads_send_to: isi }));
+      expect(hasil.ok).toBe(true);
+      if (!hasil.ok) continue;
+      expect(hasil.bersih.google_ads_send_to).toBe("AW-123456789/AbC-dEf_GhIjKlMnOp");
+    }
+  });
+
+  it("kode konversi Google Ads: kosong menghapus, tanpa isian tidak disentuh, bentuk lain ditolak", () => {
+    for (const kosong of ["", "   ", null]) {
+      const hasil = periksaToko(toko({ google_ads_send_to: kosong }));
+      expect(hasil.ok).toBe(true);
+      if (!hasil.ok) continue;
+      expect(hasil.bersih.google_ads_send_to).toBeNull();
+    }
+
+    const tanpa = periksaToko(toko());
+    expect(tanpa.ok).toBe(true);
+    if (tanpa.ok) expect("google_ads_send_to" in tanpa.bersih).toBe(false);
+
+    for (const salah of ["AW-123456789", "G-ABCDEF1234", "AW-12/AbCdEf", "<script>alert(1)</script>"]) {
+      expect(kodeKonversiGoogleAds(salah), salah).toBeNull();
+      const hasil = periksaToko(toko({ google_ads_send_to: salah }));
+      expect(hasil.ok, salah).toBe(false);
+      if (hasil.ok) continue;
+      expect(hasil.badan.field).toBe("google_ads_send_to");
+    }
   });
 
   it("tanpa isian verifikasi Google, kode yang tersimpan tidak disentuh", () => {
