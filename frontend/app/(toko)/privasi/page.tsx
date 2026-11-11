@@ -77,7 +77,7 @@ const bagian = [
 const PELACAKAN_GOOGLE_ADS = {
   judul: "Pelacakan dan iklan",
   isi: [
-    "Situs ini memasang Google tag dari Google Ads untuk satu keperluan: menghitung berapa pesanan yang datang dari iklan Menik Store di Google. Google dapat menyimpan cookie di browsermu untuk mencocokkan klik iklan dengan pesanan.",
+    "Situs ini memasang Google tag dari Google Ads untuk satu keperluan: menghitung berapa pesanan yang datang dari iklan Menik Store di Google. Tag ini mengirim alamat halaman toko yang kamu buka ke Google, dan Google dapat menyimpan cookie di browsermu untuk mencocokkan klik iklan dengan pesanan.",
     "Saat pesananmu sudah dibayar, yang dikirim ke Google hanya nomor pesanan dan nilai belanjanya. Nama, nomor HP, email, dan alamatmu tidak dikirim.",
     "Fitur iklan bertarget berdasarkan kunjungan (remarketing) kami matikan. Kami tidak memasang Google Analytics maupun piksel Facebook, dan tidak membuat profil perilaku. Cookie Google bisa kamu hapus atau blokir lewat pengaturan browser.",
   ],

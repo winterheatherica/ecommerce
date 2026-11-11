@@ -24,12 +24,11 @@ const ASAL_API = new URL(alamatApi()).origin;
 const MODE_DEV = process.env.NODE_ENV !== "production";
 
 const GOOGLE_ADS = {
-  script:
-    "https://www.googletagmanager.com https://googleads.g.doubleclick.net https://www.googleadservices.com https://www.google.com",
-  img: "https://googleads.g.doubleclick.net https://www.google.com https://www.google.co.id",
-  frame: "https://bid.g.doubleclick.net https://td.doubleclick.net https://www.googletagmanager.com",
+  script: "https://www.googletagmanager.com https://www.googleadservices.com https://www.google.com",
+  img: "https://www.googletagmanager.com https://www.googleadservices.com https://googleads.g.doubleclick.net https://pagead2.googlesyndication.com https://www.google.com https://www.google.co.id",
+  frame: "https://www.googletagmanager.com",
   connect:
-    "https://googleads.g.doubleclick.net https://www.google.com https://www.google.co.id https://pagead2.googlesyndication.com https://www.googleadservices.com",
+    "https://www.googletagmanager.com https://www.googleadservices.com https://googleads.g.doubleclick.net https://pagead2.googlesyndication.com https://www.google.com https://www.google.co.id https://ad.doubleclick.net",
 };
 
 const CSP = [
